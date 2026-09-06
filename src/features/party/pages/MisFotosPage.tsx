@@ -130,7 +130,9 @@ export default function MisFotosPage({
   const fetchTheme = async (eventToken: string) => {
     try {
       const { eventTheme } = await getEventTheme(eventToken);
-      setResolvedTheme(tokensToEventPageTheme(eventTheme.tokens));
+      setResolvedTheme(
+        tokensToEventPageTheme(eventTheme.tokens, eventTheme.images),
+      );
     } catch {
       setResolvedTheme(null);
     } finally {

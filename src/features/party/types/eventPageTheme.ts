@@ -14,4 +14,5 @@ export interface EventPageTheme {
   accentGlow?: string;
   fontHeading?: string;
   fontBody?: string;
+  splashEmblemUrl?: string;
 }

@@ -120,9 +120,11 @@
 }
 
 .splashLogoRing {
+  position: relative;
   width: 108px;
   height: 108px;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(
     135deg,
     var(--ep-primary-btn-bg, #ec4899),
@@ -136,6 +138,15 @@
   justify-content: center;
   animation: logoReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   animation-delay: 0.2s;
+}
+
+.splashLogoRingEmblem {
+  background: transparent;
+  box-shadow: none;
+}
+
+.splashEmblemImage {
+  object-fit: cover;
 }
 
 .splashDivider {

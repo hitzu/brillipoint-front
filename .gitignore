@@ -46,3 +46,5 @@ certificates
 
 # SDD / agent artifacts
 .atl/.skill-registry.cache.json
+# Local AI runtime state
+.atl/

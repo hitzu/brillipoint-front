@@ -243,7 +243,9 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
 
     getEventTheme(resolvedToken)
       .then(({ eventTheme }) => {
-        setResolvedTheme(tokensToEventPageTheme(eventTheme.tokens));
+        setResolvedTheme(
+          tokensToEventPageTheme(eventTheme.tokens, eventTheme.images),
+        );
       })
       .catch(() => {
         setResolvedTheme(null);

@@ -61,3 +61,23 @@ test("honors optional escape-hatch tokens when present", () => {
   assert.equal(theme.surfaceBorderColor, "#d1d5db");
   assert.equal(theme.surfaceShadow, "0 1px 2px rgba(0,0,0,0.5)");
 });
+
+test("maps the splashEmblem image URL when images are present", () => {
+  const theme = tokensToEventPageTheme(baseTokens, {
+    splashEmblem: "https://proyecto.supabase.co/storage/v1/object/public/prod/emblem.jpeg",
+  });
+
+  assert.equal(
+    theme.splashEmblemUrl,
+    "https://proyecto.supabase.co/storage/v1/object/public/prod/emblem.jpeg",
+  );
+});
+
+test("leaves splashEmblemUrl undefined when images is null, missing, or lacks the key", () => {
+  assert.equal(tokensToEventPageTheme(baseTokens, null).splashEmblemUrl, undefined);
+  assert.equal(tokensToEventPageTheme(baseTokens).splashEmblemUrl, undefined);
+  assert.equal(
+    tokensToEventPageTheme(baseTokens, {}).splashEmblemUrl,
+    undefined,
+  );
+});

@@ -70,14 +70,31 @@ const FotoBoothSplash = ({
       <div className={styles.confettiContainer}>{confetti}</div>
 
       <div className={styles.splashContent}>
-        <div className={styles.splashLogoRing}>
-          <Image
-            src={logoExperience}
-            alt="Brillipoint"
-            width={64}
-            height={64}
-            priority
-          />
+        <div
+          className={
+            theme?.splashEmblemUrl
+              ? `${styles.splashLogoRing} ${styles.splashLogoRingEmblem}`
+              : styles.splashLogoRing
+          }
+        >
+          {theme?.splashEmblemUrl ? (
+            <Image
+              src={theme.splashEmblemUrl}
+              alt={honoreesNames ?? "Brillipoint"}
+              fill
+              sizes="108px"
+              className={styles.splashEmblemImage}
+              priority
+            />
+          ) : (
+            <Image
+              src={logoExperience}
+              alt="Brillipoint"
+              width={64}
+              height={64}
+              priority
+            />
+          )}
         </div>
 
         <div className={styles.splashDivider} />

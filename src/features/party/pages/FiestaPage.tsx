@@ -141,7 +141,9 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
 
     try {
       const { eventTheme } = await getEventTheme(resolvedEventToken);
-      setResolvedTheme(tokensToEventPageTheme(eventTheme.tokens));
+      setResolvedTheme(
+        tokensToEventPageTheme(eventTheme.tokens, eventTheme.images),
+      );
     } catch {
       setResolvedTheme(null);
     } finally {
