@@ -919,6 +919,74 @@
   transform: scale(0.95);
 }
 
+/* Scroll hint toward the save/share buttons */
+
+.saveHint {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px 10px 18px;
+  border: 1px solid var(--ep-surface-stroke);
+  border-radius: 999px;
+  background: var(--ep-surface-glass-strong);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 10px 28px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.22),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: var(--ep-font-body, "Public Sans"), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ep-accent, #9d174d);
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.saveHintVisible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.saveHintArrow {
+  display: inline-flex;
+}
+
+/* A few nudges on reveal, then it rests so the eye doesn't filter it out. */
+.saveHintVisible .saveHintArrow {
+  animation: saveHintNudge 1s ease-in-out 0.4s 3;
+}
+
+@keyframes saveHintNudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saveHint {
+    transition: opacity 0.2s ease;
+  }
+
+  .saveHintVisible .saveHintArrow {
+    animation: none;
+  }
+}
+
 /* ── Success CTA ───────────────────────────────────────────────── */
 
 .successCtaOverlay {

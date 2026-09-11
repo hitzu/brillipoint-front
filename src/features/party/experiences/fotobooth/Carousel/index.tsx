@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import styles from "@assets/css/fotobooth.module.css";
 import { CarouselProps } from "../../types";
 import { useFotoBoothCarousel } from "./hooks/useFotoBoothCarousel";
@@ -7,6 +7,7 @@ import ActionBar from "./ui/ActionBar";
 import CarouselHeader from "./ui/CarouselHeader";
 import GiftModal from "./ui/GiftModal";
 import ItemStage from "./ui/ItemStage";
+import SaveActionsHint from "./ui/SaveActionsHint";
 import SessionInlineCta from "./ui/SessionInlineCta";
 import ShareFallbackModal from "./ui/ShareFallbackModal";
 import SuccessCtaModal from "./ui/SuccessCtaModal";
@@ -14,6 +15,7 @@ import { buildThemeVars } from "../../../utils/themeVars";
 
 const FotoBoothCarousel = (props: CarouselProps) => {
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const actionBarRef = useRef<HTMLDivElement>(null);
   const {
     activeEffect,
     activeItem,
@@ -100,10 +102,13 @@ const FotoBoothCarousel = (props: CarouselProps) => {
       />
 
       <ActionBar
+        ref={actionBarRef}
         isBusy={isGeneratingAsset}
         onSave={handleSave}
         onShare={handleShare}
       />
+
+      <SaveActionsHint targetRef={actionBarRef} />
 
       <SuccessCtaModal
         eventName={props.eventData.honoreesNames}
