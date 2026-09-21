@@ -100,6 +100,35 @@ it("applies the overnight preset as one Mexico City interval crossing midnight",
   });
 });
 
+it("applies the all-day preset without advancing the selected civil day", async () => {
+  save.mockClear();
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Todo el día (00:00–23:59)" })
+  );
+  expect((screen.getByLabelText("Inicio") as HTMLInputElement).value).toBe(
+    "00:00"
+  );
+  expect((screen.getByLabelText("Fin") as HTMLInputElement).value).toBe(
+    "23:59"
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+
+  await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+  expect(save.mock.calls[0][0]).toMatchObject({
+    eventDate: "2026-09-19",
+    serviceStartsAt: "2026-09-19T06:00:00.000Z",
+    serviceEndsAt: "2026-09-20T05:59:00.000Z",
+  });
+});
+
 it("renders presets with a title and compact range subtitle", () => {
   render(
     <BookingForm

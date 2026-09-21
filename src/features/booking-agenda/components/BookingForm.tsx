@@ -87,6 +87,16 @@ export const BookingForm = ({
                 <Button
                   type="button"
                   variant="outline-secondary"
+                  aria-label="Todo el día (00:00–23:59)"
+                  onClick={() => form.applyPreset("00:00", "23:59")}
+                  disabled={form.saving}
+                >
+                  <strong className="d-block">Todo el día</strong>
+                  <small className="d-block">(00:00–23:59)</small>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline-secondary"
                   aria-label="Mañana (04:00–12:00)"
                   onClick={() => form.applyPreset("04:00", "12:00")}
                   disabled={form.saving}
