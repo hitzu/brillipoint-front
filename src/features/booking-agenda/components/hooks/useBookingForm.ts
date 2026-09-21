@@ -1,5 +1,10 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import type { BookingDetail, ExactBookingPayload, YMD } from "../../types";
+import type {
+  BookingDetail,
+  ContractOption,
+  ExactBookingPayload,
+  YMD,
+} from "../../types";
 import {
   fromMexicoCityDateTimeInput,
   toMexicoCityDateTimeInput,
@@ -60,14 +65,23 @@ const validMapsUrl = (value: string) => {
 interface UseBookingFormArgs {
   initialDate: YMD;
   booking?: BookingDetail | null;
-  onSave: (payload: ExactBookingPayload, note: string) => Promise<void>;
+  contract?: ContractOption | null;
+  onSave: (
+    payload: ExactBookingPayload,
+    note: string,
+    contractId: number | null
+  ) => Promise<void>;
 }
 export const useBookingForm = ({
   initialDate,
   booking,
+  contract,
   onSave,
 }: UseBookingFormArgs) => {
   const [state, setState] = useState(() => createState(booking, initialDate));
+  const [contractId, setContractId] = useState<number | null>(
+    contract?.id ?? null
+  );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const update = <Key extends keyof BookingFormState>(
@@ -90,8 +104,9 @@ export const useBookingForm = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const reset = useCallback(() => {
     setState(createState(booking, initialDate));
+    setContractId(contract?.id ?? null);
     setError(null);
-  }, [booking?.id, initialDate]);
+  }, [booking?.id, contract?.id, initialDate]);
   useEffect(() => {
     reset();
   }, [reset]);
@@ -129,7 +144,7 @@ export const useBookingForm = ({
     setSaving(true);
     setError(null);
     try {
-      await onSave(payload, state.note.trim());
+      await onSave(payload, state.note.trim(), contractId);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "No se pudo guardar el evento."
@@ -138,5 +153,15 @@ export const useBookingForm = ({
       setSaving(false);
     }
   };
-  return { applyPreset, error, reset, saving, state, submit, update };
+  return {
+    applyPreset,
+    contractId,
+    error,
+    reset,
+    saving,
+    setContractId,
+    state,
+    submit,
+    update,
+  };
 };

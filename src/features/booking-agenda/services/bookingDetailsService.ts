@@ -4,29 +4,15 @@ import type { BookingDetail, BookingNote, ExactBookingPayload } from "../types";
 export const getBookingDetail = async (id: number): Promise<BookingDetail> =>
   (await axiosInstanceWithToken.get<BookingDetail>(`/bookings/${id}`)).data;
 
-export const createInternalBooking = async (
+/**
+ * Creates a booking. `contractId` on the payload is what links it to a
+ * contract; leave it out and the booking stands alone. One route for both —
+ * the API dropped the internal/commercial split, so a booking is a booking.
+ */
+export const createBooking = async (
   payload: ExactBookingPayload
 ): Promise<BookingDetail> =>
-  (
-    await axiosInstanceWithToken.post<BookingDetail>(
-      "/bookings/internal",
-      payload
-    )
-  ).data;
-
-export const confirmBooking = async (
-  id: number,
-  {
-    serviceStartsAt,
-    serviceEndsAt,
-  }: Pick<ExactBookingPayload, "serviceStartsAt" | "serviceEndsAt">
-): Promise<BookingDetail> =>
-  (
-    await axiosInstanceWithToken.post<BookingDetail>(
-      `/bookings/${id}/confirm`,
-      { serviceStartsAt, serviceEndsAt }
-    )
-  ).data;
+  (await axiosInstanceWithToken.post<BookingDetail>("/bookings", payload)).data;
 
 export const rescheduleBooking = async (
   id: number,

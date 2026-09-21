@@ -38,6 +38,13 @@ export interface BookingDetail {
   contract?: { sku?: string | null; token?: string | null } | null;
 }
 
+/** Minimal contract identity the booking form needs to link a booking. */
+export interface ContractOption {
+  id: number;
+  sku: string;
+  clientName: string;
+}
+
 export interface ExactBookingPayload {
   scheduleType: BookingScheduleType;
   eventDate: YMD;
@@ -47,6 +54,8 @@ export interface ExactBookingPayload {
   purpose?: string;
   venueName?: string;
   mapsUrl?: string;
+  /** Links the booking to a contract. Omitted, the booking stands alone. */
+  contractId?: number;
 }
 
 export interface BookingNote {

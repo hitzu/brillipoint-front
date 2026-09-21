@@ -6,8 +6,7 @@ const api = vi.hoisted(() => ({
   getBookingDetail: vi.fn(),
   getBookingNotes: vi.fn(),
   createBookingNote: vi.fn(),
-  createInternalBooking: vi.fn(),
-  confirmBooking: vi.fn(),
+  createBooking: vi.fn(),
   rescheduleBooking: vi.fn(),
 }));
 vi.mock("../../hooks/useAgendaRange", () => ({
@@ -53,9 +52,9 @@ const entry = {
   blocks: [],
   isApproximate: false,
 };
-const hold = {
+const existing = {
   ...entry,
-  status: "hold",
+  status: "confirmed",
   eventDate: entry.date,
   serviceStartsAt: entry.startsAt,
   serviceEndsAt: entry.endsAt,
@@ -63,7 +62,7 @@ const hold = {
   mapsUrl: null,
   contract: null,
 };
-const confirmed = { ...hold, status: "confirmed", title: "Después" };
+const saved = { ...existing, title: "Después" };
 
 const openEdit = async () => {
   fireEvent.click(screen.getByRole("button", { name: "Abrir evento" }));
@@ -75,23 +74,24 @@ describe("AgendaPage mutations", () => {
   beforeEach(() => {
     Object.values(api).forEach((mock) => mock.mockReset());
     api.getBookingNotes.mockResolvedValue([]);
-    api.getBookingDetail.mockResolvedValue(hold);
+    api.getBookingDetail.mockResolvedValue(existing);
   });
-  it("does not confirm a hold twice when metadata save is retried", async () => {
-    api.confirmBooking.mockResolvedValue({ ...hold, status: "confirmed" });
+  it("surfaces a failed save and lets the same edit be retried", async () => {
     api.rescheduleBooking
       .mockRejectedValueOnce(new Error("metadata failed"))
-      .mockResolvedValue(confirmed);
+      .mockResolvedValue(saved);
     render(<AgendaPage initialDate="2026-09-19" />);
     await openEdit();
     fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
     await screen.findByRole("alert");
     fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
     await waitFor(() => expect(api.rescheduleBooking).toHaveBeenCalledTimes(2));
-    expect(api.confirmBooking).toHaveBeenCalledTimes(1);
+    // Editing never creates: a retry reschedules the same booking twice and
+    // does not fall through to the creation endpoint.
+    expect(api.createBooking).not.toHaveBeenCalled();
   });
   it("closes the booking form without opening event details after saving", async () => {
-    api.rescheduleBooking.mockResolvedValue(confirmed);
+    api.rescheduleBooking.mockResolvedValue(saved);
     render(<AgendaPage initialDate="2026-09-19" />);
     await openEdit();
     fireEvent.click(screen.getByRole("button", { name: "Guardar" }));

@@ -1,0 +1,35 @@
+.picker {
+  position: relative;
+}
+
+.options {
+  position: absolute;
+  z-index: 5;
+  width: 100%;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem;
+  list-style: none;
+  max-height: 14rem;
+  overflow-y: auto;
+  border: 1px solid var(--vz-border-color, rgba(255, 255, 255, 0.15));
+  border-radius: 0.375rem;
+  background: var(--vz-secondary-bg, #1c2536);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35);
+}
+
+.option {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.option:hover,
+.option:focus-visible {
+  background: var(--vz-tertiary-bg, rgba(255, 255, 255, 0.08));
+}

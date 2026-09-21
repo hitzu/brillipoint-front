@@ -6,9 +6,8 @@ import type {
   YMD,
 } from "../../../types";
 import {
+  createBooking,
   createBookingNote,
-  confirmBooking,
-  createInternalBooking,
   rescheduleBooking,
 } from "../../../services/bookingDetailsService";
 type EditingBooking = BookingDetail | "new" | null;
@@ -59,32 +58,17 @@ export const useAgendaPage = ({
   const saveBooking = async (
     payload: ExactBookingPayload,
     note: string,
-    refetch: () => void
+    refetch: () => void,
+    contractId: number | null = null
   ) => {
-    let saved: BookingDetail;
-    if (editing && editing !== "new") {
-      if (editing.status === "hold") {
-        try {
-          await confirmBooking(editing.id, payload);
-          setEditing({ ...editing, status: "confirmed" });
-        } catch {
-          throw new Error(
-            "No se pudo confirmar el evento; no se aplicaron los demás cambios."
+    // The contract is a field on the payload, not a different endpoint: the
+    // API creates every booking through POST /bookings.
+    const saved =
+      editing && editing !== "new"
+        ? await rescheduleBooking(editing.id, payload)
+        : await createBooking(
+            contractId === null ? payload : { ...payload, contractId }
           );
-        }
-        try {
-          saved = await rescheduleBooking(editing.id, payload);
-        } catch {
-          throw new Error(
-            "El evento quedó confirmado, pero no se pudieron guardar los demás cambios. Vuelve a intentar guardar la información; no se volverá a confirmar."
-          );
-        }
-      } else {
-        saved = await rescheduleBooking(editing.id, payload);
-      }
-    } else {
-      saved = await createInternalBooking(payload);
-    }
     if (note) {
       try {
         await createBookingNote(saved.id, note);

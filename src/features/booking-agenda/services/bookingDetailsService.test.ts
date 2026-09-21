@@ -5,9 +5,8 @@ vi.mock("../../../api/config/axiosConfig", () => ({
   axiosInstanceWithToken: { get, post },
 }));
 import {
-  confirmBooking,
+  createBooking,
   createBookingNote,
-  createInternalBooking,
   getBookingDetail,
   getBookingNotes,
   rescheduleBooking,
@@ -38,19 +37,26 @@ describe("booking details service", () => {
     expect(get).toHaveBeenNthCalledWith(1, "/bookings/9");
     expect(get).toHaveBeenNthCalledWith(2, "/notes/booking/9?kind=internal");
   });
-  it("sends exact creation, hold confirmation, metadata rescheduling, and append-only notes", async () => {
+
+  it("creates every booking through one endpoint, contract or not", async () => {
     post.mockResolvedValue({ data: { id: 9 } });
-    await createInternalBooking(payload);
-    await confirmBooking(9, payload);
+    await createBooking(payload);
+    await createBooking({ ...payload, contractId: 7 });
+    // One route for both. The contract is an optional field on the body, so a
+    // booking with a contract and one without differ only by that field.
+    expect(post).toHaveBeenNthCalledWith(1, "/bookings", payload);
+    expect(post).toHaveBeenNthCalledWith(2, "/bookings", {
+      ...payload,
+      contractId: 7,
+    });
+  });
+
+  it("reschedules metadata and appends internal notes", async () => {
+    post.mockResolvedValue({ data: { id: 9 } });
     await rescheduleBooking(9, payload);
     await createBookingNote(9, "Llegar temprano");
-    expect(post).toHaveBeenNthCalledWith(1, "/bookings/internal", payload);
-    expect(post).toHaveBeenNthCalledWith(2, "/bookings/9/confirm", {
-      serviceStartsAt: payload.serviceStartsAt,
-      serviceEndsAt: payload.serviceEndsAt,
-    });
-    expect(post).toHaveBeenNthCalledWith(3, "/bookings/9/reschedule", payload);
-    expect(post).toHaveBeenNthCalledWith(4, "/notes", {
+    expect(post).toHaveBeenNthCalledWith(1, "/bookings/9/reschedule", payload);
+    expect(post).toHaveBeenNthCalledWith(2, "/notes", {
       content: "Llegar temprano",
       kind: "internal",
       targetId: 9,

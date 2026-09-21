@@ -17,6 +17,8 @@ import { getPackages } from "../../../../../api/services/packageService";
 import { getExtras } from "../../../../../api/services/extrasService";
 import { getUsers } from "../../../../../api/services/usersService";
 import { generateContract } from "../../../../../api/services/contractService";
+import { createBooking } from "../../../../booking-agenda/services/bookingDetailsService";
+import { bookingPayloadForBlock } from "../../../../booking-agenda/utils/blockBooking";
 import { createPayment } from "../../../../../api/services/paymentService";
 import { createNote } from "../../../../../api/services/notesService";
 import { getPromotionsByBrandId } from "../../../../../api/services/promotionsService";
@@ -82,6 +84,7 @@ export function useContractForm({
     [],
   );
   const [monthHasReservedDate, setMonthHasReservedDate] = useState(false);
+  const [bookingWarning, setBookingWarning] = useState<string | null>(null);
   // Brand ids already booked in the selected date's month (Lusso rule).
   const [bookedBrandIds, setBookedBrandIds] = useState<number[]>([]);
 
@@ -472,6 +475,28 @@ export function useContractForm({
           );
         }
         await Promise.all(promises);
+
+        // The contract is sold by block, so its booking is derived from the
+        // chosen block rather than typed. Kept out of the batch above and out
+        // of the outer catch on purpose: the contract and its deposit already
+        // exist here, so reporting a booking failure as a contract failure
+        // would invite the seller to sell the same thing twice.
+        try {
+          await createBooking(
+            bookingPayloadForBlock(fecha, period, {
+              contractId: newContract.id,
+              purpose: "event",
+              title: nombre.trim() || undefined,
+            }),
+          );
+          setBookingWarning(null);
+        } catch (bookingError) {
+          console.error("Error creating the contract booking:", bookingError);
+          setBookingWarning(
+            "El contrato se generó, pero no se pudo apartar la fecha en la agenda. Avisa a coordinación.",
+          );
+        }
+
         setContract(newContract);
       }
     } catch (e) {
@@ -484,6 +509,7 @@ export function useContractForm({
 
   const resetForm = () => {
     setContract(null);
+    setBookingWarning(null);
     setFecha(todayStr);
     setPeriod(null);
     setSelectedUserId("");
@@ -550,6 +576,7 @@ export function useContractForm({
     contract,
     submitting,
     errorMsg,
+    bookingWarning,
     hasCopiedLink,
     setHasCopiedLink,
     // derived

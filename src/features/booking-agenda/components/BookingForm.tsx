@@ -1,20 +1,37 @@
 import { Button, Col, Form, Modal, Row } from "react-bootstrap";
-import type { BookingDetail, ExactBookingPayload, YMD } from "../types";
+import type {
+  BookingDetail,
+  ContractOption,
+  ExactBookingPayload,
+  YMD,
+} from "../types";
+import {
+  BOOKING_BLOCKS,
+  blockLabel,
+} from "../../../shared/scheduling/bookingBlocks";
 import dialogStyles from "./AgendaDialog.module.css";
+import { ContractPicker, label as contractLabel } from "./ContractPicker";
 import { useBookingForm } from "./hooks/useBookingForm";
 interface Props {
   initialDate: YMD;
   booking?: BookingDetail | null;
+  /** Fixes the contract — used when the form is opened from a contract row. */
+  contract?: ContractOption | null;
   onCancel: () => void;
-  onSave: (payload: ExactBookingPayload, note: string) => Promise<void>;
+  onSave: (
+    payload: ExactBookingPayload,
+    note: string,
+    contractId: number | null
+  ) => Promise<void>;
 }
 export const BookingForm = ({
   initialDate,
   booking,
+  contract,
   onCancel,
   onSave,
 }: Props) => {
-  const form = useBookingForm({ initialDate, booking, onSave });
+  const form = useBookingForm({ initialDate, booking, contract, onSave });
   const title = booking ? "Editar evento" : "Nuevo evento";
   const close = () => {
     if (!form.saving) onCancel();
@@ -94,37 +111,36 @@ export const BookingForm = ({
                   <strong className="d-block">Todo el día</strong>
                   <small className="d-block">(00:00–23:59)</small>
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline-secondary"
-                  aria-label="Mañana (04:00–12:00)"
-                  onClick={() => form.applyPreset("04:00", "12:00")}
-                  disabled={form.saving}
-                >
-                  <strong className="d-block">Mañana</strong>
-                  <small className="d-block">(04:00–12:00)</small>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline-secondary"
-                  aria-label="Tarde (12:00–20:00)"
-                  onClick={() => form.applyPreset("12:00", "20:00")}
-                  disabled={form.saving}
-                >
-                  <strong className="d-block">Tarde</strong>
-                  <small className="d-block">(12:00–20:00)</small>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline-secondary"
-                  aria-label="Noche (20:00–04:00)"
-                  onClick={() => form.applyPreset("20:00", "04:00", true)}
-                  disabled={form.saving}
-                >
-                  <strong className="d-block">Noche</strong>
-                  <small className="d-block">(20:00–04:00)</small>
-                </Button>
+                {BOOKING_BLOCKS.map((block) => (
+                  <Button
+                    key={block.id}
+                    type="button"
+                    variant="outline-secondary"
+                    aria-label={blockLabel(block)}
+                    onClick={() =>
+                      form.applyPreset(
+                        block.startsAt,
+                        block.endsAt,
+                        block.endsNextDay
+                      )
+                    }
+                    disabled={form.saving}
+                  >
+                    <strong className="d-block">{block.label}</strong>
+                    <small className="d-block">
+                      ({block.startsAt}–{block.endsAt})
+                    </small>
+                  </Button>
+                ))}
               </div>
+            </Col>
+            <Col xs={12}>
+              <ContractPicker
+                value={form.contractId}
+                onChange={form.setContractId}
+                lockedLabel={contract ? contractLabel(contract) : undefined}
+                disabled={form.saving}
+              />
             </Col>
             <Col md={6}>
               <Form.Group controlId="booking-title">
@@ -151,6 +167,9 @@ export const BookingForm = ({
                   <option value="event">Evento</option>
                   <option value="scouting">Scouting</option>
                   <option value="meeting">Reunión</option>
+                  <option value="trial_makeup">Prueba de maquillaje</option>
+                  <option value="trial_hair">Prueba de peinado</option>
+                  <option value="trial_nail">Prueba de uñas</option>
                   <option value="other">Otro</option>
                 </Form.Select>
               </Form.Group>

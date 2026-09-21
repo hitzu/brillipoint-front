@@ -12,7 +12,13 @@ import BreadcrumbItem from "@common/BreadcrumbItem";
 import { Card, Col, Row, Form } from "react-bootstrap";
 import DeleteModal from "@common/DeleteModal";
 import FinalizeModal from "@common/FinalizeModal";
-import { CreateNoteModal, PaymentsModal } from "../../features/contracts";
+import {
+  CreateNoteModal,
+  PaymentsModal,
+  ScheduleBookingModal,
+} from "../../features/contracts";
+import { toYMD } from "../../features/booking-agenda/utils/businessDate";
+import type { ContractOption } from "../../features/booking-agenda/types";
 import {
   deleteContractById,
   finalizeContract,
@@ -31,6 +37,8 @@ const ContractsListPage = () => {
   const [showNoteModal, setShowNoteModal] = useState<boolean>(false);
   const [noteContractId, setNoteContractId] = useState<number>(0);
   const [includeFinalized, setIncludeFinalized] = useState<boolean>(false);
+  const [scheduleContract, setScheduleContract] =
+    useState<ContractOption | null>(null);
 
   const fetchContracts = useCallback(async () => {
     const response = (await getContracts({
@@ -97,6 +105,16 @@ const ContractsListPage = () => {
     setPaymentsContractId(0);
   };
 
+  const handleSchedule = useCallback((contract: Contract) => {
+    setScheduleContract({
+      id: contract.id,
+      sku: contract.sku ?? "",
+      clientName: contract.clientName ?? "",
+    });
+  }, []);
+
+  const handleScheduleClose = () => setScheduleContract(null);
+
   const handleCreateNote = useCallback((id: number) => {
     setNoteContractId(id);
     setShowNoteModal(true);
@@ -148,6 +166,20 @@ const ContractsListPage = () => {
           return (
             <React.Fragment>
               <ul className="list-inline me-auto mb-0">
+                <li
+                  className="list-inline-item align-bottom"
+                  data-bs-toggle="tooltip"
+                  title="Agendar"
+                >
+                  <Link
+                    href="#!"
+                    className="avtar avtar-xs btn-link-info btn-pc-default"
+                    onClick={() => handleSchedule(cellProps.row.original)}
+                    aria-label="Agendar evento del contrato"
+                  >
+                    <i className="ti ti-calendar-plus f-18"></i>
+                  </Link>
+                </li>
                 <li
                   className="list-inline-item align-bottom"
                   data-bs-toggle="tooltip"
@@ -210,7 +242,13 @@ const ContractsListPage = () => {
         },
       },
     ],
-    [handleDelete, handleFinalize, handlePayments, handleCreateNote],
+    [
+      handleDelete,
+      handleFinalize,
+      handlePayments,
+      handleCreateNote,
+      handleSchedule,
+    ],
   );
 
   return (
@@ -234,6 +272,12 @@ const ContractsListPage = () => {
         show={showNoteModal}
         handleClose={handleNoteClose}
         contractId={noteContractId}
+      />
+      <ScheduleBookingModal
+        show={scheduleContract !== null}
+        contract={scheduleContract}
+        initialDate={toYMD(new Date())}
+        handleClose={handleScheduleClose}
       />
 
       <BreadcrumbItem mainTitle="Contratos" subTitle="Lista de contratos" />

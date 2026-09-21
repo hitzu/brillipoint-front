@@ -1,4 +1,5 @@
 import styles from "@assets/css/expo-bebe.module.css";
+import { blockById } from "../../../../../shared/scheduling/bookingBlocks";
 import { SectionHead } from "../../SectionHead";
 import type { ContractFormVM } from "../hooks/useContractForm";
 
@@ -17,22 +18,30 @@ export function DateSlotSection({ vm }: { vm: ContractFormVM }) {
     selectedBrandName,
   } = vm;
 
+  // Labels and hours come from the shared block definition: expo sells the
+  // same blocks the agenda books, so the range shown here is the range the
+  // booking is written with.
+  const range = (id: "am_block" | "pm_block") => {
+    const block = blockById(id);
+    return `${block.startsAt} – ${block.endsAt}`;
+  };
+
   const slots = [
     {
       id: "am_block" as const,
-      label: "Matutino",
+      label: blockById("am_block").label,
       sub:
         availabilityByPeriod.matutine === false
           ? "No disponible"
-          : "Antes de las 4:00 PM",
+          : range("am_block"),
     },
     {
       id: "pm_block" as const,
-      label: "Vespertino",
+      label: blockById("pm_block").label,
       sub:
         availabilityByPeriod.vespertine === false
           ? "No disponible"
-          : "Después de las 4:00 PM",
+          : range("pm_block"),
     },
   ];
 

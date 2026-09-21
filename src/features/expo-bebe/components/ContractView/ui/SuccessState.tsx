@@ -3,8 +3,14 @@ import styles from "@assets/css/expo-bebe.module.css";
 import type { ContractFormVM } from "../hooks/useContractForm";
 
 export function SuccessState({ vm }: { vm: ContractFormVM }) {
-  const { nombre, contractLink, hasCopiedLink, setHasCopiedLink, resetForm } =
-    vm;
+  const {
+    nombre,
+    contractLink,
+    hasCopiedLink,
+    setHasCopiedLink,
+    resetForm,
+    bookingWarning,
+  } = vm;
 
   return (
     <div className={styles.cfSuccess}>
@@ -14,6 +20,11 @@ export function SuccessState({ vm }: { vm: ContractFormVM }) {
         El contrato para <strong>{nombre || "el cliente"}</strong> fue creado
         exitosamente.
       </p>
+      {bookingWarning && (
+        <p role="alert" className={styles.cfSuccessText}>
+          ⚠️ {bookingWarning}
+        </p>
+      )}
       {contractLink && (
         <div
           style={{

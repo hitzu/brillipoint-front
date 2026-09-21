@@ -109,8 +109,8 @@ export const AgendaPage = ({
           initialDate={page.selectedDate}
           booking={page.editing === "new" ? null : page.editing}
           onCancel={() => page.setEditing(null)}
-          onSave={(payload, note) =>
-            page.saveBooking(payload, note, range.refetch)
+          onSave={(payload, note, contractId) =>
+            page.saveBooking(payload, note, range.refetch, contractId)
           }
         />
       ) : null}
