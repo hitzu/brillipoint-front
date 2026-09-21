@@ -20,6 +20,22 @@ const menuItems = [
   {
     type: "HASHMENU",
     id: 0,
+    label: "Agenda",
+    icon: "ph-duotone ph-calendar-blank",
+    dataPage: null,
+    link: "#",
+    submenu: [
+      {
+        id: "slots",
+        label: "Agenda",
+        link: "/agenda",
+        dataPage: "contracts-list",
+      },
+    ],
+  },
+  {
+    type: "HASHMENU",
+    id: 2,
     label: "Contratos",
     icon: "ph-duotone ph-calendar-blank",
     dataPage: null,
@@ -41,7 +57,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 1,
+    id: 2,
     label: "Productos",
     icon: "ph-duotone ph-shopping-cart",
     dataPage: null,
@@ -69,7 +85,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 2,
+    id: 3,
     label: "Paquetes",
     icon: "ph-duotone ph-package",
     dataPage: null,
@@ -97,7 +113,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 3,
+    id: 4,
     label: "Terminos y condiciones",
     icon: "ph-duotone ph-file-text",
     dataPage: null,
@@ -125,7 +141,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 4,
+    id: 5,
     label: "Promociones",
     icon: "ph-duotone ph-percent",
     dataPage: null,
@@ -141,7 +157,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 5,
+    id: 6,
     label: "Proveedores",
     icon: "ph-duotone ph-truck",
     dataPage: null,
@@ -169,7 +185,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 6,
+    id: 7,
     label: "Eventos",
     icon: "ph-duotone ph-confetti",
     dataPage: null,
@@ -197,7 +213,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 7,
+    id: 8,
     label: "Fotos",
     icon: "ph-duotone ph-images",
     dataPage: null,
@@ -235,7 +251,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 8,
+    id: 10,
     label: "Expos",
     icon: "ph-duotone ph-calendar-blank",
     dataPage: null,

@@ -15,7 +15,6 @@ import type {
   TabKey,
 } from "../types";
 import { getBrandId, getBrandKeyById, parseExpoBebeBrand } from "../utils/brand";
-import type { ContractPeriod } from "../utils/calendar";
 import { getBrandById } from "../../../api/services/brandService";
 
 export function ExpoBebePage() {
@@ -29,10 +28,7 @@ export function ExpoBebePage() {
   const [minAmountHoldSlot, setMinAmountHoldSlot] = useState<number | null>(null);
   const [expoMonthlyRiskEnabled, setExpoMonthlyRiskEnabled] = useState(false);
   const [brandName, setBrandName] = useState<string | null>(null);
-  const [slotSeed, setSlotSeed] = useState<{
-    date: string;
-    period: ContractPeriod;
-  } | null>(null);
+  const [slotSeed, setSlotSeed] = useState<string | null>(null);
 
   const brandId = useMemo<number>(() => {
     const raw = router.query.brandId ?? router.query.brand;
@@ -122,8 +118,8 @@ export function ExpoBebePage() {
     );
   };
 
-  const handlePickSlot = (date: string, period: ContractPeriod) => {
-    setSlotSeed({ date, period });
+  const handlePickDate = (date: string) => {
+    setSlotSeed(date);
     setCatalogMode(null);
     setTab("ctr");
   };
@@ -135,7 +131,7 @@ export function ExpoBebePage() {
           <Tabs value={activeMenu} onChange={handleMenuChange} />
 
           {tab === "cal" && (
-            <CalendarView brandName={brandName} onPickSlot={handlePickSlot} />
+            <CalendarView brandName={brandName} onPickDate={handlePickDate} />
           )}
           {tab === "ctr" && (
             <ContractView
@@ -144,8 +140,7 @@ export function ExpoBebePage() {
               brandName={brandName}
               minAmountHoldSlot={minAmountHoldSlot}
               expoMonthlyRiskEnabled={expoMonthlyRiskEnabled}
-              initialFecha={slotSeed?.date}
-              initialPeriod={slotSeed?.period}
+              initialFecha={slotSeed ?? undefined}
             />
           )}
 

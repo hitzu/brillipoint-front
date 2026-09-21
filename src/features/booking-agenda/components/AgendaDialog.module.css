@@ -1,0 +1,70 @@
+.dialog {
+  --agenda-dialog-surface: #ffffff;
+  --agenda-dialog-text: #09203d;
+  --agenda-dialog-muted: #b6cad9;
+  --agenda-dialog-border: #cbd8e7;
+  --agenda-dialog-control-bg: #ffffff;
+  --agenda-dialog-primary: #00649e;
+  --agenda-dialog-primary-hover: #00578a;
+  --agenda-dialog-focus: #13b6d1;
+}
+.dialog :global(.modal-content) {
+  border: 1px solid var(--agenda-dialog-border);
+  border-radius: 1rem;
+  background: var(--agenda-dialog-surface);
+  color: var(--agenda-dialog-text);
+  box-shadow: 0 1.5rem 4rem rgba(1, 16, 38, 0.35);
+}
+.dialog :global(.modal-header),
+.dialog :global(.modal-footer) {
+  border-color: var(--agenda-dialog-border);
+}
+.dialog :global(.modal-body) {
+  background-color: var(--agenda-dialog-surface) !important;
+}
+.dialog :global(.modal-title) {
+  color: var(--agenda-dialog-text);
+  font-weight: 700;
+}
+.dialog :global(.form-label),
+.dialog :global(.form-check-label),
+.dialog :global(.modal-body a) {
+  color: var(--agenda-dialog-text);
+}
+.dialog :global(.form-control),
+.dialog :global(.form-select) {
+  background-color: var(--agenda-dialog-control-bg);
+  color: var(--agenda-dialog-text);
+  border-color: var(--agenda-dialog-border);
+}
+.dialog :global(.form-control::placeholder) {
+  color: var(--agenda-dialog-muted);
+}
+.dialog :global(.form-control:focus),
+.dialog :global(.form-select:focus),
+.dialog :global(.btn:focus-visible) {
+  border-color: var(--agenda-dialog-focus);
+  box-shadow: 0 0 0 0.2rem
+    color-mix(in srgb, var(--agenda-dialog-focus) 22%, transparent);
+}
+.dialog :global(.btn-primary) {
+  --bs-btn-bg: var(--agenda-dialog-primary);
+  --bs-btn-border-color: var(--agenda-dialog-primary);
+  --bs-btn-hover-bg: var(--agenda-dialog-primary-hover);
+  --bs-btn-hover-border-color: var(--agenda-dialog-primary-hover);
+  --bs-btn-active-bg: var(--agenda-dialog-primary-hover);
+  --bs-btn-active-border-color: var(--agenda-dialog-primary-hover);
+  --bs-btn-disabled-bg: #293444;
+  --bs-btn-disabled-border-color: #293444;
+}
+.notes {
+  white-space: pre-wrap;
+}
+:global([data-pc-theme="dark"]) .dialog {
+  --agenda-dialog-surface: #192027;
+  --agenda-dialog-text: #e2eaf3;
+  --agenda-dialog-muted: #91a3b5;
+  --agenda-dialog-border: #2c3a48;
+  --agenda-dialog-control-bg: #212c37;
+  --agenda-dialog-focus: #2ad8fc;
+}

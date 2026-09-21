@@ -22,6 +22,7 @@ const menuItems = [
         //  Application
         { label: "Application", type: "HEADER" },
         { id: "calendar", label: "Calendar", link: "/application/calendar", icon: "ph-duotone ph-calendar-blank", dataPage: "calendar" },
+        { id: "agenda", label: "Agenda", link: "/agenda", icon: "ph-duotone ph-calendar-check", dataPage: "agenda" },
         { id: "chat", label: "Chat", link: "/application/chat", icon: "ph-duotone ph-chats-circle", dataPage: "chat" },
         {
             type: "HASHMENU", id: "gallery", label: "Gallery", link: "#", dataPage: null, icon: "ph-duotone ph-image",

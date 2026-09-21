@@ -4,6 +4,8 @@ import { defineConfig } from "vitest/config";
 const r = (p: string) => resolve(__dirname, p);
 
 export default defineConfig({
+  // Override Next.js JSX preservation for the test transform.
+  oxc: { jsx: "automatic" },
   resolve: {
     alias: {
       "@pages": r("src/pages"),
@@ -22,6 +24,7 @@ export default defineConfig({
     // Component/render tests opt into jsdom per-file via:
     //   // @vitest-environment jsdom
     environment: "node",
+    setupFiles: [r("src/test/setup.ts")],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     // party/* keeps its existing node:test runner (npm run test:party).
     exclude: ["node_modules", ".next", "src/features/party/**"],

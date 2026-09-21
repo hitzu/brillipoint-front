@@ -1,0 +1,112 @@
+.navigation {
+  --agenda-nav-surface: #ffffff;
+  --agenda-nav-text: #09203d;
+  --agenda-nav-muted: #6684a3;
+  --agenda-nav-border: #c7d8e8;
+  --agenda-nav-track: #e4eef7;
+  --agenda-nav-primary: #00649e;
+  --agenda-nav-focus: #13b6d1;
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  color: var(--agenda-nav-text);
+}
+:global([data-pc-theme="dark"]) .navigation {
+  --agenda-nav-surface: #16222f;
+  --agenda-nav-text: #e2eaf3;
+  --agenda-nav-muted: #91a3b5;
+  --agenda-nav-border: #2c3e50;
+  --agenda-nav-track: #2c3e50;
+  --agenda-nav-primary: #00649e;
+  --agenda-nav-focus: #2ad8fc;
+}
+.navigation :global(.agenda-date-filters),
+.navigation :global(.agenda-week-navigation) {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.navigation :global(.agenda-date-filters) {
+  justify-content: flex-start;
+}
+.navigation :global(.agenda-date-filters > [role="group"]),
+.navigation :global(.agenda-week-navigation > div:not([role="group"])) {
+  display: flex;
+  gap: 0.45rem;
+}
+.navigation :global(button),
+.navigation :global(select) {
+  min-height: 40px;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--agenda-nav-border);
+  border-radius: 0.45rem;
+  background: var(--agenda-nav-surface);
+  color: var(--agenda-nav-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.navigation :global(button:hover) {
+  border-color: var(--agenda-nav-muted);
+}
+.navigation :global(.agenda-date-filters button[aria-pressed="true"]) {
+  background: var(--agenda-nav-primary);
+  border-color: var(--agenda-nav-primary);
+  color: #fff;
+  font-weight: 600;
+}
+.navigation :global(label) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--agenda-nav-muted);
+  font-size: 0.85rem;
+}
+.navigation :global(.agenda-week-navigation > strong) {
+  color: var(--agenda-nav-text);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.navigation :global(.agenda-week-navigation > div:not([role="group"]) button) {
+  min-width: 40px;
+  padding: 0.45rem 0.6rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+/* Resumen / Horarios segmented toggle */
+.navigation :global(.agenda-week-navigation > [role="group"]) {
+  display: flex;
+  gap: 0.2rem;
+  margin-left: auto;
+  padding: 0.2rem;
+  border-radius: 0.55rem;
+  background: var(--agenda-nav-track);
+}
+.navigation :global(.agenda-week-navigation > [role="group"] button) {
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--agenda-nav-muted);
+}
+.navigation
+  :global(
+    .agenda-week-navigation > [role="group"] button[aria-pressed="true"]
+  ) {
+  background: var(--agenda-nav-surface);
+  color: var(--agenda-nav-text);
+  font-weight: 600;
+}
+.navigation :global(button:focus-visible),
+.navigation :global(select:focus-visible) {
+  outline: 2px solid var(--agenda-nav-focus);
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .navigation :global(.agenda-week-navigation > strong) {
+    flex: 1 1 100%;
+  }
+}

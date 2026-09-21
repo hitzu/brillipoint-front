@@ -86,34 +86,6 @@ export const updateLeadInfo = async (
   }
 };
 
-export const getCalendarV2 = async (
-  month: number,
-  year: number
-): Promise<CalendarSlotsByMonthPayload> => {
-  try {
-    const queryParams = new URLSearchParams({
-      year: String(year),
-      month: String(month),
-      contractInfo: "true",
-    });
-
-    const response = await axiosInstanceWithoutToken.get(
-      `/slots/v2/calendar?${queryParams.toString()}`
-    );
-    const data = response.data;
-
-    return {
-      risk: Boolean(data?.risk),
-      days: Array.isArray(data?.days)
-        ? (data.days as CalendarSlotsByMonthResponse[])
-        : [],
-    };
-  } catch (error) {
-    console.error("Error fetching v2 calendar:", error);
-    throw error;
-  }
-};
-
 export const getSlotsByMonthAndYear = async (
   month: number,
   year: number,

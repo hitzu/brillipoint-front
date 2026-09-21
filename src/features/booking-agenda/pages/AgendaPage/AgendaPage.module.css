@@ -1,0 +1,93 @@
+.workspace {
+  --agenda-page-bg: #eef5fb;
+  --agenda-page-text: #09203d;
+  --agenda-page-muted: #6684a3;
+  --agenda-page-primary: #00649e;
+  --agenda-page-primary-hover: #00578a;
+  --agenda-page-focus: #13b6d1;
+  min-height: 70vh;
+  padding: clamp(1rem, 3vw, 2rem);
+  border-radius: 1.25rem;
+  background: var(--agenda-page-bg);
+  color: var(--agenda-page-text);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.header h1 {
+  margin: 0;
+  color: var(--agenda-page-heading, var(--agenda-page-text));
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 700;
+}
+.header p {
+  margin: 0.25rem 0 0;
+  color: var(--agenda-page-muted);
+}
+.eyebrow {
+  color: var(--agenda-page-muted) !important;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.primaryButton {
+  min-height: 42px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--agenda-page-primary);
+  border-radius: 0.5rem;
+  background: var(--agenda-page-primary);
+  color: #fff;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+.primaryButton:hover {
+  background: var(--agenda-page-primary-hover);
+  border-color: var(--agenda-page-primary-hover);
+}
+.primaryButton:focus-visible,
+.workspace button:focus-visible {
+  outline: 2px solid var(--agenda-page-focus);
+  outline-offset: 3px;
+}
+.notice {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ead28d;
+  border-radius: 0.65rem;
+  background: #fff6d8;
+  color: #513d04;
+}
+.notice button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-decoration: underline;
+}
+:global([data-pc-theme="dark"]) .workspace {
+  --agenda-page-bg: #101a22;
+  --agenda-page-text: #e2eaf3;
+  --agenda-page-heading: #ffffff;
+  --agenda-page-muted: #a1b4c6;
+  --agenda-page-focus: #2ad8fc;
+}
+@media (max-width: 767px) {
+  .workspace {
+    min-height: 100vh;
+    border-radius: 0;
+    padding: 1rem;
+  }
+  .header {
+    align-items: flex-start;
+  }
+  .header p {
+    max-width: 14rem;
+  }
+  .primaryButton {
+    padding: 0.55rem 0.75rem;
+  }
+}
