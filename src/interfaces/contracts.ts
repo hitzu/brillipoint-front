@@ -92,7 +92,7 @@ export interface GenerateContractExtra {
 
 export interface GenerateContractPayload {
   userId: number;
-  slotId: number;
+  slotId?: number;
   brandId?: number;
   sku: string;
   clientName: string;

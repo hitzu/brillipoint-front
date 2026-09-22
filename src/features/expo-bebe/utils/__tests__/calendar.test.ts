@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   buildWeekendRows,
   detectSwipe,
-  slotToPeriod,
   stepMonth,
   toYMD,
 } from "../calendar";
@@ -52,13 +51,6 @@ describe("detectSwipe", () => {
   it("returns null when movement is within threshold", () => {
     expect(detectSwipe(40)).toBeNull();
     expect(detectSwipe(-40)).toBeNull();
-  });
-});
-
-describe("slotToPeriod", () => {
-  it("maps calendar slots to contract periods", () => {
-    expect(slotToPeriod("morning")).toBe("am_block");
-    expect(slotToPeriod("afternoon")).toBe("pm_block");
   });
 });
 

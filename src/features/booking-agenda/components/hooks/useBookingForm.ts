@@ -9,6 +9,7 @@ import {
   fromMexicoCityDateTimeInput,
   toMexicoCityDateTimeInput,
 } from "../../utils/mexicoCityTime";
+import { bookingConflictMessage } from "@shared/scheduling/bookingConflict";
 interface BookingFormState {
   eventDate: YMD;
   startsAt: string;
@@ -147,7 +148,10 @@ export const useBookingForm = ({
       await onSave(payload, state.note.trim(), contractId);
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "No se pudo guardar el evento."
+        bookingConflictMessage(cause) ??
+          (cause instanceof Error
+            ? cause.message
+            : "No se pudo guardar el evento.")
       );
     } finally {
       setSaving(false);

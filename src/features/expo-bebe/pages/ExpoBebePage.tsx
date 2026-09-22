@@ -26,7 +26,6 @@ export function ExpoBebePage() {
   const [extras, setExtras] = useState<ServiceItem[]>(EXTRAS);
 
   const [minAmountHoldSlot, setMinAmountHoldSlot] = useState<number | null>(null);
-  const [expoMonthlyRiskEnabled, setExpoMonthlyRiskEnabled] = useState(false);
   const [brandName, setBrandName] = useState<string | null>(null);
   const [slotSeed, setSlotSeed] = useState<string | null>(null);
 
@@ -74,7 +73,6 @@ export function ExpoBebePage() {
         const data = await getBrandById(brandId);
         if (cancelled) return;
         setBrandName(data.name);
-        setExpoMonthlyRiskEnabled(Boolean(data.expoMonthlyRiskEnabled));
         setMinAmountHoldSlot(data.minAmountHoldSlot);
       } catch {
         // keep null — ContractView falls back to its own default
@@ -139,7 +137,6 @@ export function ExpoBebePage() {
               brandId={brandId}
               brandName={brandName}
               minAmountHoldSlot={minAmountHoldSlot}
-              expoMonthlyRiskEnabled={expoMonthlyRiskEnabled}
               initialFecha={slotSeed ?? undefined}
             />
           )}

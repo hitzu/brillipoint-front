@@ -11,7 +11,6 @@ import {
   Promotion,
   UserInfo,
 } from "../../../../../interfaces";
-import type { GetSlotResponse } from "../../../../../interfaces/slots";
 import { getBrands } from "../../../../../api/services/brandService";
 import { getPackages } from "../../../../../api/services/packageService";
 import { getExtras } from "../../../../../api/services/extrasService";
@@ -19,40 +18,68 @@ import { getUsers } from "../../../../../api/services/usersService";
 import { generateContract } from "../../../../../api/services/contractService";
 import { createBooking } from "../../../../booking-agenda/services/bookingDetailsService";
 import { bookingPayloadForBlock } from "../../../../booking-agenda/utils/blockBooking";
+import {
+  blockAvailability as blockAvailabilityFor,
+  type BlockAvailability,
+} from "../../../../booking-agenda/utils/blockAvailability";
+import type { AgendaEntry, YMD } from "../../../../booking-agenda/types";
+import { getPublicBookingCalendar } from "../../../services/publicBookingCalendar";
 import { createPayment } from "../../../../../api/services/paymentService";
 import { createNote } from "../../../../../api/services/notesService";
 import { getPromotionsByBrandId } from "../../../../../api/services/promotionsService";
-import {
-  getSlots,
-  getSlotsByMonthAndYear,
-  holdSlot,
-} from "../../../../../api/services/slotsService";
+import { bookingConflictMessage } from "@shared/scheduling/bookingConflict";
 import type { ExtraLineItem, PackageLineItem } from "../../../types";
 import type { ExpoBebeBrandKey } from "../../../types";
 import type { ContractPeriod } from "../../../utils/calendar";
 import { formatSkuDate, normalizeSkuText } from "../../../utils/sku";
 import { clampQuantity } from "../../../utils/quantity";
 import {
-  LUSSO_BRAND_ID,
-  brandBlockedMessage,
-  isBrandBlockedForMonth,
-} from "../../../utils/brandBlocking";
-import {
   isValidEmailFormat,
   isValidPhoneLength,
   sanitizePhoneInput,
 } from "../../../utils/contactValidation";
-import { getBookedBrandIdsByMonth } from "../../../services/monthBrandUsage";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const DEFAULT_MIN_AMOUNT_HOLD_SLOT = 200;
+
+/**
+ * Reads the booking calendar for a day and the one after it.
+ *
+ * The night block runs past midnight, so a conflict can live in the small
+ * hours of the following civil day — which, at a month end, is also the next
+ * month. Both the calendar-refresh effect and the pre-submit availability
+ * check below share this exact fetch so they cannot drift apart.
+ */
+const fetchCalendarEntriesForDate = (
+  date: YMD,
+): Promise<Record<YMD, AgendaEntry[]>> => {
+  const next = new Date(`${date}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  const wanted = new Map<string, [number, number]>();
+  for (const day of [date, next.toISOString().slice(0, 10)]) {
+    wanted.set(day.slice(0, 7), [
+      Number(day.slice(0, 4)),
+      Number(day.slice(5, 7)),
+    ]);
+  }
+
+  return Promise.all(
+    Array.from(wanted.values()).map(([year, month]) =>
+      getPublicBookingCalendar(year, month),
+    ),
+  ).then((months) =>
+    months.reduce<Record<YMD, AgendaEntry[]>>(
+      (all, entries) => ({ ...all, ...entries }),
+      {},
+    ),
+  );
+};
 
 interface UseContractFormOptions {
   brandKey?: ExpoBebeBrandKey;
   lockedBrandId?: number | null;
   lockedBrandName?: string;
   minAmountHoldSlot?: number | null;
-  expoMonthlyRiskEnabled?: boolean;
   initialFecha?: string;
   initialPeriod?: ContractPeriod;
 }
@@ -62,7 +89,6 @@ export function useContractForm({
   lockedBrandId,
   lockedBrandName,
   minAmountHoldSlot,
-  expoMonthlyRiskEnabled,
   initialFecha,
   initialPeriod,
 }: UseContractFormOptions = {}) {
@@ -80,13 +106,10 @@ export function useContractForm({
   const [activePromotion, setActivePromotion] = useState<Promotion | null>(
     null,
   );
-  const [slotAvailability, setSlotAvailability] = useState<GetSlotResponse[]>(
-    [],
-  );
-  const [monthHasReservedDate, setMonthHasReservedDate] = useState(false);
+  const [calendarEntries, setCalendarEntries] = useState<
+    Record<YMD, AgendaEntry[]>
+  >({});
   const [bookingWarning, setBookingWarning] = useState<string | null>(null);
-  // Brand ids already booked in the selected date's month (Lusso rule).
-  const [bookedBrandIds, setBookedBrandIds] = useState<number[]>([]);
 
   // Form fields
   const [fecha, setFecha] = useState(initialFecha ?? todayStr);
@@ -146,6 +169,13 @@ export function useContractForm({
       .catch(() => setBrands([]));
   }, [brandKey, lockedBrandId]);
 
+  // Load users (vendors)
+  useEffect(() => {
+    getUsers()
+      .then((data) => setUsers(Array.isArray(data) ? data : []))
+      .catch(() => setUsers([]));
+  }, []);
+
   // Load packages when brand changes
   useEffect(() => {
     if (!selectedBrandId) {
@@ -199,47 +229,28 @@ export function useContractForm({
       return currentPeriod === null ? currentPeriod : null;
     });
 
-    getSlots(fecha, brandKey)
-      .then((data) => setSlotAvailability(Array.isArray(data) ? data : []))
-      .catch(() => setSlotAvailability([]));
-  }, [brandKey, fecha, initialFecha]);
+  }, [fecha, initialFecha]);
 
+  // The night block runs past midnight, so the day after the selected one has
+  // to be loaded too — which at a month end means the next month as well.
   useEffect(() => {
-    if (!fecha || !selectedBrandId) {
-      setMonthHasReservedDate(false);
-      return;
-    }
-
-    const [yearStr, monthStr] = fecha.split("-");
-    const year = Number(yearStr);
-    const month = Number(monthStr);
-
-    if (!year || !month) {
-      setMonthHasReservedDate(false);
-      return;
-    }
-
+    if (!fecha) return;
     let cancelled = false;
-
-    getSlotsByMonthAndYear(month, year, Number(selectedBrandId))
-      .then((data) => {
-        if (!cancelled) setMonthHasReservedDate(Boolean(data?.risk));
+    fetchCalendarEntriesForDate(fecha)
+      .then((entries) => {
+        if (!cancelled) setCalendarEntries(entries);
       })
+      // Never block a sale on a failed read. The seller has a client in front
+      // of them, and a false "no disponible" costs more than a rare double
+      // booking, which the agenda surfaces anyway.
       .catch(() => {
-        if (!cancelled) setMonthHasReservedDate(false);
+        if (!cancelled) setCalendarEntries({});
       });
 
     return () => {
       cancelled = true;
     };
-  }, [fecha, selectedBrandId]);
-
-  // Load users
-  useEffect(() => {
-    getUsers()
-      .then((data) => setUsers(Array.isArray(data) ? data : []))
-      .catch(() => setUsers([]));
-  }, []);
+  }, [fecha]);
 
   // Auto-select the target package for extras when there's exactly one in the cart.
   useEffect(() => {
@@ -256,24 +267,10 @@ export function useContractForm({
     );
   }, [items]);
 
-  const availabilityByPeriod = useMemo(() => {
-    const norm = (p?: string | null) => {
-      const s = (p ?? "").toLowerCase().trim();
-      if (s === "am_block") return "matutine";
-      if (s === "pm_block") return "vespertine";
-      return null;
-    };
-    const out: Record<"matutine" | "vespertine", boolean | null> = {
-      matutine: null,
-      vespertine: null,
-    };
-    for (const it of slotAvailability ?? []) {
-      const key = norm(it?.period);
-      if (!key) continue;
-      out[key] = Boolean(it?.available);
-    }
-    return out;
-  }, [slotAvailability]);
+  const blockAvailability: BlockAvailability = useMemo(
+    () => blockAvailabilityFor(fecha, calendarEntries),
+    [fecha, calendarEntries],
+  );
 
   // Tier discount % (display-only hint) for the Nth extra (0-indexed) added to a given package row.
   const getTierDiscount = (
@@ -429,12 +426,43 @@ export function useContractForm({
 
     setSubmitting(true);
     try {
-      const held = await holdSlot({ eventDate: fecha, period });
-      const sku = `${normalizeSkuText(items[0]?.pkg?.name).toLowerCase()}${formatSkuDate(held?.eventDate)}${normalizeSkuText(nombre)}`;
+      // Availability can go stale between form load and submit. Re-read it
+      // right before charging anything, so a block someone else just took
+      // refuses the sale instead of silently overbooking it.
+      //
+      // Never block a sale on a failed read — same principle as the calendar
+      // effect above: the seller has a client in front of them, and a false
+      // "no disponible" costs more than a rare double booking, which the
+      // agenda surfaces anyway. Only a successfully-read, definitely-taken
+      // block may refuse.
+      let freshCalendarEntries: Record<YMD, AgendaEntry[]> | null = null;
+      try {
+        freshCalendarEntries = await fetchCalendarEntriesForDate(fecha);
+      } catch (precheckError) {
+        console.error(
+          "Error checking availability before the sale:",
+          precheckError,
+        );
+      }
+
+      if (freshCalendarEntries) {
+        const freshAvailability = blockAvailabilityFor(
+          fecha,
+          freshCalendarEntries,
+        );
+        if (!freshAvailability[period]) {
+          setCalendarEntries(freshCalendarEntries);
+          setErrorMsg(
+            "Ese bloque se acaba de ocupar. Elige otro horario para continuar.",
+          );
+          return;
+        }
+      }
+
+      const sku = `${normalizeSkuText(items[0]?.pkg?.name).toLowerCase()}${formatSkuDate(fecha)}${normalizeSkuText(nombre)}`;
 
       const payload: GenerateContractPayload = {
         userId: Number(selectedUserId),
-        slotId: held.id,
         brandId: Number(selectedBrandId),
         sku,
         clientName: nombre.trim(),
@@ -492,8 +520,19 @@ export function useContractForm({
           setBookingWarning(null);
         } catch (bookingError) {
           console.error("Error creating the contract booking:", bookingError);
+          // The conflict detail is appended, never substituted: the contract
+          // and its deposit already exist here, so a warning that only names
+          // the clash reads like the sale failed — and a seller who believes
+          // that sells the same thing twice.
+          const conflict = bookingConflictMessage(bookingError);
           setBookingWarning(
-            "El contrato se generó, pero no se pudo apartar la fecha en la agenda. Avisa a coordinación.",
+            [
+              "El contrato se generó, pero no se pudo apartar la fecha en la agenda.",
+              conflict,
+              "Avisa a coordinación.",
+            ]
+              .filter(Boolean)
+              .join(" "),
           );
         }
 
@@ -581,10 +620,8 @@ export function useContractForm({
     setHasCopiedLink,
     // derived
     isLocked,
-    expoMonthlyRiskEnabled,
-    monthHasReservedDate,
     requiredMinAmountHoldSlot,
-    availabilityByPeriod,
+    blockAvailability,
     subtotal,
     discountTotal,
     extrasSubtotal,

@@ -1,5 +1,5 @@
 import styles from "@assets/css/expo-bebe.module.css";
-import { blockById } from "../../../../../shared/scheduling/bookingBlocks";
+import { BOOKING_BLOCKS } from "../../../../../shared/scheduling/bookingBlocks";
 import { SectionHead } from "../../SectionHead";
 import type { ContractFormVM } from "../hooks/useContractForm";
 
@@ -10,8 +10,7 @@ export function DateSlotSection({ vm }: { vm: ContractFormVM }) {
     isLocked,
     period,
     setPeriod,
-    availabilityByPeriod,
-    monthHasReservedDate,
+    blockAvailability,
     selectedUserId,
     setSelectedUserId,
     users,
@@ -21,29 +20,13 @@ export function DateSlotSection({ vm }: { vm: ContractFormVM }) {
   // Labels and hours come from the shared block definition: expo sells the
   // same blocks the agenda books, so the range shown here is the range the
   // booking is written with.
-  const range = (id: "am_block" | "pm_block") => {
-    const block = blockById(id);
-    return `${block.startsAt} – ${block.endsAt}`;
-  };
-
-  const slots = [
-    {
-      id: "am_block" as const,
-      label: blockById("am_block").label,
-      sub:
-        availabilityByPeriod.matutine === false
-          ? "No disponible"
-          : range("am_block"),
-    },
-    {
-      id: "pm_block" as const,
-      label: blockById("pm_block").label,
-      sub:
-        availabilityByPeriod.vespertine === false
-          ? "No disponible"
-          : range("pm_block"),
-    },
-  ];
+  const slots = BOOKING_BLOCKS.map((block) => ({
+    id: block.id,
+    label: block.label,
+    sub: blockAvailability[block.id]
+      ? `${block.startsAt} – ${block.endsAt}`
+      : "No disponible",
+  }));
 
   return (
     <section className={styles.panel}>
@@ -61,13 +44,6 @@ export function DateSlotSection({ vm }: { vm: ContractFormVM }) {
           <label className={styles.cfLabel}>
             Selecciona la fecha <span className={styles.cfRequired}>✦</span>
           </label>
-          {monthHasReservedDate && (
-            <span
-              className={styles.riskDot}
-              aria-label="Requiere validación"
-              title="Requiere validación"
-            />
-          )}
         </div>
         <input
           type="date"
@@ -82,11 +58,7 @@ export function DateSlotSection({ vm }: { vm: ContractFormVM }) {
         <label className={styles.cfLabel}>Slot horario</label>
         <div className={styles.cfSlotRow}>
           {slots.map((s) => {
-            const unavailable =
-              (s.id === "am_block" &&
-                availabilityByPeriod.matutine === false) ||
-              (s.id === "pm_block" &&
-                availabilityByPeriod.vespertine === false);
+            const unavailable = !blockAvailability[s.id];
             return (
               <button
                 key={s.id}

@@ -1,5 +1,7 @@
 /* Calendar helpers for the weekend (Fri/Sat/Sun) availability grid. */
 
+import type { BookingBlockId } from "@shared/scheduling/bookingBlocks";
+
 export const MONTHS = [
   "enero",
   "febrero",
@@ -22,18 +24,14 @@ export const toYMD = (year: number, month: number, day: number) => {
 };
 
 export type SwipeDir = "prev" | "next" | null;
-export type ContractPeriod = "am_block" | "pm_block";
+// A contract is sold in one of the three shared booking blocks — this is an
+// alias, not a separate vocabulary, so there is one source of truth.
+export type ContractPeriod = BookingBlockId;
 
 export function detectSwipe(deltaX: number, threshold = 50): SwipeDir {
   if (deltaX > threshold) return "prev";
   if (deltaX < -threshold) return "next";
   return null;
-}
-
-export function slotToPeriod(
-  slot: "morning" | "afternoon",
-): ContractPeriod {
-  return slot === "morning" ? "am_block" : "pm_block";
 }
 
 export function stepMonth(

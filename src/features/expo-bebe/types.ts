@@ -39,9 +39,3 @@ export interface ServiceItem {
  * Brands that already have at least one event booked in a given month.
  * Returned by the calendar/month endpoint once the backend exposes it.
  */
-export interface MonthBrandUsage {
-  year: number;
-  /** 1-12 */
-  month: number;
-  bookedBrandIds: number[];
-}

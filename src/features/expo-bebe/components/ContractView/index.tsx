@@ -16,7 +16,6 @@ interface ContractViewProps {
   brandId: number;
   brandName?: string | null;
   minAmountHoldSlot?: number | null;
-  expoMonthlyRiskEnabled?: boolean;
   initialFecha?: string;
   initialPeriod?: ContractPeriod;
 }
@@ -26,7 +25,6 @@ export function ContractView({
   brandId,
   brandName,
   minAmountHoldSlot,
-  expoMonthlyRiskEnabled,
   initialFecha,
   initialPeriod,
 }: ContractViewProps) {
@@ -35,8 +33,7 @@ export function ContractView({
     lockedBrandId: brandId,
     lockedBrandName: brandName ?? "",
     minAmountHoldSlot,
-    expoMonthlyRiskEnabled,
-    initialFecha,
+      initialFecha,
     initialPeriod,
   });
 

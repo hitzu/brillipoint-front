@@ -1,7 +1,38 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { AxiosError } from "axios";
 import { BookingForm } from "./BookingForm";
+
+const make409 = (data?: unknown) =>
+  new AxiosError(
+    "Request failed with status code 409",
+    "ERR_BAD_REQUEST",
+    undefined,
+    undefined,
+    {
+      status: 409,
+      statusText: "Conflict",
+      headers: {},
+      config: {} as never,
+      data,
+    } as never
+  );
+
+const make500 = () =>
+  new AxiosError(
+    "Request failed with status code 500",
+    "ERR_BAD_RESPONSE",
+    undefined,
+    undefined,
+    {
+      status: 500,
+      statusText: "Internal Server Error",
+      headers: {},
+      config: {} as never,
+      data: undefined,
+    } as never
+  );
 
 const save = vi.fn().mockResolvedValue(undefined);
 describe("BookingForm", () => {
@@ -195,6 +226,46 @@ it("keeps the dialog open while a save is in progress", async () => {
         .disabled
     ).toBe(false)
   );
+});
+
+it("shows the conflicting booking instead of the raw HTTP status on a 409", async () => {
+  save.mockClear();
+  save.mockRejectedValueOnce(
+    make409({
+      conflict: {
+        id: 3,
+        title: "Fiesta previa",
+        serviceStartsAt: "2026-09-19T18:00:00.000Z",
+        serviceEndsAt: "2026-09-20T02:00:00.000Z",
+      },
+    })
+  );
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+  const alert = await screen.findByRole("alert");
+  expect(alert.textContent).toContain("Fiesta previa");
+  expect(alert.textContent).not.toContain("status code");
+});
+
+it("keeps the generic message for a non-409 failure", async () => {
+  save.mockClear();
+  save.mockRejectedValueOnce(make500());
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+  const alert = await screen.findByRole("alert");
+  expect(alert.textContent).toContain("Request failed with status code 500");
 });
 
 it("preserves the edited draft when only the booking status changes", () => {
