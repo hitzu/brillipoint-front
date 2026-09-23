@@ -1,13 +1,13 @@
 import { Col, Row } from "react-bootstrap";
 import styles from "@assets/css/contract-public.module.css";
-import { ContractSlot } from "../../../interfaces";
+import type { ReservationDateRow } from "../utils/reservationDates";
 import { translateContractSlotPurpose } from "@common/translations";
 import { formatLongSpanishDate, parseLocalDate } from "@common/dates";
 
 export const ReservationDatesSection = ({
-  slots,
+  dates,
 }: {
-  slots: ContractSlot[];
+  dates: ReservationDateRow[];
 }) => {
   return (
     <Row className={`mb-4 ${styles["center-information-content"]}`}>
@@ -15,14 +15,14 @@ export const ReservationDatesSection = ({
         <section className={styles.card}>
           <h2 className={styles.sectionTitle}>Fechas de los eventos</h2>
           <div className={styles.sectionBody}>
-            {slots.map((slot) => (
-              <div key={slot.id} className={styles.financeRow}>
+            {dates.map((row) => (
+              <div key={row.key} className={styles.financeRow}>
                 <span className={styles.financeValue}>
-                  {translateContractSlotPurpose(slot.purpose)}
+                  {translateContractSlotPurpose(row.purpose)}
                 </span>
                 <span>
-                  {slot.slot?.eventDate
-                    ? formatLongSpanishDate(parseLocalDate(slot.slot.eventDate))
+                  {row.date
+                    ? formatLongSpanishDate(parseLocalDate(row.date))
                     : "—"}
                 </span>
               </div>

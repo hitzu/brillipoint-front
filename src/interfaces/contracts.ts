@@ -46,12 +46,24 @@ export interface ContractExtra {
   promotion: Promotion | null;
 }
 
+/** @deprecated Contracts now expose `bookings`; kept only for legacy views. */
 export interface ContractSlot {
   id: number;
   purpose: string;
   slotId: number;
   contractId: number;
   slot: Slot;
+}
+
+export interface ContractBooking {
+  id: number;
+  status: string;
+  purpose: string | null;
+  eventDate: string;
+  serviceStartsAt: string;
+  serviceEndsAt: string;
+  title: string | null;
+  venueName: string | null;
 }
 
 export interface GetContractByIdResponse {
@@ -61,7 +73,9 @@ export interface GetContractByIdResponse {
   extras: ContractExtra[];
   payments: Payment[];
   paidAmount: number;
-  contractSlots: ContractSlot[];
+  /** @deprecated API sends `[]`; use `bookings`. */
+  contractSlots?: ContractSlot[];
+  bookings: ContractBooking[];
 }
 
 
@@ -73,7 +87,9 @@ export interface ContractCompleteResponse {
   extras: ContractExtra[];
   payments: Payment[];
   paidAmount: number;
-  contractSlots: ContractSlot[];
+  /** @deprecated API sends `[]`; use `bookings`. */
+  contractSlots?: ContractSlot[];
+  bookings: ContractBooking[];
 }
 
 

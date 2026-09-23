@@ -11,7 +11,6 @@ import {
   getTerms,
 } from "../../../api/services/termsService";
 import {
-  ContractSlot,
   GetContractByIdResponse,
   GetTermsResponse,
   Note,
@@ -28,6 +27,11 @@ import { ReservationNotesSection } from "../components/ReservationNotesSection";
 import { PreparationSection } from "../components/PreparationSection";
 import { parseLocalDate } from "@common/dates";
 import { brandIncludesTransportFee } from "@shared/constants/brands";
+import {
+  getEventDate,
+  ReservationDateRow,
+  toReservationDates,
+} from "../utils/reservationDates";
 
 type Props = {
   token?: string;
@@ -47,7 +51,10 @@ const ReservationPublicPage = ({ token }: Props) => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<GetContractByIdResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [slots, setSlots] = useState<ContractSlot[]>([]);
+  const [reservationDates, setReservationDates] = useState<
+    ReservationDateRow[]
+  >([]);
+  const [eventDate, setEventDate] = useState<string | null>(null);
   const [globalTerms, setGlobalTerms] = useState<GetTermsResponse[]>([]);
   const [brandTerms, setBrandTerms] = useState<GetTermsResponse[]>([]);
   const [fetchedPackageTerms, setFetchedPackageTerms] = useState<
@@ -58,10 +65,6 @@ const ReservationPublicPage = ({ token }: Props) => {
   type SectionId = "resume" | "prep_bride" | "prep_social" | "terms";
 
   const [activeSectionId, setActiveSectionId] = useState<SectionId>("resume");
-
-  const halfwayDate = (start: Date, end: Date): Date => {
-    return new Date(start.getTime() + (end.getTime() - start.getTime()) / 2);
-  };
 
   // Brand of this reservation: the URL hint wins, otherwise it is derived from
   // the contracted packages. Single definition, used for terms and pricing copy.
@@ -83,46 +86,17 @@ const ReservationPublicPage = ({ token }: Props) => {
         setError(null);
         const res = await getContractByToken(token);
         setData(res);
-        const firstSlot = res.contractSlots[0];
-        const eventDateRaw =
-          firstSlot?.slot?.eventDate ?? res.contract.createdAt;
-        const eventDate = /^\d{4}-\d{2}-\d{2}$/.test(String(eventDateRaw ?? ""))
-          ? parseLocalDate(eventDateRaw!)
-          : new Date(eventDateRaw);
 
-        const slotsToShow: ContractSlot[] = [
-          {
-            id: 0,
-            purpose: "creation_date",
-            slotId: -1,
-            contractId: 0,
-            slot: {
-              contractId: 0,
-              id: 0,
-              eventDate: res.contract.createdAt,
-              status: "reserved",
-            },
-          },
-          /*
-          {
-            id: 0,
-            purpose: "halfway_date",
-            slotId: -2,
-            contractId: 0,
-            slot: {
-              contractId: 0,
-              id: 0,
-              eventDate: halfwayDate(
-                eventDate,
-                new Date(res.contract.createdAt),
-              ).toISOString(),
-              status: "reserved",
-            },
-          },
-          */
-          ...(res.contractSlots ?? []),
-        ];
-        setSlots(slotsToShow);
+        // YMD (booking.eventDate) or ISO (contract.createdAt) fallback; kept as
+        // the original string — parseLocalDate (used by the consuming
+        // components) already discriminates the two formats, so re-parsing to
+        // a Date here would only risk a UTC round-trip shifting the day.
+        const eventDateRaw = getEventDate(res.bookings) ?? res.contract.createdAt;
+        setEventDate(eventDateRaw ?? null);
+
+        setReservationDates(
+          toReservationDates(res.contract.createdAt, res.bookings),
+        );
       } catch (_e: unknown) {
         setError("No se pudo cargar tu reserva. Intenta de nuevo más tarde.");
       } finally {
@@ -226,7 +200,7 @@ const ReservationPublicPage = ({ token }: Props) => {
             return (
               <>
                 <ReservationClientSection contract={data.contract} />
-                <ReservationDatesSection slots={slots} />
+                <ReservationDatesSection dates={reservationDates} />
                 <ReservationServicesSection items={items} />
                 <ReservationExtrasSection items={extraItems} />
                 <ReservationFinanceSection
@@ -415,11 +389,7 @@ const ReservationPublicPage = ({ token }: Props) => {
       {showNav ? (
         <SocialMediaPlugin
           data={data as GetContractByIdResponse}
-          slot={
-            slots.find(
-              (s) => !["creation_date", "halfway_date"].includes(s.purpose),
-            ) ?? (slots[0] as ContractSlot)
-          }
+          eventDate={eventDate}
         />
       ) : null}
 

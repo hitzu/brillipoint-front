@@ -51,7 +51,7 @@ const ContractPublicPage = () => {
         setError(null);
         const res = await getContractByToken(token);
         setData(res);
-        const firstSlot = res.contractSlots[0];
+        const firstSlot = res.contractSlots?.[0];
         const eventDateRaw =
           firstSlot?.slot?.eventDate ?? res.contract.createdAt;
         const eventDate =

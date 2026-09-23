@@ -1,7 +1,7 @@
 import { Row, Col } from "react-bootstrap";
 import styles from "@assets/css/social-media-plugin.module.css";
 import { useMemo } from "react";
-import { ContractSlot, GetContractByIdResponse } from "../../../interfaces";
+import { GetContractByIdResponse } from "../../../interfaces";
 import { formatLongSpanishDate, parseLocalDate } from "@common/dates";
 
 type SocialWhatsAppCta = {
@@ -22,11 +22,11 @@ type SocialMediaPluginCopy = {
 
 export const SocialMediaPlugin = ({
   data,
-  slot,
+  eventDate,
   copy,
 }: {
   data?: Partial<GetContractByIdResponse>;
-  slot?: Partial<ContractSlot>;
+  eventDate?: string | null;
   copy?: SocialMediaPluginCopy;
 }) => {
   const normalizeWhatsAppPhone = (raw: string) => raw.replace(/[^\d]/g, "");
@@ -40,13 +40,13 @@ export const SocialMediaPlugin = ({
 
   const defaultWhatsappMessage = useMemo(() => {
     const clientName = data?.contract?.clientName;
-    const humanDate = slot?.slot?.eventDate
-      ? formatLongSpanishDate(parseLocalDate(slot.slot.eventDate))
+    const humanDate = eventDate
+      ? formatLongSpanishDate(parseLocalDate(eventDate))
       : undefined;
     return `Hola, tengo duda sobre mi reserva Brillipoint${
       clientName ? `, esta a nombre de ${clientName}` : ""
     }${humanDate ? ` y es el ${humanDate}` : ""}.`;
-  }, [data?.contract?.clientName, slot?.slot?.eventDate]);
+  }, [data?.contract?.clientName, eventDate]);
 
   const toWhatsappHref = (message: string) => {
     const encoded = encodeURIComponent(message);
