@@ -10,6 +10,7 @@ import {
   toMexicoCityDateTimeInput,
 } from "../../utils/mexicoCityTime";
 import { bookingConflictMessage } from "@shared/scheduling/bookingConflict";
+import { validMapsUrl } from "@shared/scheduling/mapsUrl";
 interface BookingFormState {
   eventDate: YMD;
   startsAt: string;
@@ -50,18 +51,6 @@ const createState = (
     mapsUrl: booking?.mapsUrl ?? "",
     note: "",
   };
-};
-const validMapsUrl = (value: string) => {
-  if (!value.trim()) return true;
-  try {
-    const url = new URL(value.trim());
-    return (
-      Boolean(url.hostname) &&
-      (url.protocol === "http:" || url.protocol === "https:")
-    );
-  } catch {
-    return false;
-  }
 };
 interface UseBookingFormArgs {
   initialDate: YMD;
