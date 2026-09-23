@@ -1,4 +1,9 @@
+import type { CreateOption, CreateOptionsPolicy } from "./utils/createOptions";
+
 export type YMD = string;
+
+/** Every presentation the shared booking calendar can render. */
+export type CalendarView = "summary" | "hours" | "month" | "month-weekends";
 
 export type AgendaBlock = "am_block" | "pm_block" | "night_block";
 
@@ -101,4 +106,10 @@ export interface AgendaCalendarProps {
   initialDate?: YMD;
   onDateSelect?: (date: YMD) => void;
   onEventSelect?: (entry: AgendaEntry) => void;
+  /** Injected create-intent policy: no policy means no create actions. */
+  getCreateOptions?: CreateOptionsPolicy;
+  /** Fires when a create action (button, or a week-hours drag-select) is used. */
+  onCreateRequest?: (option: CreateOption) => void;
+  /** Day timeline scale: hour ticks (agenda) or sellable blocks (expo). */
+  timelineScale?: "hours" | "blocks";
 }

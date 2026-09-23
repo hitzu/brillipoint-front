@@ -1,9 +1,6 @@
 import type { AgendaEntry, YMD } from "../types";
-import {
-  dayAvailability,
-  entryInterval,
-  formatTime,
-} from "../utils/agendaAvailability";
+import type { CreateOption, CreateOptionsPolicy } from "../utils/createOptions";
+import { entryInterval } from "../utils/agendaAvailability";
 import {
   rollingWeek,
   weekStart,
@@ -11,6 +8,7 @@ import {
 } from "../utils/businessDate";
 import { WEEKDAYS } from "../utils/agendaPresentation";
 import { AgendaEntryContent } from "./AgendaEntryCard";
+import { DayTimeline } from "./DayTimeline";
 
 interface Props {
   entries: Record<YMD, AgendaEntry[]>;
@@ -18,6 +16,8 @@ interface Props {
   weekendsOnly?: boolean;
   onDateSelect: (date: YMD) => void;
   onEventSelect?: (entry: AgendaEntry) => void;
+  getCreateOptions?: CreateOptionsPolicy;
+  onCreateRequest?: (option: CreateOption) => void;
 }
 
 const title = (date: YMD): string => {
@@ -31,6 +31,8 @@ export const MobileAgenda = ({
   weekendsOnly = false,
   onDateSelect,
   onEventSelect,
+  getCreateOptions,
+  onCreateRequest,
 }: Props) => {
   const dates = rollingWeek(weekStart(selectedDate)).filter(
     (date) => !weekendsOnly || isWeekendAgendaDay(date)
@@ -41,8 +43,6 @@ export const MobileAgenda = ({
       <h2>Disponibilidad</h2>
       {dates.map((date) => {
         const dayEntries = entries[date] ?? [];
-        const availability = dayAvailability(date, dayEntries);
-        const firstFreeInterval = availability.freeIntervals[0];
 
         return (
           <article key={date}>
@@ -53,26 +53,14 @@ export const MobileAgenda = ({
               onClick={() => onDateSelect(date)}
             >
               <strong>{title(date)}</strong>
-              <span>
-                {firstFreeInterval
-                  ? `Libre ${formatTime(firstFreeInterval.start)}–${formatTime(firstFreeInterval.end)}`
-                  : "Día ocupado"}
-              </span>
             </button>
-            <div
-              className="agenda-mini-timeline"
-              aria-label={`Ocupación ${date}`}
-            >
-              {availability.occupiedIntervals.map((interval) => (
-                <i
-                  key={`${interval.start}-${interval.end}`}
-                  style={{
-                    left: `${interval.start / 14.4}%`,
-                    width: `${(interval.end - interval.start) / 14.4}%`,
-                  }}
-                />
-              ))}
-            </div>
+            <DayTimeline
+              date={date}
+              entries={entries}
+              density="full"
+              getCreateOptions={getCreateOptions}
+              onCreateRequest={onCreateRequest}
+            />
             {dayEntries.map((entry) =>
               onEventSelect ? (
                 <button

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { addDays, toYMD, weekStart } from "../../utils/businessDate";
+import { monthFetchRange } from "../../utils/monthGrid";
 import type { AgendaEntry, YMD } from "../../types";
+import { exactCreateOptions } from "../../utils/createOptions";
 import { useAgendaRange } from "../../hooks/useAgendaRange";
 import { AgendaNavigation } from "../../components/AgendaNavigation";
 import { BookingCalendar } from "../../components/BookingCalendar";
@@ -31,8 +33,17 @@ export const AgendaPage = ({
   useEffect(() => {
     page.setSelectedDate(initialDate);
   }, [initialDate, page.setSelectedDate]);
+  // Month views fetch the whole rendered grid (see monthFetchRange); week
+  // views fetch the ISO week plus one extra day so the last day's
+  // DayTimeline sees the next day's 04:00-04:00 early hours too.
+  const isMonthView = page.view === "month" || page.view === "month-weekends";
   const start = weekStart(page.selectedDate);
-  const range = useAgendaRange(start, addDays(start, 6));
+  const { from, to } = isMonthView
+    ? monthFetchRange(page.selectedDate, {
+        weekendsOnly: page.view === "month-weekends",
+      })
+    : { from: start, to: addDays(start, 7) };
+  const range = useAgendaRange(from, to);
   if (range.status === "loading" && !Object.keys(range.entries).length)
     return (
       <main className={styles.workspace}>
@@ -60,7 +71,7 @@ export const AgendaPage = ({
           <button
             className={styles.primaryButton}
             type="button"
-            onClick={() => page.setEditing("new")}
+            onClick={page.startNew}
           >
             Nuevo evento
           </button>
@@ -88,6 +99,8 @@ export const AgendaPage = ({
         weekendsOnly={weekendsOnly}
         onDateSelect={page.selectDate}
         onEventSelect={page.selectEvent}
+        getCreateOptions={readOnly ? undefined : exactCreateOptions}
+        onCreateRequest={readOnly ? undefined : page.requestCreate}
       />
       {page.selectedEntry ? (
         <BookingDetails
@@ -108,7 +121,8 @@ export const AgendaPage = ({
         <BookingForm
           initialDate={page.selectedDate}
           booking={page.editing === "new" ? null : page.editing}
-          onCancel={() => page.setEditing(null)}
+          draft={page.editing === "new" ? page.draft : null}
+          onCancel={page.cancelEditing}
           onSave={(payload, note, contractId) =>
             page.saveBooking(payload, note, range.refetch, contractId)
           }

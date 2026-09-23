@@ -10,10 +10,26 @@ vi.mock("next/router", () => ({
   useRouter: () => ({ query: { brandId: "1" } }),
 }));
 vi.mock("../components/CalendarView", () => ({
-  CalendarView: ({ onPickDate }: { onPickDate?: (date: string) => void }) => (
-    <button type="button" onClick={() => onPickDate?.(pickedDate.value)}>
-      Seleccionar fecha
-    </button>
+  CalendarView: ({
+    onPickDate,
+    onReserve,
+  }: {
+    onPickDate?: (date: string) => void;
+    onReserve?: (selection: { date: string; blockId: string }) => void;
+  }) => (
+    <>
+      <button type="button" onClick={() => onPickDate?.(pickedDate.value)}>
+        Seleccionar fecha
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onReserve?.({ date: pickedDate.value, blockId: "night_block" })
+        }
+      >
+        Reservar bloque
+      </button>
+    </>
   ),
 }));
 vi.mock("../components/ContractView", () => ({
@@ -65,6 +81,41 @@ describe("ExpoBebePage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Seleccionar fecha" }));
     expect(screen.getByTestId("contract-seed").getAttribute("data-date")).toBe(
       "2026-10-09"
+    );
+    expect(
+      screen.getByTestId("contract-seed").getAttribute("data-period")
+    ).toBe("");
+  });
+
+  it("seeds the contract tab with date and block when reserving a free block from the calendar", () => {
+    render(<ExpoBebePage />);
+
+    pickedDate.value = "2026-10-11";
+    fireEvent.click(screen.getByRole("button", { name: "Reservar bloque" }));
+
+    expect(screen.getByTestId("contract-seed").getAttribute("data-date")).toBe(
+      "2026-10-11"
+    );
+    expect(
+      screen.getByTestId("contract-seed").getAttribute("data-period")
+    ).toBe("night_block");
+  });
+
+  it("clears a previously reserved block once a date-only pick follows it", () => {
+    render(<ExpoBebePage />);
+
+    pickedDate.value = "2026-10-11";
+    fireEvent.click(screen.getByRole("button", { name: "Reservar bloque" }));
+    expect(
+      screen.getByTestId("contract-seed").getAttribute("data-period")
+    ).toBe("night_block");
+
+    fireEvent.click(screen.getByRole("button", { name: "Calendario" }));
+    pickedDate.value = "2026-10-16";
+    fireEvent.click(screen.getByRole("button", { name: "Seleccionar fecha" }));
+
+    expect(screen.getByTestId("contract-seed").getAttribute("data-date")).toBe(
+      "2026-10-16"
     );
     expect(
       screen.getByTestId("contract-seed").getAttribute("data-period")

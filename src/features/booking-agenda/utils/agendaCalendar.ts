@@ -9,6 +9,25 @@ export interface AgendaCalendarEventProps {
 }
 
 /**
+ * Converts a FullCalendar `select` range back into Mexico civil coordinates.
+ * FullCalendar's `start`/`end` are UTC `Date` objects whose UTC components
+ * equal the civil ones (see the module comment above), so this reads the
+ * `getUTC*` fields directly rather than the browser's local time.
+ */
+export const civilSelectionRange = (
+  start: Date,
+  end: Date
+): { date: YMD; startsAt: string; endsAt: string } => {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const date = `${start.getUTCFullYear()}-${pad(start.getUTCMonth() + 1)}-${pad(
+    start.getUTCDate()
+  )}`;
+  const startsAt = `${pad(start.getUTCHours())}:${pad(start.getUTCMinutes())}`;
+  const endsAt = `${pad(end.getUTCHours())}:${pad(end.getUTCMinutes())}`;
+  return { date, startsAt, endsAt };
+};
+
+/**
  * FullCalendar runs in UTC so these offset-free values are stable across browser
  * timezones. They deliberately model Mexico City civil-day coordinates, not UTC
  * instants; `agendaIntervals` is the only instant-to-civil conversion boundary.

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "@assets/css/expo-bebe.module.css";
 import { useRouter } from "next/router";
+import type { BookingBlockId } from "@shared/scheduling/bookingBlocks";
 import { CalendarView } from "../components/CalendarView";
 import { ContractView } from "../components/ContractView";
 import { ServiceDetail } from "../components/ServiceDetail";
@@ -28,6 +29,7 @@ export function ExpoBebePage() {
   const [minAmountHoldSlot, setMinAmountHoldSlot] = useState<number | null>(null);
   const [brandName, setBrandName] = useState<string | null>(null);
   const [slotSeed, setSlotSeed] = useState<string | null>(null);
+  const [blockSeed, setBlockSeed] = useState<BookingBlockId | null>(null);
 
   const brandId = useMemo<number>(() => {
     const raw = router.query.brandId ?? router.query.brand;
@@ -118,6 +120,20 @@ export function ExpoBebePage() {
 
   const handlePickDate = (date: string) => {
     setSlotSeed(date);
+    setBlockSeed(null);
+    setCatalogMode(null);
+    setTab("ctr");
+  };
+
+  const handleReserve = ({
+    date,
+    blockId,
+  }: {
+    date: string;
+    blockId: BookingBlockId;
+  }) => {
+    setSlotSeed(date);
+    setBlockSeed(blockId);
     setCatalogMode(null);
     setTab("ctr");
   };
@@ -129,7 +145,11 @@ export function ExpoBebePage() {
           <Tabs value={activeMenu} onChange={handleMenuChange} />
 
           {tab === "cal" && (
-            <CalendarView brandName={brandName} onPickDate={handlePickDate} />
+            <CalendarView
+              brandName={brandName}
+              onPickDate={handlePickDate}
+              onReserve={handleReserve}
+            />
           )}
           {tab === "ctr" && (
             <ContractView
@@ -138,6 +158,7 @@ export function ExpoBebePage() {
               brandName={brandName}
               minAmountHoldSlot={minAmountHoldSlot}
               initialFecha={slotSeed ?? undefined}
+              initialPeriod={blockSeed ?? undefined}
             />
           )}
 

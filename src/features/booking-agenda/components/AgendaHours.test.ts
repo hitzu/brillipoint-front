@@ -23,3 +23,9 @@ it("uses the compact title/time layout for events up to two hours", () => {
   expect(calendarStyles).toContain("display: flex;");
   expect(calendarStyles).toContain("align-items: baseline;");
 });
+
+it("enables drag-select and converts it into a create request only when a policy is wired", () => {
+  expect(agendaHours).toContain("selectable={Boolean(onCreateRequest)}");
+  expect(agendaHours).toContain("select={onCreateRequest ? onSelect : undefined}");
+  expect(agendaHours).toContain("civilSelectionRange(");
+});

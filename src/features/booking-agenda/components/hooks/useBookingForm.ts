@@ -33,10 +33,35 @@ const addCivilDays = (date: YMD, days: number): YMD => {
   return value.toISOString().slice(0, 10);
 };
 
+/** A calendar-supplied create intent, prefilling a brand-new booking. */
+export interface BookingFormDraft {
+  date: YMD;
+  startsAt: string;
+  endsAt: string;
+}
+
 const createState = (
   booking: BookingDetail | null | undefined,
-  initialDate: YMD
+  initialDate: YMD,
+  draft?: BookingFormDraft | null
 ): BookingFormState => {
+  if (!booking && draft) {
+    return {
+      eventDate: draft.date,
+      startsAt: draft.startsAt,
+      // An exact-hours or block create option whose end lands at or before
+      // its start (e.g. "20:00"–"04:00") represents the next civil day —
+      // the same convention `endsNextDay` already encodes below.
+      endsAt: draft.endsAt,
+      endsNextDay: draft.endsAt <= draft.startsAt,
+      title: "",
+      purpose: "event",
+      venueName: "",
+      mapsUrl: "",
+      note: "",
+    };
+  }
+
   const eventDate = booking?.eventDate ?? initialDate;
   const startsAt = dateTimeParts(booking?.serviceStartsAt, eventDate);
   const endsAt = dateTimeParts(booking?.serviceEndsAt, eventDate);
@@ -55,6 +80,8 @@ const createState = (
 interface UseBookingFormArgs {
   initialDate: YMD;
   booking?: BookingDetail | null;
+  /** Only applied for a brand-new booking (`booking` is null/undefined). */
+  draft?: BookingFormDraft | null;
   contract?: ContractOption | null;
   onSave: (
     payload: ExactBookingPayload,
@@ -65,10 +92,13 @@ interface UseBookingFormArgs {
 export const useBookingForm = ({
   initialDate,
   booking,
+  draft,
   contract,
   onSave,
 }: UseBookingFormArgs) => {
-  const [state, setState] = useState(() => createState(booking, initialDate));
+  const [state, setState] = useState(() =>
+    createState(booking, initialDate, draft)
+  );
   const [contractId, setContractId] = useState<number | null>(
     contract?.id ?? null
   );
@@ -90,13 +120,14 @@ export const useBookingForm = ({
   // Keyed on booking?.id, not the booking object: the parent replaces
   // `booking` with a new reference for the same id while a hold
   // confirmation is in flight (see useAgendaPage.saveBooking), and this
-  // must not wipe the in-progress draft mid-save.
+  // must not wipe the in-progress draft mid-save. Same reasoning for the
+  // calendar-supplied draft: keyed on its values, not the object reference.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const reset = useCallback(() => {
-    setState(createState(booking, initialDate));
+    setState(createState(booking, initialDate, draft));
     setContractId(contract?.id ?? null);
     setError(null);
-  }, [booking?.id, contract?.id, initialDate]);
+  }, [booking?.id, contract?.id, initialDate, draft?.date, draft?.startsAt, draft?.endsAt]);
   useEffect(() => {
     reset();
   }, [reset]);

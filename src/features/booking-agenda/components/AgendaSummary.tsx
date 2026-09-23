@@ -1,4 +1,5 @@
 import type { AgendaEntry, YMD } from "../types";
+import type { CreateOption, CreateOptionsPolicy } from "../utils/createOptions";
 import {
   rollingWeek,
   weekStart,
@@ -6,6 +7,7 @@ import {
 } from "../utils/businessDate";
 import { WEEKDAYS } from "../utils/agendaPresentation";
 import { AgendaEntryCard } from "./AgendaEntryCard";
+import { DayTimeline } from "./DayTimeline";
 
 interface Props {
   entries: Record<YMD, AgendaEntry[]>;
@@ -13,6 +15,8 @@ interface Props {
   weekendsOnly?: boolean;
   onDateSelect: (date: YMD) => void;
   onEventSelect?: (entry: AgendaEntry) => void;
+  getCreateOptions?: CreateOptionsPolicy;
+  onCreateRequest?: (option: CreateOption) => void;
 }
 
 export const visibleAgendaDates = (
@@ -29,6 +33,8 @@ export const AgendaSummary = ({
   weekendsOnly = false,
   onDateSelect,
   onEventSelect,
+  getCreateOptions,
+  onCreateRequest,
 }: Props) => {
   const dates = visibleAgendaDates(selectedDate, weekendsOnly);
 
@@ -58,6 +64,13 @@ export const AgendaSummary = ({
             aria-label={date}
           >
             <h3>{date}</h3>
+            <DayTimeline
+              date={date}
+              entries={entries}
+              density="compact"
+              getCreateOptions={getCreateOptions}
+              onCreateRequest={onCreateRequest}
+            />
             {(entries[date] ?? []).map((entry) => (
               <AgendaEntryCard
                 key={entry.key}

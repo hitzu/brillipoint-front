@@ -3,11 +3,13 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin, {
   type DateClickArg,
 } from "@fullcalendar/interaction";
-import type { EventClickArg } from "@fullcalendar/core";
+import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import esLocale from "@fullcalendar/core/locales/es";
 import type { AgendaEntry, YMD } from "../types";
+import type { CreateOption } from "../utils/createOptions";
 import {
   agendaEntriesToCalendarEvents,
+  civilSelectionRange,
   type AgendaCalendarEventProps,
 } from "../utils/agendaCalendar";
 import { weekStart } from "../utils/businessDate";
@@ -19,6 +21,7 @@ interface Props {
   weekendsOnly?: boolean;
   onDateSelect: (date: YMD) => void;
   onEventSelect?: (entry: AgendaEntry) => void;
+  onCreateRequest?: (option: CreateOption) => void;
 }
 
 export const AgendaHours = ({
@@ -27,6 +30,7 @@ export const AgendaHours = ({
   weekendsOnly = false,
   onDateSelect,
   onEventSelect,
+  onCreateRequest,
 }: Props) => {
   const hiddenDays = weekendsOnly ? [1, 2, 3, 4] : [];
   const calendarKey = `${weekStart(selectedDate)}:${weekendsOnly ? "weekend" : "all"}`;
@@ -36,6 +40,14 @@ export const AgendaHours = ({
   const onEventClick = (arg: EventClickArg) => {
     const props = arg.event.extendedProps as AgendaCalendarEventProps;
     onEventSelect?.(props.entry);
+  };
+  const onSelect = (arg: DateSelectArg) => {
+    const { date, startsAt, endsAt } = civilSelectionRange(
+      arg.start,
+      arg.end
+    );
+    onCreateRequest?.({ label: "Nuevo evento", date, startsAt, endsAt });
+    arg.view.calendar.unselect();
   };
 
   return (
@@ -58,7 +70,9 @@ export const AgendaHours = ({
         nowIndicator
         events={agendaEntriesToCalendarEvents(entries)}
         eventClick={onEventSelect ? onEventClick : undefined}
-        dateClick={onDateClick}
+        dateClick={onCreateRequest ? undefined : onDateClick}
+        selectable={Boolean(onCreateRequest)}
+        select={onCreateRequest ? onSelect : undefined}
         editable={false}
         eventContent={(arg) => {
           const props = arg.event.extendedProps as AgendaCalendarEventProps;

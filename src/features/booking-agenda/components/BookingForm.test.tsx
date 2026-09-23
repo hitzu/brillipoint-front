@@ -309,3 +309,53 @@ it("preserves the edited draft when only the booking status changes", () => {
     (screen.getByLabelText("Nota interna") as HTMLTextAreaElement).value
   ).toBe("No perder");
 });
+
+it("prefills date and exact times from a calendar-supplied draft on a new booking", async () => {
+  save.mockClear();
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      draft={{ date: "2026-09-21", startsAt: "14:00", endsAt: "20:00" }}
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+
+  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe(
+    "2026-09-21"
+  );
+  expect((screen.getByLabelText("Inicio") as HTMLInputElement).value).toBe(
+    "14:00"
+  );
+  expect((screen.getByLabelText("Fin") as HTMLInputElement).value).toBe(
+    "20:00"
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+  await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+  expect(save.mock.calls[0][0]).toMatchObject({
+    eventDate: "2026-09-21",
+    serviceStartsAt: "2026-09-21T20:00:00.000Z",
+    serviceEndsAt: "2026-09-22T02:00:00.000Z",
+  });
+});
+
+it("prefills an overnight draft (endsAt at or before startsAt) as the next civil day", async () => {
+  save.mockClear();
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      draft={{ date: "2026-09-21", startsAt: "20:00", endsAt: "04:00" }}
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+  await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+  expect(save.mock.calls[0][0]).toMatchObject({
+    eventDate: "2026-09-21",
+    serviceStartsAt: "2026-09-22T02:00:00.000Z",
+    serviceEndsAt: "2026-09-22T10:00:00.000Z",
+  });
+});

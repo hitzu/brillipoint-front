@@ -11,10 +11,12 @@ import {
 } from "../../../shared/scheduling/bookingBlocks";
 import dialogStyles from "./AgendaDialog.module.css";
 import { ContractPicker, label as contractLabel } from "./ContractPicker";
-import { useBookingForm } from "./hooks/useBookingForm";
+import { useBookingForm, type BookingFormDraft } from "./hooks/useBookingForm";
 interface Props {
   initialDate: YMD;
   booking?: BookingDetail | null;
+  /** A calendar create request — only applied when `booking` is unset. */
+  draft?: BookingFormDraft | null;
   /** Fixes the contract — used when the form is opened from a contract row. */
   contract?: ContractOption | null;
   onCancel: () => void;
@@ -27,11 +29,12 @@ interface Props {
 export const BookingForm = ({
   initialDate,
   booking,
+  draft,
   contract,
   onCancel,
   onSave,
 }: Props) => {
-  const form = useBookingForm({ initialDate, booking, contract, onSave });
+  const form = useBookingForm({ initialDate, booking, draft, contract, onSave });
   const title = booking ? "Editar evento" : "Nuevo evento";
   const close = () => {
     if (!form.saving) onCancel();
