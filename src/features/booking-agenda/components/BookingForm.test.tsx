@@ -116,10 +116,12 @@ it("applies the overnight preset as one Mexico City interval crossing midnight",
     />
   );
 
-  expect((screen.getByLabelText("Inicio") as HTMLInputElement).type).toBe(
-    "time"
+  // Inicio/Fin are now a Google-Calendar-style TimeSelect combobox (a text
+  // input backed by a dropdown of options), not a native <input type="time">.
+  expect(screen.getByLabelText("Inicio").getAttribute("role")).toBe(
+    "combobox"
   );
-  expect((screen.getByLabelText("Fin") as HTMLInputElement).type).toBe("time");
+  expect(screen.getByLabelText("Fin").getAttribute("role")).toBe("combobox");
   fireEvent.click(screen.getByRole("button", { name: "Noche (20:00–04:00)" }));
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
 
@@ -338,6 +340,83 @@ it("prefills date and exact times from a calendar-supplied draft on a new bookin
     serviceStartsAt: "2026-09-21T20:00:00.000Z",
     serviceEndsAt: "2026-09-22T02:00:00.000Z",
   });
+});
+
+it("shows the end options with duration labels relative to the start", () => {
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+  fireEvent.change(screen.getByLabelText("Inicio"), {
+    target: { value: "19:00" },
+  });
+  fireEvent.focus(screen.getByLabelText("Fin"));
+  expect(screen.getByRole("option", { name: "20:00 (1 h)" })).toBeTruthy();
+  expect(screen.getByRole("option", { name: "19:30 (30 min)" })).toBeTruthy();
+});
+
+it("shows a next-day warning icon whose tooltip gives the wrapped duration", async () => {
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+  fireEvent.change(screen.getByLabelText("Inicio"), {
+    target: { value: "20:00" },
+  });
+  fireEvent.change(screen.getByLabelText("Fin"), {
+    target: { value: "04:00" },
+  });
+  const warning = screen.getByRole("img", {
+    name: "Termina el día siguiente (8 h)",
+  });
+  // An icon, not inline text: inline text grew the modal when it appeared.
+  expect(screen.queryByText("Termina el día siguiente (8 h)")).toBeNull();
+  fireEvent.mouseOver(warning);
+  expect(await screen.findByRole("tooltip")).toHaveProperty(
+    "textContent",
+    "Termina el día siguiente (8 h)"
+  );
+});
+
+it("does not show the next-day notice when end is after start", () => {
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+  expect(
+    screen.queryByRole("img", { name: /Termina el día siguiente/ })
+  ).toBeNull();
+});
+
+it("keeps an off-grid preset value (23:59) displayed and editable", () => {
+  render(
+    <BookingForm
+      initialDate="2026-09-19"
+      onCancel={() => undefined}
+      onSave={save}
+    />
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Todo el día (00:00–23:59)" })
+  );
+  expect((screen.getByLabelText("Fin") as HTMLInputElement).value).toBe(
+    "23:59"
+  );
+  fireEvent.change(screen.getByLabelText("Fin"), {
+    target: { value: "22:15" },
+  });
+  expect((screen.getByLabelText("Fin") as HTMLInputElement).value).toBe(
+    "22:15"
+  );
 });
 
 it("prefills an overnight draft (endsAt at or before startsAt) as the next civil day", async () => {

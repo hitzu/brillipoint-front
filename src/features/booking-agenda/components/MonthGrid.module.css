@@ -63,6 +63,7 @@
   border-radius: 0.5rem;
   background: var(--mg-surface);
   text-align: left;
+  cursor: pointer;
 }
 
 .cell.today {
@@ -70,7 +71,7 @@
   box-shadow: inset 0 0 0 1px var(--mg-primary);
 }
 
-.cell[aria-pressed="true"] {
+.cell[aria-selected="true"] {
   background: var(--mg-selected);
 }
 
@@ -106,6 +107,35 @@
   white-space: nowrap;
 }
 
+.dayButton {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  line-height: 1;
+}
+
+.eventButton {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 0.2rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eventButton:hover,
+.eventButton:focus-visible {
+  text-decoration: underline;
+}
+
 .more {
   color: var(--mg-muted);
   font-size: 0.62rem;
@@ -131,7 +161,36 @@
   }
 
   .event,
-  .more {
+  .dayButton {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  line-height: 1;
+}
+
+.eventButton {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 0.2rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eventButton:hover,
+.eventButton:focus-visible {
+  text-decoration: underline;
+}
+
+.more {
     font-size: 0.75rem;
   }
 }

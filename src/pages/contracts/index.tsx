@@ -173,7 +173,7 @@ const ContractsListPage = () => {
                 >
                   <Link
                     href="#!"
-                    className="avtar avtar-xs btn-link-info btn-pc-default"
+                    className="avtar avtar-xs btn-link-info"
                     onClick={() => handleSchedule(cellProps.row.original)}
                     aria-label="Agendar evento del contrato"
                   >
@@ -187,7 +187,7 @@ const ContractsListPage = () => {
                 >
                   <Link
                     href="#!"
-                    className="avtar avtar-xs btn-link-primary btn-pc-default"
+                    className="avtar avtar-xs btn-link-primary"
                     onClick={() => handlePayments(cellProps.row.original.id)}
                     aria-label="Pagos del contrato"
                   >
@@ -201,7 +201,7 @@ const ContractsListPage = () => {
                 >
                   <Link
                     href="#!"
-                    className="avtar avtar-xs btn-link-success btn-pc-default"
+                    className="avtar avtar-xs btn-link-success"
                     onClick={() => handleFinalize(cellProps.row.original.id)}
                     aria-label="Finalizar contrato"
                   >
@@ -215,7 +215,7 @@ const ContractsListPage = () => {
                 >
                   <Link
                     href="#!"
-                    className="avtar avtar-xs btn-link-warning btn-pc-default"
+                    className="avtar avtar-xs btn-link-warning"
                     onClick={() => handleCreateNote(cellProps.row.original.id)}
                     aria-label="Crear nota para el evento"
                   >
@@ -229,7 +229,7 @@ const ContractsListPage = () => {
                 >
                   <Link
                     href="#!"
-                    className="avtar avtar-xs btn-link-danger btn-pc-default"
+                    className="avtar avtar-xs btn-link-danger"
                     onClick={() => handleDelete(cellProps.row.original.id)}
                     aria-label="Eliminar contrato"
                   >

@@ -63,7 +63,6 @@ export const AgendaSummary = ({
             className={date === selectedDate ? "is-selected" : ""}
             aria-label={date}
           >
-            <h3>{date}</h3>
             <DayTimeline
               date={date}
               entries={entries}

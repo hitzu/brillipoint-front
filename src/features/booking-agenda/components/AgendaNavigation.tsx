@@ -109,44 +109,51 @@ export const AgendaNavigation = ({
         </div>
       </div>
       <div className="agenda-week-navigation">
-        {onBack ? (
-          <button type="button" className={styles.backButton} onClick={onBack}>
-            ← Volver
-          </button>
-        ) : null}
         <strong aria-live="polite">{title}</strong>
-        {!isMonthView ? (
-          <div>
-            <button
-              type="button"
-              aria-label="Semana anterior"
-              onClick={() => shift(-7)}
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              aria-label="Semana siguiente"
-              onClick={() => shift(7)}
-            >
-              ›
-            </button>
-          </div>
-        ) : null}
-        {showViewPicker ? (
-          <div role="group" aria-label="Presentación">
-            {views.map((option) => (
-              <button
-                type="button"
-                key={option}
-                aria-pressed={view === option}
-                onClick={() => onViewChange(option)}
-              >
-                {VIEW_LABELS[option]}
+        <div className="agenda-week-actions">
+          {!isMonthView ? (
+            <>
+              <button type="button" onClick={() => onSelectDate(toYMD(new Date()))}>
+                Hoy
               </button>
-            ))}
-          </div>
-        ) : null}
+              <div role="group" aria-label="Semana">
+                <button
+                  type="button"
+                  aria-label="Semana anterior"
+                  onClick={() => shift(-7)}
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  aria-label="Semana siguiente"
+                  onClick={() => shift(7)}
+                >
+                  ›
+                </button>
+              </div>
+            </>
+          ) : null}
+          {showViewPicker ? (
+            <div role="group" aria-label="Presentación">
+              {views.map((option) => (
+                <button
+                  type="button"
+                  key={option}
+                  aria-pressed={view === option}
+                  onClick={() => onViewChange(option)}
+                >
+                  {VIEW_LABELS[option]}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {onBack ? (
+            <button type="button" className={styles.backButton} onClick={onBack}>
+              ← Volver
+            </button>
+          ) : null}
+        </div>
       </div>
     </nav>
   );

@@ -52,12 +52,14 @@
   outline-offset: 3px;
 }
 
-/* Summary (Resumen) */
+/* Summary (Resumen): same outer card as Horarios (padded, agenda-bg), with
+   a bordered header row and column borders standing in for the FullCalendar
+   grid it mirrors. */
 .calendar :global(.agenda-summary) {
-  overflow: hidden;
+  padding: 1.5rem;
   border: 1px solid var(--agenda-border);
   border-radius: 0.9rem;
-  background: var(--agenda-surface);
+  background: var(--agenda-bg);
 }
 .calendar :global(.agenda-summary-headings),
 .calendar :global(.agenda-summary-grid) {
@@ -65,14 +67,17 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 .calendar :global(.agenda-summary-headings) {
-  background: var(--agenda-heading-bg);
-  border-bottom: 1px solid var(--agenda-border);
+  overflow: hidden;
+  border: 1px solid var(--agenda-border);
+  border-bottom: 0;
+  border-radius: 0.6rem 0.6rem 0 0;
+  background: var(--agenda-raised);
 }
 .calendar :global(.agenda-summary-headings) button {
   border: 0;
   color: var(--agenda-text);
   background: transparent;
-  padding: 1rem 0.6rem;
+  padding: 0.8rem 0.6rem;
   text-align: center;
   transition: background-color 0.15s ease;
 }
@@ -98,6 +103,9 @@
 }
 .calendar :global(.agenda-summary-grid) {
   min-height: 420px;
+  overflow: hidden;
+  border: 1px solid var(--agenda-border);
+  border-radius: 0 0 0.6rem 0.6rem;
   background: var(--agenda-surface);
 }
 .calendar :global(.agenda-summary-grid) article {
@@ -110,12 +118,6 @@
 }
 .calendar :global(.agenda-summary-grid) article.is-selected {
   background: var(--agenda-selected);
-}
-.calendar :global(.agenda-summary-grid) h3 {
-  margin: 0 0 0.9rem;
-  color: var(--agenda-muted);
-  font-size: 0.72rem;
-  font-weight: 600;
 }
 .calendar :global(.agenda-empty) {
   margin: 0;

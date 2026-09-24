@@ -64,3 +64,7 @@ it("gives short events enough height to show their label and time", () => {
     /\.agenda-hours \.fc \.fc-timegrid-slot\) \{[\s\S]*?height: 2\.5rem;/
   );
 });
+
+it("disables FullCalendar's own toolbar so the page toolbar is the only navigation", () => {
+  expect(agendaHours).toContain("headerToolbar={false}");
+});

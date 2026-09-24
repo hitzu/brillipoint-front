@@ -67,6 +67,10 @@ export const AgendaHours = ({
       <FullCalendar
         key={calendarKey}
         plugins={[timeGridPlugin, interactionPlugin]}
+        // The page toolbar (AgendaNavigation) is the only navigation: its
+        // arrows update page state, unlike FullCalendar's own toolbar which
+        // would move the internal week without a `datesSet` handler.
+        headerToolbar={false}
         initialView="timeGridWeek"
         initialDate={selectedDate}
         timeZone="UTC"

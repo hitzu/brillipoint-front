@@ -16,6 +16,8 @@ interface Props {
   /** Highlighted day. */
   selectedDate?: YMD;
   onDateSelect: (date: YMD) => void;
+  /** Opens an event. Omitted, events render as plain text. */
+  onEventSelect?: (entry: AgendaEntry) => void;
   /** Civil "today", injected for testability. Defaults to the real one. */
   today?: YMD;
 }
@@ -54,6 +56,7 @@ export const MonthGrid = ({
   anchor,
   selectedDate,
   onDateSelect,
+  onEventSelect,
   today = toYMD(new Date()),
 }: Props) => {
   const weeks = monthGridDates(anchor);
@@ -78,13 +81,15 @@ export const MonthGrid = ({
                 const isToday = date === today;
                 const dayEntries = entries[date] ?? [];
 
+                // A div, not a button: event buttons live inside the cell and
+                // buttons cannot nest. The whole cell stays clickable for the
+                // mouse; the day number is the keyboard path to the date.
                 return (
-                  <button
-                    type="button"
+                  <div
                     key={date}
                     role="gridcell"
                     aria-label={longDateLabel(date)}
-                    aria-pressed={date === selectedDate}
+                    aria-selected={date === selectedDate}
                     className={`${styles.cell}${outsideMonth ? ` ${styles.dimmed}` : ""}${isPast ? ` ${styles.past}` : ""}${isToday ? ` ${styles.today}` : ""}`}
                     data-date={date}
                     data-outside-month={outsideMonth}
@@ -92,9 +97,19 @@ export const MonthGrid = ({
                     data-today={isToday}
                     onClick={() => onDateSelect(date)}
                   >
-                    <strong className={styles.dayNumber}>
-                      {Number(date.slice(8, 10))}
-                    </strong>
+                    <button
+                      type="button"
+                      className={styles.dayButton}
+                      aria-label={`Ver ${longDateLabel(date)}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDateSelect(date);
+                      }}
+                    >
+                      <strong className={styles.dayNumber}>
+                        {Number(date.slice(8, 10))}
+                      </strong>
+                    </button>
                     {/* Mes is an overview: no block buttons here (T3), always
                         hour ticks regardless of the caller's timeline scale. */}
                     <DayTimeline date={date} entries={entries} density="compact" />
@@ -102,9 +117,23 @@ export const MonthGrid = ({
                       <ul className={styles.events}>
                         {dayEntries.slice(0, MAX_INLINE_EVENTS).map((entry) => {
                           const info = entryPresentation(entry, date);
+                          const text = `${info.time} · ${info.title}`;
                           return (
                             <li key={entry.key} className={styles.event}>
-                              {`${info.time} · ${info.title}`}
+                              {onEventSelect ? (
+                                <button
+                                  type="button"
+                                  className={styles.eventButton}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    onEventSelect(entry);
+                                  }}
+                                >
+                                  {text}
+                                </button>
+                              ) : (
+                                text
+                              )}
                             </li>
                           );
                         })}
@@ -115,7 +144,7 @@ export const MonthGrid = ({
                         ) : null}
                       </ul>
                     ) : null}
-                  </button>
+                  </div>
                 );
               })}
             </div>

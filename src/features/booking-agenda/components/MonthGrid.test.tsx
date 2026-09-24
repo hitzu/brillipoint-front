@@ -133,7 +133,64 @@ describe("MonthGrid", () => {
     expect(
       screen
         .getByRole("gridcell", { name: /10 de octubre de 2026/ })
-        .getAttribute("aria-pressed")
+        .getAttribute("aria-selected")
     ).toBe("true");
+  });
+
+  it("opens an event from the day cell without selecting the date", () => {
+    const day: YMD = "2026-10-10";
+    const boda = entry(1, day, "10:00", "12:00", "Boda");
+    const onDateSelect = vi.fn();
+    const onEventSelect = vi.fn();
+    render(
+      <MonthGrid
+        entries={{ [day]: [boda] }}
+        anchor={ANCHOR}
+        onDateSelect={onDateSelect}
+        onEventSelect={onEventSelect}
+        today="2026-09-20"
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "10:00 – 12:00 · Boda" })
+    );
+
+    expect(onEventSelect).toHaveBeenCalledWith(boda);
+    expect(onDateSelect).not.toHaveBeenCalled();
+  });
+
+  it("keeps a keyboard-reachable button to select the date", () => {
+    const onDateSelect = vi.fn();
+    render(
+      <MonthGrid
+        entries={{}}
+        anchor={ANCHOR}
+        onDateSelect={onDateSelect}
+        today="2026-09-20"
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Ver .*10 de octubre de 2026$/ })
+    );
+
+    expect(onDateSelect).toHaveBeenCalledWith("2026-10-10");
+  });
+
+  it("renders events as plain text when no event handler is given", () => {
+    const day: YMD = "2026-10-10";
+    render(
+      <MonthGrid
+        entries={{ [day]: [entry(1, day, "10:00", "12:00", "Boda")] }}
+        anchor={ANCHOR}
+        onDateSelect={vi.fn()}
+        today="2026-09-20"
+      />
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "10:00 – 12:00 · Boda" })
+    ).toBeNull();
   });
 });

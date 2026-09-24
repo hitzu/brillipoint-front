@@ -77,6 +77,7 @@ export const BookingCalendar = ({
           anchor={selectedDate}
           selectedDate={selectedDate}
           onDateSelect={selectDate}
+          onEventSelect={selectEvent}
         />
       </div>
     );

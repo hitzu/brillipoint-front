@@ -1,4 +1,12 @@
-import { Button, Col, Form, Modal, Row } from "react-bootstrap";
+import {
+  Button,
+  Col,
+  Form,
+  Modal,
+  OverlayTrigger,
+  Row,
+  Tooltip,
+} from "react-bootstrap";
 import type {
   BookingDetail,
   ContractOption,
@@ -11,7 +19,15 @@ import {
 } from "../../../shared/scheduling/bookingBlocks";
 import dialogStyles from "./AgendaDialog.module.css";
 import { ContractPicker, label as contractLabel } from "./ContractPicker";
+import { TimeSelect } from "./TimeSelect";
 import { useBookingForm, type BookingFormDraft } from "./hooks/useBookingForm";
+import {
+  endTimeOptions,
+  formatDuration,
+  isValidTime,
+  nextDayDurationMinutes,
+  startTimeOptions,
+} from "../utils/timeOptions";
 interface Props {
   initialDate: YMD;
   booking?: BookingDetail | null;
@@ -36,6 +52,13 @@ export const BookingForm = ({
 }: Props) => {
   const form = useBookingForm({ initialDate, booking, draft, contract, onSave });
   const title = booking ? "Editar evento" : "Nuevo evento";
+  const { startsAt, endsAt, endsNextDay } = form.state;
+  const nextDayNotice =
+    endsNextDay && isValidTime(startsAt) && isValidTime(endsAt)
+      ? `Termina el día siguiente (${formatDuration(
+          nextDayDurationMinutes(startsAt, endsAt)
+        )})`
+      : null;
   const close = () => {
     if (!form.saving) onCancel();
   };
@@ -74,29 +97,44 @@ export const BookingForm = ({
             <Col md={4}>
               <Form.Group controlId="booking-start">
                 <Form.Label>Inicio</Form.Label>
-                <Form.Control
-                  aria-label="Inicio"
-                  type="time"
+                <TimeSelect
+                  ariaLabel="Inicio"
                   value={form.state.startsAt}
-                  onChange={(event) =>
-                    form.update("startsAt", event.target.value)
-                  }
-                  required
+                  options={startTimeOptions()}
+                  onChange={(value) => form.update("startsAt", value)}
                   disabled={form.saving}
                 />
               </Form.Group>
             </Col>
             <Col md={4}>
               <Form.Group controlId="booking-end">
-                <Form.Label>Fin</Form.Label>
-                <Form.Control
-                  aria-label="Fin"
-                  type="time"
+                <Form.Label>
+                  Fin
+                  {nextDayNotice ? (
+                    // An icon beside the label, not a line under the field:
+                    // inline text changed the modal height as it toggled.
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={
+                        <Tooltip id="booking-end-next-day">
+                          {nextDayNotice}
+                        </Tooltip>
+                      }
+                    >
+                      <i
+                        className="ti ti-alert-triangle text-warning ms-1"
+                        role="img"
+                        aria-label={nextDayNotice}
+                        tabIndex={0}
+                      />
+                    </OverlayTrigger>
+                  ) : null}
+                </Form.Label>
+                <TimeSelect
+                  ariaLabel="Fin"
                   value={form.state.endsAt}
-                  onChange={(event) =>
-                    form.update("endsAt", event.target.value)
-                  }
-                  required
+                  options={endTimeOptions(form.state.startsAt)}
+                  onChange={(value) => form.update("endsAt", value)}
                   disabled={form.saving}
                 />
               </Form.Group>
