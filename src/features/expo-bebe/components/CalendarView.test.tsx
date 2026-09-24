@@ -159,7 +159,7 @@ describe("CalendarView", () => {
     render(<CalendarView initialDate={ANCHOR} onPickDate={onPickDate} />);
 
     await waitFor(() => expect(cellFor(FREE_WEEKEND_DAY)).toBeTruthy());
-    fireEvent.click(screen.getByRole("button", { name: "Noviembre" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mes siguiente" }));
 
     expect(onPickDate).not.toHaveBeenCalled();
     await waitFor(() =>

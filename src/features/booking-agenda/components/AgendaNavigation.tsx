@@ -1,6 +1,7 @@
+import { MonthYearPicker } from "@shared/components/MonthYearPicker/MonthYearPicker";
 import type { CalendarView, YMD } from "../types";
 import { addDays, toYMD, weekStart } from "../utils/businessDate";
-import { MONTHS, weekLabel } from "../utils/agendaPresentation";
+import { weekLabel } from "../utils/agendaPresentation";
 import styles from "./AgendaNavigation.module.css";
 
 interface Props {
@@ -26,25 +27,6 @@ const VIEW_LABELS: Record<CalendarView, string> = {
   "month-weekends": "Fines de semana",
 };
 
-/** 3-letter chip labels, in calendar order. */
-const MONTH_ABBREVIATIONS = [
-  "ene",
-  "feb",
-  "mar",
-  "abr",
-  "may",
-  "jun",
-  "jul",
-  "ago",
-  "sep",
-  "oct",
-  "nov",
-  "dic",
-];
-
-const capitalize = (value: string): string =>
-  value.charAt(0).toUpperCase() + value.slice(1);
-
 export const AgendaNavigation = ({
   selectedDate,
   view,
@@ -58,18 +40,22 @@ export const AgendaNavigation = ({
   const year = Number(selectedDate.slice(0, 4));
   const month = Number(selectedDate.slice(5, 7)) - 1;
   const day = Number(selectedDate.slice(8, 10));
-  const currentYear = Number(toYMD(new Date()).slice(0, 4));
   const isMonthView = view === "month" || view === "month-weekends";
+  /** Same day in the target month, clamped to its last day (31 ene → 28 feb). */
   const dateForMonth = (nextYear: number, nextMonth: number) => {
-    const lastDay = new Date(Date.UTC(nextYear, nextMonth + 1, 0)).getUTCDate();
-    return `${nextYear}-${String(nextMonth + 1).padStart(2, "0")}-${String(Math.min(day, lastDay)).padStart(2, "0")}`;
+    const target = new Date(Date.UTC(nextYear, nextMonth, 1));
+    const targetYear = target.getUTCFullYear();
+    const targetMonth = target.getUTCMonth();
+    const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+    return `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-${String(Math.min(day, lastDay)).padStart(2, "0")}`;
   };
-  const chooseMonth = (nextMonth: number) =>
-    onSelectDate(dateForMonth(year, nextMonth));
-  const shift = (days: number) => onSelectDate(addDays(selectedDate, days));
-  const title = isMonthView
-    ? `${capitalize(MONTHS[month])} ${year}`
-    : weekLabel(weekStart(selectedDate));
+  const step = (direction: 1 | -1) =>
+    onSelectDate(
+      isMonthView
+        ? dateForMonth(year, month + direction)
+        : addDays(selectedDate, direction * 7)
+    );
+  const unit = isMonthView ? "Mes" : "Semana";
 
   return (
     <nav
@@ -77,63 +63,37 @@ export const AgendaNavigation = ({
       aria-label="Navegación de agenda"
       data-tone={tone}
     >
-      <div className="agenda-date-filters">
-        <div role="group" aria-label="Año">
-          {[currentYear, currentYear + 1, currentYear + 2].map((item) => (
-            <button
-              type="button"
-              key={item}
-              aria-pressed={item === year}
-              onClick={() => onSelectDate(dateForMonth(item, month))}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-        <div
-          className={styles.monthChips}
-          role="group"
-          aria-label="Mes"
-        >
-          {MONTH_ABBREVIATIONS.map((abbreviation, index) => (
-            <button
-              type="button"
-              key={abbreviation}
-              aria-pressed={index === month}
-              aria-label={capitalize(MONTHS[index])}
-              onClick={() => chooseMonth(index)}
-            >
-              {abbreviation}
-            </button>
-          ))}
-        </div>
-      </div>
       <div className="agenda-week-navigation">
-        <strong aria-live="polite">{title}</strong>
+        <div className="agenda-period">
+          <div role="group" aria-label="Periodo">
+            <button
+              type="button"
+              aria-label={`${unit} anterior`}
+              onClick={() => step(-1)}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              aria-label={`${unit} siguiente`}
+              onClick={() => step(1)}
+            >
+              ›
+            </button>
+          </div>
+          <MonthYearPicker
+            year={year}
+            month={month}
+            label={isMonthView ? undefined : weekLabel(weekStart(selectedDate))}
+            onChange={(nextYear, nextMonth) =>
+              onSelectDate(dateForMonth(nextYear, nextMonth))
+            }
+          />
+          <button type="button" onClick={() => onSelectDate(toYMD(new Date()))}>
+            Hoy
+          </button>
+        </div>
         <div className="agenda-week-actions">
-          {!isMonthView ? (
-            <>
-              <button type="button" onClick={() => onSelectDate(toYMD(new Date()))}>
-                Hoy
-              </button>
-              <div role="group" aria-label="Semana">
-                <button
-                  type="button"
-                  aria-label="Semana anterior"
-                  onClick={() => shift(-7)}
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  aria-label="Semana siguiente"
-                  onClick={() => shift(7)}
-                >
-                  ›
-                </button>
-              </div>
-            </>
-          ) : null}
           {showViewPicker ? (
             <div role="group" aria-label="Presentación">
               {views.map((option) => (

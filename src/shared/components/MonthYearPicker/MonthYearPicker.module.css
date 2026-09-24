@@ -1,0 +1,114 @@
+/*
+ * Colors inherit from the host through custom properties so the picker fits
+ * both the app's themed agenda and the public expo page.
+ */
+.root {
+  --myp-surface: var(--agenda-nav-surface, #ffffff);
+  --myp-text: var(--agenda-nav-text, #09203d);
+  --myp-muted: var(--agenda-nav-muted, #6684a3);
+  --myp-border: var(--agenda-nav-border, #c7d8e8);
+  --myp-track: var(--agenda-nav-track, #e4eef7);
+  --myp-primary: var(--agenda-nav-primary, #00649e);
+  --myp-focus: var(--agenda-nav-focus, #13b6d1);
+  position: relative;
+  display: inline-flex;
+}
+
+.root button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.root button:focus-visible {
+  outline: 2px solid var(--myp-focus);
+  outline-offset: 3px;
+}
+
+.trigger.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0.25rem 0.4rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: var(--myp-text);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.trigger.trigger:hover {
+  background: var(--myp-track);
+}
+
+.caret {
+  color: var(--myp-muted);
+  font-size: 0.75rem;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 20;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0.9rem;
+  border: 1px solid var(--myp-border);
+  border-radius: 0.75rem;
+  background: var(--myp-surface);
+  color: var(--myp-text);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+}
+
+.yearRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.yearRow strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.root .yearRow button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--myp-border);
+  border-radius: 0.45rem;
+  background: var(--myp-surface);
+  color: var(--myp-text);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.45rem;
+}
+
+.root .monthGrid button {
+  min-height: 40px;
+  padding: 0.4rem 0;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+  background: var(--myp-track);
+  color: var(--myp-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.root .monthGrid button:hover {
+  border-color: var(--myp-muted);
+}
+
+.root .monthGrid button[aria-pressed="true"] {
+  border-color: var(--myp-primary);
+  background: var(--myp-surface);
+  color: var(--myp-primary);
+}

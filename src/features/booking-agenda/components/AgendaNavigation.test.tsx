@@ -3,6 +3,19 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AgendaNavigation } from "./AgendaNavigation";
 
+const pickMonth = (monthName: string, yearSteps = 0) => {
+  const trigger = screen
+    .getAllByRole("button")
+    .find((button) => button.getAttribute("aria-haspopup") === "dialog");
+  fireEvent.click(trigger!);
+  const dialog = screen.getByRole("dialog");
+  const stepLabel = yearSteps > 0 ? "Año siguiente" : "Año anterior";
+  for (let i = 0; i < Math.abs(yearSteps); i += 1) {
+    fireEvent.click(within(dialog).getByRole("button", { name: stepLabel }));
+  }
+  fireEvent.click(within(dialog).getByRole("button", { name: monthName }));
+};
+
 describe("AgendaNavigation", () => {
   it("keeps navigation on a valid civil date when a 31-day month changes to February", () => {
     const onSelectDate = vi.fn();
@@ -16,11 +29,11 @@ describe("AgendaNavigation", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Febrero" }));
+    pickMonth("Febrero");
     expect(onSelectDate).toHaveBeenCalledWith("2026-02-28");
   });
 
-  it("steps by month and shows the Spanish month title in a month view", () => {
+  it("shows the Spanish month title in a month view and jumps through the picker", () => {
     const onSelectDate = vi.fn();
     render(
       <AgendaNavigation
@@ -31,12 +44,12 @@ describe("AgendaNavigation", () => {
       />
     );
 
-    expect(screen.getByText("Octubre 2026")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Noviembre" }));
+    expect(screen.getByRole("button", { name: /Octubre 2026/ })).toBeTruthy();
+    pickMonth("Noviembre");
     expect(onSelectDate).toHaveBeenCalledWith("2026-11-15");
   });
 
-  it("keeps the current year when clicking an earlier month chip (year buttons control the year)", () => {
+  it("changes the year through the picker's year arrows", () => {
     const onSelectDate = vi.fn();
     render(
       <AgendaNavigation
@@ -47,8 +60,50 @@ describe("AgendaNavigation", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Enero" }));
-    expect(onSelectDate).toHaveBeenCalledWith("2026-01-15");
+    pickMonth("Enero", 1);
+    expect(onSelectDate).toHaveBeenCalledWith("2027-01-15");
+  });
+
+  it("steps by month in month views, clamping the day and crossing years", () => {
+    const onSelectDate = vi.fn();
+    const { rerender } = render(
+      <AgendaNavigation
+        selectedDate="2026-01-31"
+        view="month"
+        onSelectDate={onSelectDate}
+        onViewChange={() => undefined}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Mes siguiente" }));
+    expect(onSelectDate).toHaveBeenLastCalledWith("2026-02-28");
+
+    rerender(
+      <AgendaNavigation
+        selectedDate="2026-01-15"
+        view="month"
+        onSelectDate={onSelectDate}
+        onViewChange={() => undefined}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Mes anterior" }));
+    expect(onSelectDate).toHaveBeenLastCalledWith("2025-12-15");
+  });
+
+  it("steps by week in detail views", () => {
+    const onSelectDate = vi.fn();
+    render(
+      <AgendaNavigation
+        selectedDate="2026-10-15"
+        view="summary"
+        onSelectDate={onSelectDate}
+        onViewChange={() => undefined}
+      />
+    );
+    expect(screen.queryByRole("button", { name: /Mes anterior|Mes siguiente/ })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Semana siguiente" }));
+    expect(onSelectDate).toHaveBeenLastCalledWith("2026-10-22");
+    fireEvent.click(screen.getByRole("button", { name: "Semana anterior" }));
+    expect(onSelectDate).toHaveBeenLastCalledWith("2026-10-08");
   });
 
   it("restricts the view picker to the given views prop", () => {
@@ -70,63 +125,6 @@ describe("AgendaNavigation", () => {
     expect(screen.queryByRole("button", { name: "Horarios" })).toBeNull();
   });
 
-  it("renders 12 month chips with 3-letter labels and marks the selected one", () => {
-    render(
-      <AgendaNavigation
-        selectedDate="2026-10-15"
-        view="month"
-        onSelectDate={() => undefined}
-        onViewChange={() => undefined}
-      />
-    );
-
-    const group = screen.getByRole("group", { name: "Mes" });
-    const chips = within(group).getAllByRole("button");
-    expect(chips.map((chip) => chip.textContent)).toEqual([
-      "ene",
-      "feb",
-      "mar",
-      "abr",
-      "may",
-      "jun",
-      "jul",
-      "ago",
-      "sep",
-      "oct",
-      "nov",
-      "dic",
-    ]);
-    expect(
-      within(group).getByRole("button", { name: "Octubre" }).getAttribute("aria-pressed")
-    ).toBe("true");
-    expect(
-      within(group).getByRole("button", { name: "Enero" }).getAttribute("aria-pressed")
-    ).toBe("false");
-  });
-
-  it("hides the week arrows in month views and keeps them in detail views", () => {
-    const { rerender } = render(
-      <AgendaNavigation
-        selectedDate="2026-10-15"
-        view="month"
-        onSelectDate={() => undefined}
-        onViewChange={() => undefined}
-      />
-    );
-    expect(screen.queryByRole("button", { name: /Mes anterior|Mes siguiente/ })).toBeNull();
-
-    rerender(
-      <AgendaNavigation
-        selectedDate="2026-10-15"
-        view="summary"
-        onSelectDate={() => undefined}
-        onViewChange={() => undefined}
-      />
-    );
-    expect(screen.getByRole("button", { name: "Semana anterior" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Semana siguiente" })).toBeTruthy();
-  });
-
   it("renders a back button only when onBack is provided", () => {
     const onBack = vi.fn();
     render(
@@ -142,7 +140,7 @@ describe("AgendaNavigation", () => {
     expect(onBack).toHaveBeenCalled();
   });
 
-  it("orders the week toolbar as title, Hoy, arrows, toggle, then Volver last", () => {
+  it("orders the toolbar as arrows, title, Hoy, then toggle and Volver last", () => {
     const { container } = render(
       <AgendaNavigation
         selectedDate="2026-09-10"
@@ -153,21 +151,18 @@ describe("AgendaNavigation", () => {
       />
     );
 
-    const weekNav = container.querySelector(".agenda-week-navigation");
-    expect(weekNav).toBeTruthy();
-    const title = weekNav!.querySelector("strong");
-    expect(title?.textContent).toMatch(/–/);
+    const period = container.querySelector(".agenda-period");
+    expect(period).toBeTruthy();
+    const periodLabels = Array.from(period!.children).map((el) => el.textContent);
+    expect(periodLabels[0]).toContain("‹");
+    expect(periodLabels[0]).toContain("›");
+    expect(periodLabels[1]).toMatch(/–/);
+    expect(periodLabels[2]).toBe("Hoy");
 
-    const actions = weekNav!.querySelector(".agenda-week-actions");
-    expect(actions).toBeTruthy();
-    const actionLabels = Array.from(actions!.children).map(
-      (el) => el.textContent
-    );
-    expect(actionLabels[0]).toBe("Hoy");
-    expect(actionLabels[1]).toContain("‹");
-    expect(actionLabels[1]).toContain("›");
-    expect(actionLabels[2]).toContain("Resumen");
-    expect(actionLabels[2]).toContain("Horarios");
+    const actions = container.querySelector(".agenda-week-actions");
+    const actionLabels = Array.from(actions!.children).map((el) => el.textContent);
+    expect(actionLabels[0]).toContain("Resumen");
+    expect(actionLabels[0]).toContain("Horarios");
     expect(actionLabels[actionLabels.length - 1]).toContain("Volver");
   });
 
@@ -189,7 +184,7 @@ describe("AgendaNavigation", () => {
     vi.useRealTimers();
   });
 
-  it("does not render Hoy or the week arrows in month views", () => {
+  it("renders Hoy in month views too", () => {
     render(
       <AgendaNavigation
         selectedDate="2026-10-15"
@@ -198,7 +193,8 @@ describe("AgendaNavigation", () => {
         onViewChange={() => undefined}
       />
     );
-    expect(screen.queryByRole("button", { name: "Hoy" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Hoy" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Semana/ })).toBeNull();
   });
 
   it("stays out of the dark-theme selector when tone is public", () => {

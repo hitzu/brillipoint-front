@@ -20,7 +20,7 @@
   --agenda-nav-primary: #00649e;
   --agenda-nav-focus: #2ad8fc;
 }
-.navigation :global(.agenda-date-filters),
+.navigation :global(.agenda-period),
 .navigation :global(.agenda-week-navigation),
 .navigation :global(.agenda-week-actions) {
   display: flex;
@@ -28,15 +28,8 @@
   gap: 0.8rem;
   flex-wrap: wrap;
 }
-.navigation :global(.agenda-date-filters) {
-  justify-content: flex-start;
-}
 .navigation :global(.agenda-week-actions) {
   margin-left: auto;
-}
-.navigation :global(.agenda-date-filters > [role="group"]) {
-  display: flex;
-  gap: 0.45rem;
 }
 .navigation :global(button),
 .navigation :global(select) {
@@ -56,12 +49,6 @@
 .navigation :global(button:hover) {
   border-color: var(--agenda-nav-muted);
 }
-.navigation :global(.agenda-date-filters button[aria-pressed="true"]) {
-  background: var(--agenda-nav-primary);
-  border-color: var(--agenda-nav-primary);
-  color: #fff;
-  font-weight: 600;
-}
 .navigation :global(label) {
   display: flex;
   align-items: center;
@@ -69,17 +56,12 @@
   color: var(--agenda-nav-muted);
   font-size: 0.85rem;
 }
-.navigation :global(.agenda-week-navigation > strong) {
-  color: var(--agenda-nav-text);
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-/* Week arrows: grouped like the FullCalendar button pair they replace. */
-.navigation :global(.agenda-week-actions > [aria-label="Semana"]) {
+/* Period arrows: step a week or a month depending on the view. */
+.navigation :global(.agenda-period > [aria-label="Periodo"]) {
   display: flex;
   gap: 0.45rem;
 }
-.navigation :global(.agenda-week-actions > [aria-label="Semana"] button) {
+.navigation :global(.agenda-period > [aria-label="Periodo"] button) {
   min-width: 40px;
   padding: 0.45rem 0.6rem;
   font-size: 1.1rem;
@@ -114,22 +96,11 @@
   outline-offset: 3px;
 }
 @media (max-width: 767px) {
-  .navigation :global(.agenda-week-navigation > strong) {
-    flex: 1 1 100%;
+  .navigation :global(.agenda-week-actions) {
+    margin-left: 0;
   }
 }
 
-/* Month chips: horizontal scroll on narrow screens instead of wrapping. */
-.monthChips {
-  display: flex;
-  gap: 0.35rem;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
-}
-.monthChips button {
-  flex: 0 0 auto;
-}
 .backButton {
   border: 0;
   background: transparent;
