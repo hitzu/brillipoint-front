@@ -19,6 +19,10 @@ export interface BookingDraft {
   startsAt: string;
   endsAt: string;
 }
+type BrowseView = "month" | "month-weekends";
+type DetailView = "summary" | "hours";
+const BROWSE_VIEWS: BrowseView[] = ["month", "month-weekends"];
+const DETAIL_VIEWS: DetailView[] = ["summary", "hours"];
 interface Args {
   initialDate: YMD;
   onDateSelect?: (date: YMD) => void;
@@ -32,7 +36,13 @@ export const useAgendaPage = ({
   readOnly,
 }: Args) => {
   const [selectedDate, setSelectedDate] = useState(initialDate);
-  const [view, setView] = useState<CalendarView>("summary");
+  // Two agenda levels (T5): browsing "Mes"/"Fines de semana" at the top,
+  // drilling into a date's week detail ("Resumen"/"Horarios") with a way
+  // back. The browse view/anchor persist across a detail visit.
+  const [level, setLevel] = useState<"browse" | "detail">("browse");
+  const [browseView, setBrowseView] = useState<BrowseView>("month-weekends");
+  const [detailView, setDetailView] = useState<DetailView>("summary");
+  const [browseAnchorDate, setBrowseAnchorDate] = useState<YMD>(initialDate);
   const [selectedEntry, setSelectedEntry] = useState<AgendaEntry | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<BookingDetail | null>(
     null
@@ -50,6 +60,41 @@ export const useAgendaPage = ({
   const selectDate = (date: YMD) => {
     setSelectedDate(date);
     onDateSelect?.(date);
+  };
+  const view: CalendarView = level === "browse" ? browseView : detailView;
+  const views: CalendarView[] = level === "browse" ? BROWSE_VIEWS : DETAIL_VIEWS;
+  const onViewChange = (next: CalendarView) => {
+    if (level === "browse") setBrowseView(next as BrowseView);
+    else setDetailView(next as DetailView);
+  };
+  /** "Volver": only rendered by AgendaNavigation while a detail is open. */
+  const onBack =
+    level === "detail"
+      ? () => {
+          setLevel("browse");
+          selectDate(browseAnchorDate);
+        }
+      : undefined;
+  /** "Nuevo evento" prefilled with a specific date (no time range). */
+  const startNewForDate = (date: YMD) => {
+    selectDate(date);
+    setDraft(null);
+    setEditing("new");
+  };
+  /**
+   * The calendar's date click: entering a month view drills into that
+   * date's week detail; inside a detail, the day number opens the create
+   * modal for that date instead (T5).
+   */
+  const selectCalendarDate = (date: YMD) => {
+    if (level === "browse") {
+      setBrowseAnchorDate(selectedDate);
+      setDetailView("summary");
+      setLevel("detail");
+      selectDate(date);
+    } else {
+      startNewForDate(date);
+    }
   };
   const selectEvent = (entry: AgendaEntry) => {
     setSelectedDetail(null);
@@ -111,9 +156,12 @@ export const useAgendaPage = ({
     closeDetails,
     draft,
     editing,
+    onBack,
+    onViewChange,
     pendingNote,
     requestCreate,
     saveBooking,
+    selectCalendarDate,
     selectedDate,
     selectedDetail,
     selectedEntry,
@@ -122,10 +170,10 @@ export const useAgendaPage = ({
     setEditing,
     setPendingNote,
     setSelectedDate,
-    setView,
     startEditing,
     startNew,
     title,
     view,
+    views,
   };
 };

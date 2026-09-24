@@ -80,8 +80,10 @@ export const AgendaPage = ({
       <AgendaNavigation
         selectedDate={page.selectedDate}
         view={page.view}
+        views={page.views}
         onSelectDate={page.selectDate}
-        onViewChange={page.setView}
+        onViewChange={page.onViewChange}
+        onBack={page.onBack}
       />
       {range.error ? (
         <p className={styles.notice} role="alert">
@@ -97,10 +99,11 @@ export const AgendaPage = ({
         view={page.view}
         readOnly={readOnly}
         weekendsOnly={weekendsOnly}
-        onDateSelect={page.selectDate}
+        onDateSelect={page.selectCalendarDate}
         onEventSelect={page.selectEvent}
         getCreateOptions={readOnly ? undefined : exactCreateOptions}
         onCreateRequest={readOnly ? undefined : page.requestCreate}
+        onDaySelect={readOnly ? undefined : page.selectCalendarDate}
       />
       {page.selectedEntry ? (
         <BookingDetails

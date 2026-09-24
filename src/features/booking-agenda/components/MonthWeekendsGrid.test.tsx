@@ -56,7 +56,7 @@ describe("MonthWeekendsGrid", () => {
     expect(screen.getAllByRole("gridcell")).toHaveLength(15);
   });
 
-  it("shows exact times and a single 'Apartar Noche' button after an 11-14 booking", () => {
+  it("shows exact times and a single 'Apartar Noche' block button after an 11-14 booking", () => {
     const onCreateRequest = vi.fn();
     render(
       <MonthWeekendsGrid
@@ -65,12 +65,15 @@ describe("MonthWeekendsGrid", () => {
         onDateSelect={vi.fn()}
         getCreateOptions={blockCreateOptions}
         onCreateRequest={onCreateRequest}
+        timelineScale="blocks"
         today="2026-09-20"
       />
     );
 
     const cell = within(cellFor("2026-10-03"));
-    expect(cell.getByText("Ocupado 11:00–14:00")).toBeTruthy();
+    expect(
+      cell.getByRole("listitem", { name: /Ocupado 11:00–14:00/ })
+    ).toBeTruthy();
     const buttons = cell.getAllByRole("button", { name: /Apartar Noche/ });
     expect(buttons).toHaveLength(1);
     fireEvent.click(buttons[0]);
@@ -119,6 +122,23 @@ describe("MonthWeekendsGrid", () => {
     expect(cellFor("2026-10-16").getAttribute("data-outside-month")).toBe(
       "false"
     );
+  });
+
+  it("offers no create actions on the hours scale: agenda weekends keep only \"Nuevo evento\" (T4)", () => {
+    render(
+      <MonthWeekendsGrid
+        entries={{ "2026-10-03": [exactEntry("2026-10-03", "11:00", "14:00")] }}
+        anchor={ANCHOR}
+        onDateSelect={vi.fn()}
+        getCreateOptions={blockCreateOptions}
+        onCreateRequest={vi.fn()}
+        today="2026-09-20"
+      />
+    );
+
+    const cell = within(cellFor("2026-10-03"));
+    expect(cell.getByText("Ocupado 11:00–14:00")).toBeTruthy();
+    expect(cell.queryAllByRole("button", { name: /Apartar/ })).toHaveLength(0);
   });
 
   it("calls onDateSelect when the day header is clicked", () => {

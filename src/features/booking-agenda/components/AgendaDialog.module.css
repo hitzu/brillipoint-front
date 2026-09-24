@@ -15,6 +15,20 @@
   color: var(--agenda-dialog-text);
   box-shadow: 0 1.5rem 4rem rgba(1, 16, 38, 0.35);
 }
+/* Bootstrap's `scrollable` expects header/body/footer as direct flex children
+   of .modal-content; a wrapping <form> breaks that and clips the footer. */
+.dialog :global(.modal-content) > form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+.dialog :global(.modal-content) > form > :global(.modal-body) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
 .dialog :global(.modal-header),
 .dialog :global(.modal-footer) {
   border-color: var(--agenda-dialog-border);

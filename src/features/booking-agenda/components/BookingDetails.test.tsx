@@ -48,11 +48,40 @@ describe("BookingDetails", () => {
         onEdit={() => undefined}
       />
     );
-    const link = await screen.findByRole("link", { name: "SKU-7" });
+    expect(await screen.findByText("SKU-7")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "SKU-7" })).toBeNull();
+    const link = screen.getByRole("link", { name: "Ver página de reserva" });
     expect(link.getAttribute("href")).toBe("/reserva/token-7");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noreferrer");
+    expect(link.className).toContain("btn");
     expect(screen.queryByRole("button", { name: "Editar" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Ver en Maps" })).toBeNull();
     expect(api.getBookingNotes).not.toHaveBeenCalled();
+  });
+
+  it("renders a safe Maps URL as a button-styled link opening in a new tab", async () => {
+    api.getBookingDetail.mockResolvedValue({
+      ...entry,
+      eventDate: entry.date,
+      status: "confirmed",
+      serviceStartsAt: entry.startsAt,
+      serviceEndsAt: entry.endsAt,
+      purpose: "event",
+      mapsUrl: "https://maps.google.com/?q=Foro",
+      contract: { sku: "SKU-7", token: "token-7" },
+    });
+    render(
+      <BookingDetails
+        entry={entry}
+        readOnly
+        onClose={() => undefined}
+        onEdit={() => undefined}
+      />
+    );
+    const maps = await screen.findByRole("link", { name: "Ver en Maps" });
+    expect(maps.getAttribute("target")).toBe("_blank");
+    expect(maps.className).toContain("btn");
   });
 
   it("adds the retried pending note to the visible timeline", async () => {

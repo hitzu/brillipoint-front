@@ -11,7 +11,7 @@
   margin-bottom: 1.5rem;
   color: var(--agenda-nav-text);
 }
-:global([data-pc-theme="dark"]) .navigation {
+:global([data-pc-theme="dark"]) .navigation:not([data-tone="public"]) {
   --agenda-nav-surface: #16222f;
   --agenda-nav-text: #e2eaf3;
   --agenda-nav-muted: #91a3b5;
@@ -109,4 +109,22 @@
   .navigation :global(.agenda-week-navigation > strong) {
     flex: 1 1 100%;
   }
+}
+
+/* Month chips: horizontal scroll on narrow screens instead of wrapping. */
+.monthChips {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+.monthChips button {
+  flex: 0 0 auto;
+}
+.backButton {
+  border: 0;
+  background: transparent;
+  color: var(--agenda-nav-muted);
+  font-weight: 600;
 }

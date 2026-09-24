@@ -2,7 +2,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { AgendaEntry, YMD } from "../types";
-import { blockCreateOptions } from "../utils/createOptions";
+import { blockCreateOptions, exactCreateOptions } from "../utils/createOptions";
 import { DayTimeline } from "./DayTimeline";
 import styles from "./DayTimeline.module.css";
 
@@ -58,9 +58,20 @@ const overnightEntry = (date: YMD): AgendaEntry => ({
 });
 
 describe("DayTimeline", () => {
-  it("shows the whole day as free when there are no entries", () => {
-    render(<DayTimeline date={DATE} entries={{}} />);
-    expect(screen.getByText("Libre todo el día")).toBeTruthy();
+  it("never shows the removed summary/actions text on the hours scale (T4)", () => {
+    const entries = { [DATE]: [exactEntry(DATE, "11:00", "14:00")] };
+    render(
+      <DayTimeline
+        date={DATE}
+        entries={entries}
+        getCreateOptions={exactCreateOptions}
+        onCreateRequest={vi.fn()}
+      />
+    );
+    expect(screen.queryByText("Libre todo el día")).toBeNull();
+    expect(screen.queryByText(/Mayor hueco/)).toBeNull();
+    expect(screen.queryByText(/Apartar Libre/)).toBeNull();
+    expect(screen.queryAllByRole("button")).toHaveLength(0);
   });
 
   it("shows exact occupied and free segment times in full density", () => {
@@ -69,36 +80,6 @@ describe("DayTimeline", () => {
     expect(screen.getByText("Ocupado 11:00–14:00")).toBeTruthy();
     expect(screen.getByText("Libre 14:00–04:00")).toBeTruthy();
     expect(screen.getByText("Libre 04:00–11:00")).toBeTruthy();
-  });
-
-  it("reports the largest free gap when the day is partially booked", () => {
-    const entries = { [DATE]: [exactEntry(DATE, "11:00", "14:00")] };
-    render(<DayTimeline date={DATE} entries={entries} density="compact" />);
-    expect(screen.getByText("Mayor hueco: 14h")).toBeTruthy();
-  });
-
-  it("renders exactly one 'Apartar Noche' button with a block policy after an 11-14 booking", () => {
-    const entries = { [DATE]: [exactEntry(DATE, "11:00", "14:00")] };
-    const onCreateRequest = vi.fn();
-    render(
-      <DayTimeline
-        date={DATE}
-        entries={entries}
-        getCreateOptions={blockCreateOptions}
-        onCreateRequest={onCreateRequest}
-      />
-    );
-    const buttons = screen.getAllByRole("button", { name: /Apartar Noche/ });
-    expect(buttons).toHaveLength(1);
-
-    fireEvent.click(buttons[0]);
-    expect(onCreateRequest).toHaveBeenCalledWith({
-      label: "Noche",
-      date: DATE,
-      startsAt: "20:00",
-      endsAt: "04:00",
-      blockId: "night_block",
-    });
   });
 
   it("renders no create buttons without a policy", () => {

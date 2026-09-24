@@ -11,6 +11,10 @@ export interface BookingCalendarProps extends AgendaCalendarProps {
   entries: Record<YMD, AgendaEntry[]>;
   selectedDate: YMD;
   view?: CalendarView;
+  /** "public" neutralizes the app's dark theme for pages like expo. */
+  tone?: "app" | "public";
+  /** Horarios only: clicking a day-column header opens the create modal (T5). */
+  onDaySelect?: (date: YMD) => void;
 }
 
 export const BookingCalendar = ({
@@ -23,7 +27,9 @@ export const BookingCalendar = ({
   onEventSelect,
   getCreateOptions,
   onCreateRequest,
+  onDaySelect,
   timelineScale = "hours",
+  tone = "app",
 }: BookingCalendarProps) => {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const selectDate = (date: YMD) => onDateSelect?.(date);
@@ -41,6 +47,7 @@ export const BookingCalendar = ({
         data-readonly={readOnly}
         data-weekends-only={weekendsOnly}
         data-testid="agenda-weekend-filter"
+        data-tone={tone}
       >
         <MonthWeekendsGrid
           entries={entries}
@@ -61,16 +68,15 @@ export const BookingCalendar = ({
         data-readonly={readOnly}
         data-weekends-only={weekendsOnly}
         data-testid="agenda-weekend-filter"
+        data-tone={tone}
       >
+        {/* Mes is overview-only (T3): no create policy or scale forwarded,
+            MonthGrid always uses hour ticks with no block/action buttons. */}
         <MonthGrid
           entries={entries}
           anchor={selectedDate}
           selectedDate={selectedDate}
           onDateSelect={selectDate}
-          onEventSelect={selectEvent}
-          getCreateOptions={getCreateOptions}
-          onCreateRequest={onCreateRequest}
-          timelineScale={timelineScale}
         />
       </div>
     );
@@ -81,6 +87,7 @@ export const BookingCalendar = ({
       data-readonly={readOnly}
       data-weekends-only={weekendsOnly}
       data-testid="agenda-weekend-filter"
+      data-tone={tone}
     >
       {isMobile ? (
         <MobileAgenda
@@ -100,6 +107,7 @@ export const BookingCalendar = ({
           onDateSelect={selectDate}
           onEventSelect={selectEvent}
           onCreateRequest={onCreateRequest}
+          onDaySelect={onDaySelect}
         />
       ) : (
         <AgendaSummary

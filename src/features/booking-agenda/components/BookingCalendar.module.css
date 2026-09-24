@@ -20,7 +20,7 @@
   color: var(--agenda-text);
   font-variant-numeric: tabular-nums;
 }
-:global([data-pc-theme="dark"]) .calendar {
+:global([data-pc-theme="dark"]) .calendar:not([data-tone="public"]) {
   --agenda-bg: #13181d;
   --agenda-surface: #16222f;
   --agenda-raised: #192027;
@@ -185,6 +185,14 @@
   --fc-now-indicator-color: var(--agenda-cyan);
   color: var(--agenda-text);
 }
+/* The template pads every `.fc-scroller-harness` by 20px (_calendar.scss);
+   FullCalendar ignores it when sizing columns, so header and body drift. */
+.calendar :global(.agenda-hours .fc .fc-scroller-harness) {
+  padding: 0;
+}
+.calendar :global(.agenda-hours .fc .fc-timegrid-slot) {
+  height: 2.5rem;
+}
 .calendar :global(.agenda-hours .fc .fc-col-header-cell) {
   position: sticky;
   top: 0;
@@ -199,6 +207,36 @@
 .calendar :global(.agenda-hours .fc .fc-col-header-cell-cushion) {
   color: var(--agenda-strong);
   text-decoration: none;
+}
+.calendar :global(.agenda-hours-day-header) {
+  display: block;
+  width: 100%;
+  padding: 0.2rem 0.4rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--agenda-text);
+  text-align: center;
+  transition: background-color 0.15s ease;
+}
+.calendar :global(.agenda-hours-day-header):hover,
+.calendar :global(.agenda-hours-day-header):focus-visible {
+  background: var(--agenda-selected);
+  outline: none;
+}
+.calendar :global(.agenda-hours-day-header__weekday),
+.calendar :global(.agenda-hours-day-header__number) {
+  display: block;
+}
+.calendar :global(.agenda-hours-day-header__weekday) {
+  color: var(--agenda-muted);
+  font-size: 0.78rem;
+}
+.calendar :global(.agenda-hours-day-header__number) {
+  margin-top: 0.35rem;
+  color: var(--agenda-strong);
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 .calendar :global(.fc .fc-timegrid-slot-label-cushion),
 .calendar :global(.fc .fc-timegrid-axis-cushion) {

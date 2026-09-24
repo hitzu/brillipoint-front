@@ -73,11 +73,10 @@ export const BookingDetails = ({
             <p>
               <strong>{details.detail.title || entry.title || "Evento"}</strong>
             </p>
-            {details.detail.contract?.sku && details.detail.contract.token ? (
+            {details.detail.contract?.sku ? (
               <p>
-                <a href={`/reserva/${details.detail.contract.token}`}>
-                  {details.detail.contract.sku}
-                </a>
+                <span className="d-block small text-muted">Contrato</span>
+                {details.detail.contract.sku}
               </p>
             ) : (
               <p>Sin contrato vinculado.</p>
@@ -85,12 +84,30 @@ export const BookingDetails = ({
             {details.detail.venueName ? (
               <p>{details.detail.venueName}</p>
             ) : null}
-            {mapsUrl ? (
-              <p>
-                <a href={mapsUrl} target="_blank" rel="noreferrer">
-                  Ver en Maps
-                </a>
-              </p>
+            {details.detail.contract?.token || mapsUrl ? (
+              <div className="d-flex flex-wrap gap-2 mb-3">
+                {details.detail.contract?.sku &&
+                details.detail.contract.token ? (
+                  <a
+                    className="btn btn-outline-primary btn-sm"
+                    href={`/reserva/${details.detail.contract.token}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Ver página de reserva <span aria-hidden="true">↗</span>
+                  </a>
+                ) : null}
+                {mapsUrl ? (
+                  <a
+                    className="btn btn-outline-primary btn-sm"
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Ver en Maps <span aria-hidden="true">↗</span>
+                  </a>
+                ) : null}
+              </div>
             ) : null}
             {!readOnly ? (
               <>

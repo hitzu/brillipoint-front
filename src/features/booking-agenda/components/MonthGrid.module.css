@@ -89,33 +89,26 @@
   font-weight: 700;
 }
 
-.count {
+.events {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event {
+  overflow: hidden;
+  color: var(--mg-strong);
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more {
   color: var(--mg-muted);
   font-size: 0.62rem;
-}
-
-.detail {
-  padding: 0.85rem 1rem 1rem;
-  border-top: 1px solid var(--mg-border);
-  background: var(--mg-heading-bg);
-}
-
-.detail h3 {
-  margin: 0 0 0.6rem;
-  color: var(--mg-strong);
-  font-size: 0.95rem;
-}
-
-.detailEvent {
-  display: block;
-  width: 100%;
-  margin-top: 0.4rem;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--mg-border);
-  border-radius: 0.5rem;
-  background: var(--mg-surface);
-  color: var(--mg-strong);
-  text-align: left;
 }
 
 @media (max-width: 767px) {
@@ -129,5 +122,16 @@
 
   .weekRow {
     grid-template-columns: 1fr;
+  }
+
+  /* One card per row on mobile: hour ticks repeat on every card, the
+     inline event list already carries the times. */
+  .cell :global(.day-timeline-ticks) {
+    display: none;
+  }
+
+  .event,
+  .more {
+    font-size: 0.75rem;
   }
 }

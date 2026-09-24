@@ -11,6 +11,10 @@ interface Props {
   showViewPicker?: boolean;
   /** Restricts which options the view picker offers; defaults to all four. */
   views?: CalendarView[];
+  /** Renders a "Volver" button that returns to the previous level (opt-in). */
+  onBack?: () => void;
+  /** "public" neutralizes the app's dark theme for pages like expo. */
+  tone?: "app" | "public";
 }
 
 const ALL_VIEWS: CalendarView[] = ["summary", "hours", "month", "month-weekends"];
@@ -22,6 +26,22 @@ const VIEW_LABELS: Record<CalendarView, string> = {
   "month-weekends": "Fines de semana",
 };
 
+/** 3-letter chip labels, in calendar order. */
+const MONTH_ABBREVIATIONS = [
+  "ene",
+  "feb",
+  "mar",
+  "abr",
+  "may",
+  "jun",
+  "jul",
+  "ago",
+  "sep",
+  "oct",
+  "nov",
+  "dic",
+];
+
 const capitalize = (value: string): string =>
   value.charAt(0).toUpperCase() + value.slice(1);
 
@@ -32,6 +52,8 @@ export const AgendaNavigation = ({
   onViewChange,
   showViewPicker = true,
   views = ALL_VIEWS,
+  onBack,
+  tone = "app",
 }: Props) => {
   const year = Number(selectedDate.slice(0, 4));
   const month = Number(selectedDate.slice(5, 7)) - 1;
@@ -45,12 +67,6 @@ export const AgendaNavigation = ({
   const chooseMonth = (nextMonth: number) =>
     onSelectDate(dateForMonth(year, nextMonth));
   const shift = (days: number) => onSelectDate(addDays(selectedDate, days));
-  const shiftMonth = (delta: number) => {
-    const total = month + delta;
-    const nextYear = year + Math.floor(total / 12);
-    const nextMonth = ((total % 12) + 12) % 12;
-    onSelectDate(dateForMonth(nextYear, nextMonth));
-  };
   const title = isMonthView
     ? `${capitalize(MONTHS[month])} ${year}`
     : weekLabel(weekStart(selectedDate));
@@ -59,6 +75,7 @@ export const AgendaNavigation = ({
     <nav
       className={`${styles.navigation} agenda-navigation`}
       aria-label="Navegación de agenda"
+      data-tone={tone}
     >
       <div className="agenda-date-filters">
         <div role="group" aria-label="Año">
@@ -73,39 +90,49 @@ export const AgendaNavigation = ({
             </button>
           ))}
         </div>
-        <label>
-          Mes
-          <select
-            aria-label="Mes"
-            value={month}
-            onChange={(event) => chooseMonth(Number(event.target.value))}
-          >
-            {MONTHS.map((label, index) => (
-              <option key={label} value={index}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div
+          className={styles.monthChips}
+          role="group"
+          aria-label="Mes"
+        >
+          {MONTH_ABBREVIATIONS.map((abbreviation, index) => (
+            <button
+              type="button"
+              key={abbreviation}
+              aria-pressed={index === month}
+              aria-label={capitalize(MONTHS[index])}
+              onClick={() => chooseMonth(index)}
+            >
+              {abbreviation}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="agenda-week-navigation">
+        {onBack ? (
+          <button type="button" className={styles.backButton} onClick={onBack}>
+            ← Volver
+          </button>
+        ) : null}
         <strong aria-live="polite">{title}</strong>
-        <div>
-          <button
-            type="button"
-            aria-label={isMonthView ? "Mes anterior" : "Semana anterior"}
-            onClick={() => (isMonthView ? shiftMonth(-1) : shift(-7))}
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            aria-label={isMonthView ? "Mes siguiente" : "Semana siguiente"}
-            onClick={() => (isMonthView ? shiftMonth(1) : shift(7))}
-          >
-            ›
-          </button>
-        </div>
+        {!isMonthView ? (
+          <div>
+            <button
+              type="button"
+              aria-label="Semana anterior"
+              onClick={() => shift(-7)}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              aria-label="Semana siguiente"
+              onClick={() => shift(7)}
+            >
+              ›
+            </button>
+          </div>
+        ) : null}
         {showViewPicker ? (
           <div role="group" aria-label="Presentación">
             {views.map((option) => (

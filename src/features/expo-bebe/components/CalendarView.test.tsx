@@ -159,7 +159,7 @@ describe("CalendarView", () => {
     render(<CalendarView initialDate={ANCHOR} onPickDate={onPickDate} />);
 
     await waitFor(() => expect(cellFor(FREE_WEEKEND_DAY)).toBeTruthy());
-    fireEvent.click(screen.getByRole("button", { name: "Mes siguiente" }));
+    fireEvent.click(screen.getByRole("button", { name: "Noviembre" }));
 
     expect(onPickDate).not.toHaveBeenCalled();
     await waitFor(() =>
@@ -230,6 +230,20 @@ describe("CalendarView", () => {
     const cell = within(cellFor(FREE_WEEKEND_DAY));
     expect(cell.queryByText("08:00")).toBeNull();
     expect(cell.getByText("Tarde")).toBeTruthy();
+  });
+
+  it("renders with the public tone so the dark theme never applies to expo", async () => {
+    getPublicBookingCalendar.mockResolvedValue({});
+    render(<CalendarView initialDate={ANCHOR} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("navigation").getAttribute("data-tone")).toBe(
+        "public"
+      )
+    );
+    expect(screen.getByTestId("agenda-weekend-filter").getAttribute("data-tone")).toBe(
+      "public"
+    );
   });
 });
 

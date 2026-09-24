@@ -1,8 +1,6 @@
 import type { AgendaEntry, YMD } from "../types";
 import type { CreateOption, CreateOptionsPolicy } from "../utils/createOptions";
 import {
-  isFullyFree,
-  largestFreeGap,
   TIMELINE_TICKS,
   TIMELINE_WINDOW_MINUTES,
   timelineSegments,
@@ -59,12 +57,6 @@ const dedupeEntries = (entries?: AgendaEntry[]): AgendaEntry[] => {
 const segmentTimeLabel = (segment: TimelineSegment): string =>
   `${segment.kind === "occupied" ? "Ocupado" : "Libre"} ${segment.startsAt}–${segment.endsAt}`;
 
-const formatDuration = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60);
-  const remainder = minutes % 60;
-  return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
-};
-
 export const DayTimeline = ({
   date,
   entries,
@@ -75,13 +67,10 @@ export const DayTimeline = ({
 }: Props) => {
   const showSegmentText = density === "full" && scale === "hours";
   const segments = timelineSegments(date, entries);
-  const fullyFree = isFullyFree(segments);
-  const gap = largestFreeGap(segments);
-  const summary = fullyFree
-    ? "Libre todo el día"
-    : gap
-      ? `Mayor hueco: ${formatDuration(gap.end - gap.start)}`
-      : "Día ocupado";
+  // Block-scale actions are the only create affordance DayTimeline still
+  // renders: the hours-scale summary/"Apartar Libre" actions were removed
+  // (T4) to reduce agenda noise, keeping only the timeline bar, hour
+  // labels and event cards.
   const options =
     getCreateOptions && onCreateRequest ? getCreateOptions(date, entries) : [];
 
@@ -150,7 +139,10 @@ export const DayTimeline = ({
           })}
         </div>
       ) : (
-        <div className={styles.ticks} aria-hidden="true">
+        <div
+          className={`${styles.ticks} day-timeline-ticks`}
+          aria-hidden="true"
+        >
           {TIMELINE_TICKS.map((tick) => (
             <span
               key={tick.offset}
@@ -164,26 +156,6 @@ export const DayTimeline = ({
           ))}
         </div>
       )}
-      {scale === "hours" ? (
-        <>
-          <p className={styles.summary}>{summary}</p>
-          {options.length ? (
-            <div className={styles.actions}>
-              {options.map((option) => (
-                <button
-                  key={`${option.blockId ?? "exact"}-${option.startsAt}-${option.endsAt}`}
-                  type="button"
-                  className={styles.actionButton}
-                  aria-label={`Apartar ${option.label} ${option.startsAt}–${option.endsAt}`}
-                  onClick={() => onCreateRequest?.(option)}
-                >
-                  Apartar {option.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </>
-      ) : null}
     </div>
   );
 };

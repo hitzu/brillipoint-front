@@ -1,11 +1,42 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { YMD } from "../types";
-import { blockCreateOptions } from "../utils/createOptions";
+import type { AgendaEntry, YMD } from "../types";
 import { MonthGrid } from "./MonthGrid";
 
 const ANCHOR: YMD = "2026-10-15";
+
+/** Civil (America/Mexico_City, UTC-6) time on `date` as an ISO instant. */
+const civilInstant = (date: YMD, time: string): string => {
+  const [hour, minute] = time.split(":").map(Number);
+  const instant = new Date(`${date}T00:00:00.000Z`);
+  instant.setUTCHours(hour + 6, minute);
+  return instant.toISOString();
+};
+
+const entry = (
+  id: number,
+  date: YMD,
+  start: string,
+  end: string,
+  title: string
+): AgendaEntry => ({
+  key: `agenda:${id}`,
+  id,
+  bookingId: id,
+  contractId: null,
+  sku: null,
+  title,
+  clientName: null,
+  venueName: null,
+  date,
+  continuesFromPreviousDay: false,
+  continuesNextDay: false,
+  startsAt: civilInstant(date, start),
+  endsAt: civilInstant(date, end),
+  blocks: [],
+  isApproximate: false,
+});
 
 describe("MonthGrid", () => {
   it("renders 7 weekday columns and every padding day of the month grid", () => {
@@ -41,8 +72,6 @@ describe("MonthGrid", () => {
         entries={{}}
         anchor={ANCHOR}
         onDateSelect={vi.fn()}
-        getCreateOptions={blockCreateOptions}
-        onCreateRequest={vi.fn()}
         today="2026-09-20"
       />
     );
@@ -52,24 +81,59 @@ describe("MonthGrid", () => {
     );
   });
 
-  it("shows a selected-day detail panel with create buttons when a policy is provided", () => {
-    const onCreateRequest = vi.fn();
+  it("lists up to two events per day with time and label, then '+N más'", () => {
+    const day: YMD = "2026-10-10";
+    render(
+      <MonthGrid
+        entries={{
+          [day]: [
+            entry(1, day, "10:00", "12:00", "Boda"),
+            entry(2, day, "14:00", "18:00", "XV años"),
+            entry(3, day, "19:00", "22:00", "Bautizo"),
+          ],
+        }}
+        anchor={ANCHOR}
+        onDateSelect={vi.fn()}
+        today="2026-09-20"
+      />
+    );
+
+    const cell = within(
+      screen.getByRole("gridcell", { name: /10 de octubre de 2026/ })
+    );
+    expect(cell.getByText("10:00 – 12:00 · Boda")).toBeTruthy();
+    expect(cell.getByText("14:00 – 18:00 · XV años")).toBeTruthy();
+    expect(cell.queryByText(/Bautizo/)).toBeNull();
+    expect(cell.getByText("+1 más")).toBeTruthy();
+  });
+
+  it("shows no event text for an empty day", () => {
+    render(
+      <MonthGrid entries={{}} anchor={ANCHOR} onDateSelect={vi.fn()} today="2026-09-20" />
+    );
+
+    expect(screen.queryByText(/eventos?$/)).toBeNull();
+  });
+
+  it("renders no day detail panel below the grid: clicking a date drills into its detail", () => {
     render(
       <MonthGrid
         entries={{}}
         anchor={ANCHOR}
         selectedDate="2026-10-10"
         onDateSelect={vi.fn()}
-        getCreateOptions={blockCreateOptions}
-        onCreateRequest={onCreateRequest}
         today="2026-09-20"
       />
     );
 
-    const panel = within(screen.getByLabelText("Detalle 2026-10-10"));
-    const buttons = panel.getAllByRole("button", { name: /Apartar/ });
-    expect(buttons.length).toBeGreaterThan(0);
-    fireEvent.click(buttons[0]);
-    expect(onCreateRequest).toHaveBeenCalled();
+    expect(screen.queryByLabelText("Detalle 2026-10-10")).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: /10 de octubre de 2026/ })
+    ).toBeNull();
+    expect(
+      screen
+        .getByRole("gridcell", { name: /10 de octubre de 2026/ })
+        .getAttribute("aria-pressed")
+    ).toBe("true");
   });
 });

@@ -120,6 +120,7 @@ export function CalendarView({
         onSelectDate={setSelectedDate}
         onViewChange={setView}
         views={EXPO_VIEWS}
+        tone="public"
       />
       {status === "loading" ? (
         <p className={styles.calLoading} aria-busy="true">
@@ -146,6 +147,7 @@ export function CalendarView({
             getCreateOptions={blockCreateOptions}
             onCreateRequest={handleCreateRequest}
             timelineScale="blocks"
+            tone="public"
           />
         </div>
       ) : null}
