@@ -3,120 +3,62 @@ import React, { ReactElement, useEffect, useState } from "react";
 import BreadcrumbItem from "@common/BreadcrumbItem";
 import { Card, Col, Form, Row, Toast, Button } from "react-bootstrap";
 import { useFormik } from "formik";
-import {
-  Contract,
-  CreateEventPayload,
-  EventPrintTemplate,
-  GetEventServiceTypesResponse,
-  EventThemes,
-  GetEventTypesResponse,
-} from "../interfaces";
+import { Contract, EventThemes, GetEventTypesResponse } from "../interfaces";
 import { createEvent } from "../api/services/eventsService";
 import { getContracts } from "../api/services/contractService";
-import { getEventServiceTypes } from "../api/services/eventServiceTypesService";
 import { getEventTypes } from "../api/services/eventTypesService";
 import { getEventThemes } from "../api/services/eventThemesService";
+import { buildCreateEventPayload } from "../features/events/utils/eventPayload";
 import * as yup from "yup";
 
 interface EventFormValues {
   contractId: string;
   key: string;
   eventType: string;
-  serviceTypeId: string;
   eventThemeId: string;
   honoreesNames: string;
   albumPhrase: string;
-  venueName: string;
-  serviceLocationUrl: string;
-  serviceStartsAt: string;
-  serviceEndsAt: string;
   delegateName: string;
   photoCount: string;
-  printTemplates: string;
-  printTemplate: string;
 }
 
 const PHOTO_COUNT_OPTIONS = ["1", "2", "3", "4", "5"];
-const PRINT_TEMPLATES_EXAMPLE = `[
-  {"template_id": "polaroid"},
-  {"template_id": "polaroid"}
-]`;
-
-const parsePrintTemplates = (
-  value: string,
-): EventPrintTemplate | undefined => {
-  const trimmedValue = value.trim();
-
-  if (!trimmedValue) return undefined;
-
-  return JSON.parse(trimmedValue) as EventPrintTemplate;
-};
 
 const validationSchema = yup.object().shape({
   contractId: yup.string().required("El contrato es requerido"),
   key: yup.string().required("La clave del evento es requerida"),
   eventType: yup.string().required("El tipo de evento es requerido"),
-  serviceTypeId: yup.string().required("El tipo de servicio es requerido"),
   eventThemeId: yup.string().optional(),
   honoreesNames: yup
     .string()
     .required("Los nombres de los festejados son requeridos"),
   albumPhrase: yup.string().optional(),
-  venueName: yup.string().optional(),
-  serviceLocationUrl: yup.string().url("Debe ser una URL valida").optional(),
-  serviceStartsAt: yup.string().optional(),
-  serviceEndsAt: yup.string().optional(),
   delegateName: yup.string().optional(),
   photoCount: yup.number().integer().min(1).max(5).optional(),
-  printTemplate: yup.string().optional(),
-  printTemplates: yup
-    .string()
-    .test(
-      "valid-print-templates",
-      "Las plantillas deben ser un JSON válido",
-      (value) => {
-        if (!value?.trim()) return true;
-
-        try {
-          parsePrintTemplates(value);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-    ),
 });
 
 const EventAdd = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState<"success" | "danger">(
-    "success",
+    "success"
   );
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [eventTypes, setEventTypes] = useState<GetEventTypesResponse[]>([]);
-  const [eventServiceTypes, setEventServiceTypes] = useState<
-    GetEventServiceTypesResponse[]
-  >([]);
   const [eventThemes, setEventThemes] = useState<EventThemes[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [
-          contractsRes,
-          eventTypesRes,
-          eventServiceTypesRes,
-          eventThemesRes,
-        ] = await Promise.all([
-          getContracts({ includeFinalized: false, excludeWithEvents: true }),
-          getEventTypes(),
-          getEventServiceTypes(),
-          getEventThemes(),
-        ]);
+        const [contractsRes, eventTypesRes, eventThemesRes] = await Promise.all(
+          [
+            getContracts({ includeFinalized: false, excludeWithEvents: true }),
+            getEventTypes(),
+            getEventThemes(),
+          ]
+        );
         setContracts(contractsRes);
         setEventTypes(eventTypesRes);
-        setEventServiceTypes(eventServiceTypesRes);
         setEventThemes(eventThemesRes);
       } catch (error) {
         console.error("Error fetching form data:", error);
@@ -130,61 +72,16 @@ const EventAdd = () => {
       contractId: "",
       key: "",
       eventType: "",
-      serviceTypeId: "",
       eventThemeId: "",
       honoreesNames: "",
       albumPhrase: "",
-      venueName: "",
-      serviceLocationUrl: "",
-      serviceStartsAt: "",
-      serviceEndsAt: "",
       delegateName: "",
       photoCount: "2",
-      printTemplates: "",
-      printTemplate: "",
     },
     validationSchema,
     onSubmit: async (values) => {
       try {
-        const payload: CreateEventPayload = {
-          contractId: Number(values.contractId),
-          key: values.key,
-          eventTypeId: Number(values.eventType),
-          serviceTypeId: Number(values.serviceTypeId),
-          ...(values.eventThemeId
-            ? { eventThemeId: Number(values.eventThemeId) }
-            : {}),
-          honoreesNames: values.honoreesNames,
-          albumPhrase: values.albumPhrase,
-          ...(values.venueName.trim() ? { venueName: values.venueName } : {}),
-          ...(values.serviceLocationUrl.trim()
-            ? { serviceLocationUrl: values.serviceLocationUrl }
-            : {}),
-          ...(values.serviceStartsAt
-            ? {
-                serviceStartsAt: new Date(
-                  values.serviceStartsAt,
-                ).toISOString(),
-              }
-            : {}),
-          ...(values.serviceEndsAt
-            ? { serviceEndsAt: new Date(values.serviceEndsAt).toISOString() }
-            : {}),
-          ...(values.delegateName.trim()
-            ? { delegateName: values.delegateName }
-            : {}),
-          ...(values.photoCount
-            ? { photoCount: Number(values.photoCount) }
-            : {}),
-          ...(values.printTemplates.trim()
-            ? { printTemplates: parsePrintTemplates(values.printTemplates) }
-            : {}),
-          ...(values.printTemplate.trim()
-            ? { printTemplate: values.printTemplate }
-            : {}),
-        };
-
-        await createEvent(payload);
+        await createEvent(buildCreateEventPayload(values));
         setToastMessage("Evento creado exitosamente");
         setToastVariant("success");
         setShowToast(true);
@@ -194,9 +91,7 @@ const EventAdd = () => {
       } catch (error: any) {
         console.error("Error creating event:", error);
         const msg =
-          error instanceof SyntaxError
-            ? "Las plantillas deben ser un JSON válido"
-            : error?.response?.data?.message || "Error al crear el evento";
+          error?.response?.data?.message || "Error al crear el evento";
         setToastMessage(msg);
         setToastVariant("danger");
         setShowToast(true);
@@ -287,31 +182,6 @@ const EventAdd = () => {
                       </Form.Select>
                       <Form.Control.Feedback type="invalid">
                         {formik.errors.eventType}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Tipo de servicio</Form.Label>
-                      <Form.Select
-                        name="serviceTypeId"
-                        value={formik.values.serviceTypeId}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur("serviceTypeId")}
-                        isInvalid={
-                          formik.touched.serviceTypeId &&
-                          !!formik.errors.serviceTypeId
-                        }
-                      >
-                        <option value="">Seleccionar tipo de servicio...</option>
-                        {eventServiceTypes.map((serviceType) => (
-                          <option key={serviceType.id} value={serviceType.id}>
-                            {serviceType.name}
-                          </option>
-                        ))}
-                      </Form.Select>
-                      <Form.Control.Feedback type="invalid">
-                        {formik.errors.serviceTypeId}
                       </Form.Control.Feedback>
                     </Form.Group>
                   </Col>
@@ -414,162 +284,32 @@ const EventAdd = () => {
                       </Form.Control.Feedback>
                     </Form.Group>
                   </Col>
-                </Row>
-
-                <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Nombre del salon</Form.Label>
+                      <Form.Label>Nombre del contacto/delegado</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder="Nombre del salon o venue"
-                        name="venueName"
-                        value={formik.values.venueName}
+                        placeholder="Contacto principal del evento"
+                        name="delegateName"
+                        value={formik.values.delegateName}
                         onChange={formik.handleChange}
-                        onBlur={formik.handleBlur("venueName")}
+                        onBlur={formik.handleBlur("delegateName")}
                         isInvalid={
-                          formik.touched.venueName && !!formik.errors.venueName
+                          formik.touched.delegateName &&
+                          !!formik.errors.delegateName
                         }
                       />
                       <Form.Control.Feedback type="invalid">
-                        {formik.errors.venueName}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>URL de ubicacion</Form.Label>
-                      <Form.Control
-                        type="url"
-                        placeholder="https://maps.app.goo.gl/..."
-                        name="serviceLocationUrl"
-                        value={formik.values.serviceLocationUrl}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur("serviceLocationUrl")}
-                        isInvalid={
-                          formik.touched.serviceLocationUrl &&
-                          !!formik.errors.serviceLocationUrl
-                        }
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {formik.errors.serviceLocationUrl}
+                        {formik.errors.delegateName}
                       </Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                 </Row>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Inicio del servicio</Form.Label>
-                      <Form.Control
-                        type="datetime-local"
-                        name="serviceStartsAt"
-                        value={formik.values.serviceStartsAt}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur("serviceStartsAt")}
-                        isInvalid={
-                          formik.touched.serviceStartsAt &&
-                          !!formik.errors.serviceStartsAt
-                        }
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {formik.errors.serviceStartsAt}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Fin del servicio</Form.Label>
-                      <Form.Control
-                        type="datetime-local"
-                        name="serviceEndsAt"
-                        value={formik.values.serviceEndsAt}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur("serviceEndsAt")}
-                        isInvalid={
-                          formik.touched.serviceEndsAt &&
-                          !!formik.errors.serviceEndsAt
-                        }
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {formik.errors.serviceEndsAt}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Template de BPS</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="printTemplate"
-                        value={formik.values.printTemplate}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur("printTemplate")}
-                        isInvalid={
-                          formik.touched.printTemplate &&
-                          !!formik.errors.printTemplate
-                        }
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {formik.errors.printTemplate}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Plantillas de impresión (JSON)</Form.Label>
-                  <Form.Text className="text-muted d-block mb-2">
-                    Acepta cualquier JSON válido. Ejemplo:
-                  </Form.Text>
-                  <pre className="bg-light border rounded p-2 mb-2">
-                    <code>{PRINT_TEMPLATES_EXAMPLE}</code>
-                  </pre>
-                  <Form.Control
-                    as="textarea"
-                    rows={6}
-                    placeholder={PRINT_TEMPLATES_EXAMPLE}
-                    name="printTemplates"
-                    value={formik.values.printTemplates}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur("printTemplates")}
-                    isInvalid={
-                      formik.touched.printTemplates &&
-                      !!formik.errors.printTemplates
-                    }
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formik.errors.printTemplates}
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Nombre del contacto/delegado</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Contacto principal del evento"
-                    name="delegateName"
-                    value={formik.values.delegateName}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur("delegateName")}
-                    isInvalid={
-                      formik.touched.delegateName &&
-                      !!formik.errors.delegateName
-                    }
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formik.errors.delegateName}
-                  </Form.Control.Feedback>
-                </Form.Group>
 
                 <Button
                   type="submit"
                   variant="primary"
-                  className="btn-page w-100"
+                  className="btn-page w-100 mt-2"
                 >
                   Crear evento
                 </Button>

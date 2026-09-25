@@ -1,13 +1,13 @@
 import {
-  Event,
+  EventV2,
   CreateEventPayload,
   UpdateEventPayload,
 } from "../../interfaces";
 import { axiosInstanceWithToken } from "../config/axiosConfig";
 
-export const getEvents = async (): Promise<Event[]> => {
+export const getEvents = async (): Promise<EventV2[]> => {
   try {
-    const response = await axiosInstanceWithToken.get(`/events`);
+    const response = await axiosInstanceWithToken.get(`/v2/events`);
     return response.data;
   } catch (error) {
     console.error("Error fetching events:", error);
@@ -17,9 +17,9 @@ export const getEvents = async (): Promise<Event[]> => {
 
 export const createEvent = async (
   payload: CreateEventPayload
-): Promise<Event> => {
+): Promise<EventV2> => {
   try {
-    const response = await axiosInstanceWithToken.post<Event>(
+    const response = await axiosInstanceWithToken.post<EventV2>(
       "/events",
       payload
     );
@@ -30,9 +30,9 @@ export const createEvent = async (
   }
 };
 
-export const getEventById = async (id: number): Promise<Event> => {
+export const getEventById = async (id: number): Promise<EventV2> => {
   try {
-    const response = await axiosInstanceWithToken.get<Event>(`/events/id/${id}`);
+    const response = await axiosInstanceWithToken.get<EventV2>(`/v2/events/id/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching event by id:", error);

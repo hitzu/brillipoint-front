@@ -18,8 +18,8 @@ const normalizePublicEvent = (
 ): PublicEvent => ({
   id: payload?.id,
   token: payload?.token || token,
-  name: payload?.honoreesNames,
-  description: payload?.albumPhrase,
+  name: payload?.honoreesNames ?? undefined,
+  description: payload?.albumPhrase ?? undefined,
   createdAt: payload?.createdAt,
   updatedAt: payload?.updatedAt,
 });
@@ -28,21 +28,10 @@ export const getPublicEventByToken = async (
   token: string,
 ): Promise<PublicEvent> => {
   const normalizedToken = encodeURIComponent(token);
-  const candidates = [`/events/${normalizedToken}`];
-
-  for (const candidate of candidates) {
-    try {
-      const response = await axiosInstanceWithoutToken.get<PublicEventResponse>(
-        candidate,
-      );
-      return normalizePublicEvent(token, response.data);
-    } catch (error: any) {
-      if (error?.response?.status === 404) continue;
-      throw error;
-    }
-  }
-
-  return normalizePublicEvent(token);
+  const response = await axiosInstanceWithoutToken.get<PublicEventResponse>(
+    `/v2/events/${normalizedToken}`,
+  );
+  return normalizePublicEvent(token, response.data);
 };
 
 type EventPhotosPageParams = {

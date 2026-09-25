@@ -1,4 +1,4 @@
-import { Event } from '../interfaces'
+import { EventV2 } from '../interfaces'
 
 export interface PublicEvent {
   id?: number;
@@ -10,7 +10,7 @@ export interface PublicEvent {
   updatedAt?: string;
 }
 
-export interface PublicEventResponse extends Event { }
+export interface PublicEventResponse extends EventV2 { }
 
 export type PublicPersonalizedPhotoUploadUrlPayload = {
   fileName: string;
