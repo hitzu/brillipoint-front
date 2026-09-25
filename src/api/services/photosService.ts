@@ -13,9 +13,9 @@ const normalizePublicEvent = (
 ): PublicEvent => ({
   token: payload?.token || token,
   name:
-    payload?.name ||
+    payload?.honoreesNames ||
     "Experiencia Brillipoint",
-  description: payload?.description,
+  description: payload?.albumPhrase ?? undefined,
   createdAt: payload?.createdAt,
   updatedAt: payload?.updatedAt,
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../config/axiosConfig", () => ({
   axiosInstanceWithoutToken: {
@@ -7,7 +7,7 @@ vi.mock("../../config/axiosConfig", () => ({
 }));
 
 import { axiosInstanceWithoutToken } from "../../config/axiosConfig";
-import { getEventPhotosPage } from "../partyPublicService";
+import { getEventPhotosPage, getPublicEventByToken } from "../partyPublicService";
 
 const mockedGet = axiosInstanceWithoutToken.get as unknown as ReturnType<
   typeof vi.fn
@@ -48,5 +48,62 @@ describe("getEventPhotosPage", () => {
     expect(result.items[0].publicUrl).toBe("https://cdn.test/a.jpg");
     expect(result.items[1].minimizedPublicUrl).toBeUndefined();
     expect(result.items[1].publicUrl).toBe("https://cdn.test/b.jpg");
+  });
+});
+
+describe("getPublicEventByToken", () => {
+  beforeEach(() => {
+    mockedGet.mockReset();
+  });
+
+  it("reads the public event from the v2 endpoint", async () => {
+    mockedGet.mockResolvedValueOnce({
+      data: {
+        id: 1,
+        key: "20",
+        token: "tok123",
+        contractId: 5,
+        honoreesNames: "Ana y Luis",
+        albumPhrase: "Nuestro para siempre",
+        bookingId: 3,
+        status: "active",
+        photoCount: 3,
+        createdAt: "2026-01-01",
+        updatedAt: "2026-01-01",
+      },
+    });
+
+    await getPublicEventByToken("tok123");
+
+    expect(mockedGet).toHaveBeenCalledWith("/v2/events/tok123");
+  });
+
+  it("normalizes the v2 response into a PublicEvent", async () => {
+    mockedGet.mockResolvedValueOnce({
+      data: {
+        id: 1,
+        key: "20",
+        token: "tok123",
+        contractId: 5,
+        honoreesNames: "Ana y Luis",
+        albumPhrase: "Nuestro para siempre",
+        bookingId: 3,
+        status: "active",
+        photoCount: 3,
+        createdAt: "2026-01-01",
+        updatedAt: "2026-01-02",
+      },
+    });
+
+    const result = await getPublicEventByToken("tok123");
+
+    expect(result).toEqual({
+      id: 1,
+      token: "tok123",
+      name: "Ana y Luis",
+      description: "Nuestro para siempre",
+      createdAt: "2026-01-01",
+      updatedAt: "2026-01-02",
+    });
   });
 });

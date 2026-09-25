@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import Layout from "@layout/index";
-import { Event } from "../interfaces";
+import { EventV2 } from "../interfaces";
 import { deleteEventById, getEvents } from "../api/services/eventsService";
 import { clearSessionsCache } from "../api/services/sessionsService";
 import TableContainer from "@common/TableContainer";
@@ -16,7 +16,7 @@ import { Card, Col, Row, Toast } from "react-bootstrap";
 import DeleteModal from "@common/DeleteModal";
 
 const EventList = () => {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<EventV2[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [deleteId, setDeleteId] = useState<number>(0);
   const [isClearingCache, setIsClearingCache] = useState(false);
@@ -79,7 +79,7 @@ const EventList = () => {
     }
   }, []);
 
-  const formatDate = (dateStr?: string) => {
+  const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return "-";
     const d = new Date(dateStr);
     return d.toLocaleDateString("es-MX", {
@@ -116,7 +116,7 @@ const EventList = () => {
         accessorKey: "honoreesNames",
         enableColumnFilter: false,
         cell: (cellProps: any) => {
-          const event: Event = cellProps.row.original;
+          const event: EventV2 = cellProps.row.original;
           return <div>{event.honoreesNames || "-"}</div>;
         },
       },
@@ -125,7 +125,7 @@ const EventList = () => {
         accessorKey: "venueName",
         enableColumnFilter: false,
         cell: (cellProps: any) => {
-          const event: Event = cellProps.row.original;
+          const event: EventV2 = cellProps.row.original;
           return <div>{event.venueName || "-"}</div>;
         },
       },
@@ -134,8 +134,23 @@ const EventList = () => {
         accessorKey: "serviceStartsAt",
         enableColumnFilter: false,
         cell: (cellProps: any) => {
-          const event: Event = cellProps.row.original;
+          const event: EventV2 = cellProps.row.original;
           return <div>{formatDate(event.serviceStartsAt)}</div>;
+        },
+      },
+      {
+        header: "Estado",
+        accessorKey: "status",
+        enableColumnFilter: false,
+        cell: (cellProps: any) => {
+          const event: EventV2 = cellProps.row.original;
+          return (
+            <span
+              className={`badge ${event.status === "active" ? "bg-light-success" : "bg-light-secondary"}`}
+            >
+              {event.status === "active" ? "Activo" : "Finalizado"}
+            </span>
+          );
         },
       },
       {

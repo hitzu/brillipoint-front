@@ -3,14 +3,14 @@ import { useRouter } from "next/router";
 import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import BreadcrumbItem from "@common/BreadcrumbItem";
 import { Card, Col, Form, Row } from "react-bootstrap";
-import { Event, GetEventTypesResponse } from "../../interfaces";
+import { EventV2, GetEventTypesResponse } from "../../interfaces";
 import { getEvents } from "../../api/services/eventsService";
 import { getEventTypes } from "../../api/services/eventTypesService";
 
 const EventEditIndex = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [allEvents, setAllEvents] = useState<EventV2[]>([]);
   const [eventTypes, setEventTypes] = useState<GetEventTypesResponse[]>([]);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const EventEditIndex = () => {
       .slice(0, 50);
   }, [allEvents, searchTerm]);
 
-  const handleSelectEvent = (event: Event) => {
+  const handleSelectEvent = (event: EventV2) => {
     router.push(`/event-edit/${event.id}`);
   };
 

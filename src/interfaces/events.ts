@@ -1,13 +1,5 @@
 import { EventThemes } from "./eventThemes";
 
-export type EventPrintTemplate =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: EventPrintTemplate }
-  | EventPrintTemplate[];
-
 export interface GetEventServiceTypesResponse {
   id: number;
   createdAt: string;
@@ -18,27 +10,26 @@ export interface GetEventServiceTypesResponse {
   rank: number;
 }
 
-export interface Event {
+// v2 read model: schedule/venue/status resolve server-side from the
+// event's booking (bridge: booking -> contract -> event). null/"finished"
+// when there is no booking. Writes stay on v1 and never send these fields.
+export interface EventV2 {
   id: number;
-  name?: string;
   key: string;
-  description?: string;
   token: string;
   contractId: number;
-  eventTypeId: number;
-  eventThemeId?: number;
-  honoreesNames: string;
-  albumPhrase: string;
-  venueName?: string;
-  serviceLocationUrl?: string;
-  serviceStartsAt?: string;
-  serviceEndsAt?: string;
-  delegateName?: string;
-  photoCount?: number;
-  serviceTypeId?: number;
-  serviceType?: string;
-  printTemplates?: EventPrintTemplate;
-  printTemplate?: string;
+  eventTypeId?: number | null;
+  honoreesNames?: string | null;
+  albumPhrase?: string | null;
+  venueName?: string | null;
+  mapsUrl?: string | null;
+  serviceStartsAt?: string | null;
+  serviceEndsAt?: string | null;
+  bookingId: number | null;
+  status: "active" | "finished";
+  delegateName?: string | null;
+  photoCount: number;
+  eventThemeId?: number | null;
   createdAt: string;
   updatedAt: string;
   eventTheme?: EventThemes;
@@ -48,35 +39,21 @@ export interface CreateEventPayload {
   contractId: number;
   key: string;
   eventTypeId: number;
-  serviceTypeId: number;
   eventThemeId?: number;
   honoreesNames: string;
   albumPhrase: string;
-  venueName?: string;
-  serviceLocationUrl?: string;
-  serviceStartsAt?: string;
-  serviceEndsAt?: string;
   delegateName?: string;
   photoCount?: number;
-  printTemplates?: EventPrintTemplate;
-  printTemplate?: string;
 }
 
 export interface UpdateEventPayload {
   key?: string;
   eventTypeId?: number;
-  serviceTypeId?: number;
   eventThemeId?: number;
   honoreesNames?: string;
   albumPhrase?: string;
-  venueName?: string;
-  serviceLocationUrl?: string;
-  serviceStartsAt?: string;
-  serviceEndsAt?: string;
   delegateName?: string;
   photoCount?: number;
-  printTemplates?: EventPrintTemplate;
-  printTemplate?: string;
 }
 
 export type EventPhraseResponse = {
