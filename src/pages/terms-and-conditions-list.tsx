@@ -85,11 +85,14 @@ const TermsAndConditionsList = () => {
           return (
             <div>
               <ul>
-                {cellProps.row.original.packageTerms?.map(
-                  (packageTerm: GetPackageTermsResponse) => (
-                    <li key={packageTerm.id}>{packageTerm.package.name}</li>
+                {cellProps.row.original.packageTerms
+                  ?.filter(
+                    (packageTerm: GetPackageTermsResponse) =>
+                      packageTerm.package
                   )
-                )}
+                  .map((packageTerm: GetPackageTermsResponse) => (
+                    <li key={packageTerm.id}>{packageTerm.package.name}</li>
+                  ))}
               </ul>
             </div>
           );

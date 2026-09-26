@@ -17,7 +17,9 @@ export const termScopes: Array<{ value: TermScope; label: string }> = [
   { value: "brand", label: "Marcas" },
 ];
 
-export const termScopeValues = termScopes.map(({ value }) => value) as TermScope[];
+export const termScopeValues = termScopes.map(
+  ({ value }) => value
+) as TermScope[];
 
 export const mapBrandsToOptions = (
   brands: GetBrandsResponse[]
@@ -38,10 +40,12 @@ export const mapPackagesToOptions = (
 export const mapPackageTermsToOptions = (
   packageTerms?: GetPackageTermsResponse[]
 ): SelectOption[] =>
-  packageTerms?.map((packageTerm) => ({
-    value: packageTerm.package.id,
-    label: packageTerm.package.name,
-  })) ?? [];
+  packageTerms
+    ?.filter((packageTerm) => packageTerm.package)
+    .map((packageTerm) => ({
+      value: packageTerm.package.id,
+      label: packageTerm.package.name,
+    })) ?? [];
 
 export const mapBrandTermsToOptions = (
   brandTerms?: GetBrandTermsResponse[]
