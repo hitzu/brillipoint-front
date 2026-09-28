@@ -18,11 +18,11 @@ vi.mock("../../../hooks/useAgendaRange", () => ({
 describe("AgendaPage", () => {
   it("uses the inclusive Monday-through-Sunday API range (plus one day for the timeline) and follows controlled initial dates", () => {
     const { rerender } = render(<AgendaPage initialDate="2026-09-18" />);
-    // Default browse level is "Fines de semana": a month-fetch range.
-    expect(agendaRangeSpy).toHaveBeenLastCalledWith("2026-09-04", "2026-09-28");
+    // Default browse level is "Mes": the whole rendered month grid.
+    expect(agendaRangeSpy).toHaveBeenLastCalledWith("2026-08-31", "2026-10-05");
 
     rerender(<AgendaPage initialDate="2026-10-02" />);
-    expect(agendaRangeSpy).toHaveBeenLastCalledWith("2026-10-02", "2026-11-02");
+    expect(agendaRangeSpy).toHaveBeenLastCalledWith("2026-09-28", "2026-11-02");
   });
 
   it("no longer offers the removed 'Apartar Libre' quick-create action (T4)", () => {
@@ -48,7 +48,13 @@ describe("AgendaPage", () => {
     render(<AgendaPage initialDate="2026-10-15" />);
 
     expect(screen.getByRole("button", { name: "Mes" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Fines de semana" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Mes" }).getAttribute("aria-pressed")
+    ).toBe("true");
+    expect(screen.getByRole("region", { name: "Mes" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Fines de semana" })
+    ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Resumen" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Horarios" })).toBeNull();
     expect(screen.queryByRole("button", { name: /Volver/ })).toBeNull();
@@ -58,20 +64,27 @@ describe("AgendaPage", () => {
     render(<AgendaPage initialDate="2026-10-15" />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Sábado, 3 de octubre de 2026" })
+      screen.getByRole("gridcell", { name: /^Sábado, 3 de octubre de 2026$/ })
     );
 
     expect(screen.getByRole("button", { name: /Volver/ })).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Resumen" }).getAttribute("aria-pressed")
+      screen
+        .getByRole("button", { name: "Resumen" })
+        .getAttribute("aria-pressed")
     ).toBe("true");
     expect(screen.getByRole("button", { name: "Horarios" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Mes" })).toBeNull();
     expect(screen.getByText(/28 sep.*4 oct 2026/)).toBeTruthy();
   });
 
-  it("returns to the same month view when Volver is clicked", () => {
+  it("retains a manually selected Fines de semana view after returning from detail", () => {
     render(<AgendaPage initialDate="2026-10-15" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Fines de semana" }));
+    expect(
+      screen.getByRole("region", { name: "Fines de semana del mes" })
+    ).toBeTruthy();
 
     fireEvent.click(
       screen.getByRole("button", { name: "Sábado, 3 de octubre de 2026" })
@@ -80,7 +93,9 @@ describe("AgendaPage", () => {
 
     expect(screen.queryByRole("button", { name: /Volver/ })).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Fines de semana" }).getAttribute("aria-pressed")
+      screen
+        .getByRole("button", { name: "Fines de semana" })
+        .getAttribute("aria-pressed")
     ).toBe("true");
     expect(screen.getAllByText("Octubre 2026").length).toBeGreaterThan(0);
   });
@@ -89,7 +104,7 @@ describe("AgendaPage", () => {
     render(<AgendaPage initialDate="2026-10-15" />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Sábado, 3 de octubre de 2026" })
+      screen.getByRole("gridcell", { name: /^Sábado, 3 de octubre de 2026$/ })
     );
     const headings = document.querySelector(".agenda-summary-headings");
     if (!headings) throw new Error("Missing week strip");
@@ -101,17 +116,23 @@ describe("AgendaPage", () => {
     );
   });
 
-  it("switching to Mes and clicking a day also drills into its week detail", () => {
+  it("clicking a day in the initial Mes view drills into detail and returns to Mes", () => {
     render(<AgendaPage initialDate="2026-10-15" />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Mes" }));
     fireEvent.click(
       screen.getByRole("gridcell", { name: /10 de octubre de 2026/ })
     );
 
     expect(screen.getByRole("button", { name: /Volver/ })).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Resumen" }).getAttribute("aria-pressed")
+      screen
+        .getByRole("button", { name: "Resumen" })
+        .getAttribute("aria-pressed")
+    ).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: /Volver/ }));
+    expect(
+      screen.getByRole("button", { name: "Mes" }).getAttribute("aria-pressed")
     ).toBe("true");
   });
 });

@@ -40,7 +40,7 @@ export const useAgendaPage = ({
   // drilling into a date's week detail ("Resumen"/"Horarios") with a way
   // back. The browse view/anchor persist across a detail visit.
   const [level, setLevel] = useState<"browse" | "detail">("browse");
-  const [browseView, setBrowseView] = useState<BrowseView>("month-weekends");
+  const [browseView, setBrowseView] = useState<BrowseView>("month");
   const [detailView, setDetailView] = useState<DetailView>("summary");
   const [browseAnchorDate, setBrowseAnchorDate] = useState<YMD>(initialDate);
   const [selectedEntry, setSelectedEntry] = useState<AgendaEntry | null>(null);
@@ -62,7 +62,8 @@ export const useAgendaPage = ({
     onDateSelect?.(date);
   };
   const view: CalendarView = level === "browse" ? browseView : detailView;
-  const views: CalendarView[] = level === "browse" ? BROWSE_VIEWS : DETAIL_VIEWS;
+  const views: CalendarView[] =
+    level === "browse" ? BROWSE_VIEWS : DETAIL_VIEWS;
   const onViewChange = (next: CalendarView) => {
     if (level === "browse") setBrowseView(next as BrowseView);
     else setDetailView(next as DetailView);
@@ -114,7 +115,11 @@ export const useAgendaPage = ({
   const requestCreate = (option: CreateOption) => {
     setSelectedDate(option.date);
     onDateSelect?.(option.date);
-    setDraft({ date: option.date, startsAt: option.startsAt, endsAt: option.endsAt });
+    setDraft({
+      date: option.date,
+      startsAt: option.startsAt,
+      endsAt: option.endsAt,
+    });
     setEditing("new");
   };
   /** "Nuevo evento" header button: a blank form, no calendar-supplied draft. */

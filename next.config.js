@@ -42,8 +42,8 @@ const nextConfig = {
       },
       {
         source: "/",
-        destination: "/contracts",
-        permanent: true,
+        destination: "/agenda",
+        permanent: false,
       },
       {
         source: "/contract-list",
