@@ -1,4 +1,4 @@
-import { EventThemeImages, ThemeTokens } from "../types/themeContract";
+import { ThemeImages, ThemeTokens } from "../types/themeContract";
 import { EventPageTheme } from "../types/eventPageTheme";
 
 // Single point of translation: flat contract (9 required tokens) → EventPageTheme
@@ -6,7 +6,7 @@ import { EventPageTheme } from "../types/eventPageTheme";
 // See docs/themes/tdd-theme-system.md §3.2.
 export function tokensToEventPageTheme(
   t: ThemeTokens,
-  images?: EventThemeImages | null,
+  images?: ThemeImages | null,
 ): EventPageTheme {
   const accent = t.accent ?? t.primary;
   return {
@@ -26,6 +26,6 @@ export function tokensToEventPageTheme(
     accentGlow: accent,
     fontHeading: t.fontHeading,
     fontBody: t.fontBody,
-    splashEmblemUrl: images?.splashEmblem,
+    splashEmblemUrl: images?.splashIcon?.url,
   };
 }

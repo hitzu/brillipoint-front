@@ -1,0 +1,49 @@
+# Social CTA brand channels and theme fonts
+
+## Objective
+Render social CTA buttons with fixed, front-owned platform brand colors while the backend decides which channels exist, which one is primary, and their labels/targets. Make theme fonts (`fontHeading`, `fontBody`) actually apply on public routes, with the theme-authoring skill able to request or propose fonts.
+
+## Problem and why
+- T5a (`963c277`, feature `backend-owned-public-theme`) replaced platform fills with theme `primary`/`secondary` roles. The user rejects that: WhatsApp, Instagram, TikTok, Facebook, and website colors identify the platform, not the event.
+- Any channel (including a website) may be `primaryAction`; every other channel present in the response renders as a secondary button. Today `socials` only supports `instagram`, `tiktok`, `facebook` in both repos (`themeContract.ts:139-143`, backend `resolve-social-cta.ts:21-25`), and `SocialCta.tsx:12` hardcodes those three.
+- Theme fonts reach CSS vars but public routes hardcode `"Dancing Script"` and `"DM Sans"`. Fonts load from a fixed Google Fonts link in `src/pages/_document.tsx:7-10`. Backend accepts any font string; the skill claims an "approved list" that does not exist.
+
+## Authorized scope and constraints
+- User confirmed (2026-09-29): brand colors are front-owned constants; backend owns channel presence, primary choice, labels, URLs/phones. A button renders only when its channel has a value. The primary channel is never repeated as secondary.
+- New fonts proposed by the skill are added as web fonts (reusable themes, paid customization justify the cost).
+- Base reset (user, 2026-09-29): `feat/backend-owned-public-theme` over-reached (front-wide CSS rewrite, neutral gray defaults, lost gradients/glows). Work now happens on `feat/theme-refit`, created from the stable points: frontend `feat/rt/theme-brand-kits` at `59e0d532` (background image, confetti, backend social CTA, production-style role derivation) and backend `feat/theme-authoring` at `9024b42`. The old branch stays as reference only. No DB migration revert is needed: the old branch added none; `brand_kits` and the Brillipoint kit constant come from the kept base.
+- Rescue from the old branch only: `?cache=off` fresh-theme path (both repos, T1 there) and backend final-theme validation plus write guards (T3–T3c2), with backend role completion derived like production (`accent ← primary`, `onSecondary ← onPrimary`, `divider`/`surfaceBorder ← textMuted`, `onSurface ← text`) instead of neutral gray defaults. Keep the splash before the expired state. Front may derive decorative effects (gradients, glows) from validated roles, only moving away from the base color in the direction that improves contrast with its foreground.
+- No push/PR/remote operations without explicit authorization.
+- Keep scope tight: no unrequested redesigns, no extra states or copy.
+- Technical artifacts in English.
+
+## TDD and verification
+- Strict TDD on (project AGENTS.md). Backend: `npm test -- <focused Jest pattern>`; frontend: `npm run test:party`, `npx tsc --noEmit`.
+- Browser check via the out-of-repo Playwright script against local fixtures only (`/tmp/e2e-theme/browser`).
+
+## Route and delivery
+- Delegated direct per task (2+ non-trivial files). Mapping done: Engram session 2026-09-29 mapper report.
+- Forecast ~300–450 authored lines across both repos plus skill files.
+
+## Tasks
+- [x] **T0 — Baseline check.** Compare `feat/theme-refit` public routes against production screenshots with the local Playwright script; list remaining visual gaps before any change.
+- [x] **T0b — Rescue.** Port `?cache=off` (both repos) and backend validation/guards with production-style role derivation; confirm splash-before-expired on the base.
+- [x] **T1 — Backend channel set.** Extend `socials` to accept `whatsapp` and `url` (website) alongside `instagram`, `tiktok`, `facebook`; keep `cleanBlock()` dropping the primary channel and empty values; update DTOs, validation, preview, and tests. Decided (user): secondary WhatsApp only opens the chat with the number (`https://wa.me/<phone>`, no prefilled message); the prefilled message stays exclusive to a WhatsApp `primaryAction`. Acceptance: any channel can be primary; all other present channels resolve as secondaries.
+- [x] **T2 — Front brand channel catalog.** Add one constant catalog per channel (background, foreground, icon, label) restoring pre-T5a platform colors from `963c277^` (`#25d366`, Instagram gradient, `#000000` TikTok, `#1877f2`, plus a website style); primary and secondary buttons use it in page/sheet/compact/modal variants; render secondaries for every present channel except the primary. Contrast test for each catalog pair. Acceptance: no theme role colors on channel buttons; empty channels hidden.
+- [x] **T3 — Apply theme fonts.** Replace hardcoded heading/button families on public routes with `--ep-font-heading` / `--ep-font-body`; keep the font list loaded in `_document.tsx` as the single catalog of available fonts. Acceptance: computed fonts match the theme tokens on `/fiesta`, `/mis-fotos`, `/inspiracion`.
+- [x] **T4 — Skill updates.** In `~/.claude/skills/bookandsign-theme-authoring`: any channel can be primary, whatsapp/website as secondaries; replace the unbacked "approved font identifiers" line with the real loaded-font list and a documented step to request adding a new web font. Propose fonts by event type and brand.
+- [ ] **T5 — Browser verification.** Local fixture: channel buttons show fixed brand colors, primary not duplicated, empty channels hidden, fonts applied.
+
+## Progress and evidence
+- 2026-09-29: feature document created after mapping; no source changes yet.
+- 2026-09-29 T0 baseline on `feat/theme-refit` (local Playwright, 390×844 and 1280×900, events `2ba46031-…` active and `4c3b13de-…` finished): splash already precedes the expired state; production-style gradients, glows, WhatsApp green, and tinted social chips are back. Remaining gaps: (1) backend base still fills missing roles with neutral system defaults (`accent #374151`, `divider`/`surfaceBorder #e5e7eb`, `onSurface #111827`), so the front `accent ?? primary` derivation never triggers — titles, sparkles, and glows render gray/dark instead of the theme pink; (2) Fiesta "Compartir enlace" outline button renders white text on a light background (unreadable); (3) Brillipoint kit only defines `headline` — subtitle, follow text, and footer line are missing; (4) mobile expired page overflows (`scrollWidth` 410 at 390); (5) hardcoded heading/button fonts. T0 checked; T0b next.
+
+## Next step
+Resolve the `socials.whatsapp` value shape, then start T1.
+- 2026-09-30 implementation (two parallel single-writer tracks, strict TDD, no push):
+  - Backend `feat/theme-refit`: `8b6ba85` cache-off; `37d22a4` own-color role derivation (`accent←primary`, `onSecondary←onPrimary`, `divider`/`surfaceBorder←textMuted`, `onSurface←text`; system default unchanged); `6c8b00f` final palette validation (AA 4.5, 422 on public read, preview warnings; default `textMuted` `#4b5563`); `2413907` event write guards; `37eaafb` shared advisory lock + preset guard; `160f8ad` brand-kit guards; `10dad4e` `socials.whatsapp` (`wa.me` URL) and `socials.url`; `3712c31` Brillipoint `subtitle`/`followText` (T1b). Full Jest 816/816, build clean. The footer line "✦ Nos encantaría ser parte de tu evento ✦" has no `SocialCta` field and was not invented.
+  - Frontend `feat/theme-refit`: `46de56b` cache-off forwarding; `bb5afbc` whatsapp/website secondaries, primary never repeated, contrast test for new chips; `e230a8f` social row wrap (fixes mobile overflow) and share-button fallback; `286e543` share button uses `--ep-text` (the first fix only changed the fallback; `--ep-secondary-btn-text` is white for filled buttons); `c789a49` theme fonts via `--ep-font-heading`/`--ep-font-body` with current families as fallback, Inter loaded. Party suite 124/124, `tsc` clean.
+  - T5 partial: local Playwright on events `2ba46031-…`/`4c3b13de-…` at 390 and 1280: title, sparkle, glows, divider now theme pink; kit subtitle and follow text render; no horizontal overflow (390); share button text `#831843`. Open: fixed WhatsApp green `#25d366` with white text is ~2:1 (production color, kept); on mobile the Facebook chip wraps to a second line; theme `fontHeading: Futura` replaces the script headline and only renders where Futura is installed (not a web font). T4 (skill) pending.
+- 2026-09-30 follow-ups (user): WhatsApp primary uses black text on `#25d366` (10.59:1 vs 1.98:1 white) and page social chips are compact (padding 0 10px, 12px, gap 6px) so Instagram/TikTok/Facebook fit one row at 390px — `de72c33`, party 126/126, browser-verified. The missing footer line is dropped (the headline already introduces the main action). Futura accepted for now; the skill must propose web fonts.
+- T4 done in `~/.claude/skills/bookandsign-theme-authoring` (not a git repo): contrast gate corrected from 3.0 to the real 4.5 with the backend's six pairs; socials include `whatsapp`/`url`; any channel as primary; "propose for me" mode; every role set explicitly; pro palette recipe with WCAG formula and three AA-verified examples (pink XV, green/gold wedding, corporate navy); new `references/fonts.md` catalog by event type and tone, marking loaded fonts and emitting a frontend font request for unloaded ones; system fonts (Futura, Avenir, Helvetica) banned.
+- 2026-09-30 brand fills (user): social primary actions use official AA-safe colors with white text — WhatsApp `#075e54` (7.67), Facebook `#0866ff` (4.82), Instagram official gradient without the light orange stops (`#dc2743`→`#833ab4`, min 4.76), TikTok `#000000` — `671fa00`, contract test checks every stop against white; party 126/126; browser-verified. Preset 1 "xv rosita" upgraded locally with the skill (AA table in Engram) and closed with photos verified on `/fiesta` and `/mis-fotos`.

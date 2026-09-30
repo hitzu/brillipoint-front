@@ -7,31 +7,31 @@
 .screen {
   --ep-gradient-primary: linear-gradient(
     135deg,
-    var(--ep-primary-btn-bg, #ec4899),
-    var(--ep-secondary-btn-bg, #a855f7)
+    var(--ep-primary-btn-bg, #111827),
+    var(--ep-secondary-btn-bg, #6b7280)
   );
   --ep-gradient-soft: linear-gradient(
     160deg,
-    rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.12) 0%,
-    rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.1) 100%
+    rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.12) 0%,
+    rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.1) 100%
   );
-  --ep-primary-soft: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.12);
-  --ep-primary-soft-2: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.18);
-  --ep-primary-soft-3: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.24);
-  --ep-secondary-soft: rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.1);
-  --ep-secondary-soft-2: rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.16);
-  --ep-accent-soft: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.12);
-  --ep-accent-text-soft: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.62);
-  --ep-accent-text-muted: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.45);
+  --ep-primary-soft: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.12);
+  --ep-primary-soft-2: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.18);
+  --ep-primary-soft-3: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.24);
+  --ep-secondary-soft: rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.1);
+  --ep-secondary-soft-2: rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.16);
+  --ep-accent-soft: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.12);
+  --ep-accent-text-soft: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.62);
+  --ep-accent-text-muted: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.45);
   --ep-surface-glass: rgba(var(--ep-surface-bg-rgb, 255, 253, 247), 0.88);
   --ep-surface-glass-strong: rgba(var(--ep-surface-bg-rgb, 255, 253, 247), 0.94);
   --ep-surface-stroke: rgba(var(--ep-surface-border-rgb, 111, 122, 106), 0.26);
-  --ep-surface-shadow-soft: 0 8px 24px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.14);
+  --ep-surface-shadow-soft: 0 8px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.14);
   position: fixed;
   inset: 0;
   display: flex;
   flex-direction: column;
-  background: var(--ep-page-bg, #fff5f7);
+  background: var(--ep-page-bg, #ffffff);
   font-family: var(--ep-font-body, "Public Sans"), sans-serif;
   overflow-x: hidden;
   overflow-y: auto;
@@ -40,24 +40,59 @@
 
 /* ── Splash ────────────────────────────────────────────────────── */
 
+/* Theme `images.background` (T5) — full-bleed photo behind the existing
+   decorative gradient blobs; absent slot renders nothing (no element). */
+.splashBackgroundImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* Theme `images.cover` (T5) — fixed 4:5 card on the splash screen; wrapped
+   in an <a> by Splash.tsx only when the slot carries a `link`. */
+.splashCoverWrap {
+  position: relative;
+  z-index: 2;
+  width: 132px;
+  aspect-ratio: 4 / 5;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: var(--ep-surface-shadow, 0 10px 30px rgb(17 24 39 / 0.18));
+}
+
+.splashCoverLink {
+  display: block;
+}
+
+.splashCoverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .splashBg {
   position: absolute;
   inset: 0;
   background:
     radial-gradient(
       58% 42% at 50% 0%,
-      rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.16) 0%,
+      rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.16) 0%,
       transparent 62%
     ),
     radial-gradient(
       48% 44% at 100% 30%,
-      rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.12) 0%,
+      rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.12) 0%,
       transparent 60%
     ),
     linear-gradient(
       160deg,
-      var(--ep-page-bg, #fff5f7) 0%,
-      rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 0.96) 100%
+      var(--ep-page-bg, #ffffff) 0%,
+      rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.96) 100%
     );
 }
 
@@ -127,12 +162,12 @@
   overflow: hidden;
   background: linear-gradient(
     135deg,
-    var(--ep-primary-btn-bg, #ec4899),
-    var(--ep-secondary-btn-bg, #a855f7)
+    var(--ep-primary-btn-bg, #111827),
+    var(--ep-secondary-btn-bg, #6b7280)
   );
   box-shadow:
-    0 6px 28px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.34),
-    0 2px 8px rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.22);
+    0 6px 28px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.34),
+    0 2px 8px rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,7 +189,7 @@
   background: linear-gradient(
     to right,
     transparent,
-    rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.4),
+    rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.4),
     transparent
   );
   margin: 16px auto;
@@ -188,13 +223,13 @@
 }
 
 .splashName {
-  font-family: "Dancing Script", cursive;
+  font-family: var(--ep-font-heading, "Dancing Script"), cursive;
   font-size: clamp(28px, 8vw, 38px);
   font-weight: 700;
   background: linear-gradient(
     135deg,
-    var(--ep-primary-btn-bg, #9d174d),
-    var(--ep-secondary-btn-bg, #6b21a8)
+    var(--ep-primary-btn-bg, #111827),
+    var(--ep-secondary-btn-bg, #6b7280)
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -214,9 +249,64 @@
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--ep-muted-text, rgba(190, 24, 93, 0.4));
+  color: var(--ep-muted-text, rgba(107, 114, 128, 0.4));
   animation: fadeSlideUp 0.6s ease both;
   animation-delay: 0.45s;
+}
+
+/* Background-photo mode (`images.background`) — applied only through
+   `.splashHasBackground`, so the no-background splash is untouched. */
+.splashScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 35%,
+    rgba(0, 0, 0, 0.72) 100%
+  );
+}
+
+.splashHasBackground .splashContent {
+  justify-content: flex-end;
+  z-index: 2;
+}
+
+.splashHasBackground .splashLogoRingEmblem {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+}
+
+.splashHasBackground .splashEmblemImage {
+  object-fit: contain;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.splashHasBackground .splashDivider {
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.7),
+    transparent
+  );
+}
+
+.splashHasBackground .splashName {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+  filter: none;
+}
+
+.splashHasBackground .splashDate,
+.splashHasBackground .splashStep {
+  color: rgba(255, 255, 255, 0.86);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
 .splashSparkles {
@@ -231,8 +321,8 @@
   font-size: 14px;
   background: linear-gradient(
     135deg,
-    var(--ep-primary-btn-bg, #ec4899),
-    var(--ep-secondary-btn-bg, #a855f7)
+    var(--ep-primary-btn-bg, #111827),
+    var(--ep-secondary-btn-bg, #6b7280)
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -259,7 +349,7 @@
 }
 
 .carouselLogo {
-  font-family: "Dancing Script", cursive;
+  font-family: var(--ep-font-heading, "Dancing Script"), cursive;
   font-size: clamp(30px, 9vw, 42px);
   font-weight: 700;
   background: var(--ep-gradient-primary);
@@ -270,7 +360,7 @@
   line-height: 1;
   text-align: center;
   filter: drop-shadow(
-    0 4px 16px rgba(var(--ep-accent-rgb, 190, 24, 93), 0.16)
+    0 4px 16px rgba(var(--ep-accent-rgb, 55, 65, 81), 0.16)
   );
 }
 
@@ -286,7 +376,7 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  color: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.58);
+  color: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.58);
   letter-spacing: 0.05em;
   box-shadow: var(--ep-surface-shadow-soft);
 }
@@ -321,7 +411,7 @@
   overflow: hidden;
   position: relative;
   box-shadow:
-    0 8px 40px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.15),
+    0 8px 40px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.15),
     0 2px 12px rgba(0, 0, 0, 0.08);
   touch-action: pan-y;
   cursor: grab;
@@ -350,8 +440,8 @@
   overflow: hidden;
   background: linear-gradient(
     180deg,
-    rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 0.94) 0%,
-    rgba(var(--ep-page-bg-rgb, 255, 245, 247), 0.98) 100%
+    rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.94) 0%,
+    rgba(var(--ep-page-bg-rgb, 255, 255, 255), 0.98) 100%
   );
 }
 
@@ -360,8 +450,8 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 0.9) 0%,
-    rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.1) 100%
+    rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.9) 0%,
+    rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.1) 100%
   );
   overflow: hidden;
 }
@@ -388,12 +478,12 @@
   padding: 8px 12px;
   border-radius: 999px;
   background: var(--ep-surface-glass-strong);
-  color: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.72);
+  color: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.72);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-align: center;
-  box-shadow: 0 6px 20px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.14);
+  box-shadow: 0 6px 20px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.14);
 }
 
 .viewerErrorState {
@@ -408,8 +498,8 @@
   padding: 24px;
   background: linear-gradient(
     180deg,
-    rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 0.94) 0%,
-    rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.08) 100%
+    rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.94) 0%,
+    rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.08) 100%
   );
 }
 
@@ -423,11 +513,11 @@
   justify-content: center;
   font-size: 20px;
   font-weight: 800;
-  color: var(--ep-accent, #be185d);
+  color: var(--ep-accent, #374151);
 }
 
 .viewerErrorText {
-  color: var(--ep-accent, #be185d);
+  color: var(--ep-accent, #374151);
   font-size: 14px;
   font-weight: 700;
 }
@@ -441,7 +531,7 @@
   color: white;
   font-size: 13px;
   font-weight: 700;
-  box-shadow: 0 6px 18px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.24);
+  box-shadow: 0 6px 18px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.24);
 }
 
 .viewerEffectOverlay {
@@ -461,25 +551,37 @@
   width: 10px;
   height: 16px;
   opacity: 0.92;
-  background: linear-gradient(180deg, #f472b6 0%, #ec4899 100%);
+  background: linear-gradient(
+    180deg,
+    var(--ep-primary-btn-bg, #111827) 0%,
+    var(--ep-accent, #374151) 100%
+  );
   border-radius: 2px;
   animation: sessionConfettiFall 2.7s linear infinite;
 }
 
 .effectConfetti:nth-child(2n) {
-  background: linear-gradient(180deg, #c084fc 0%, #a855f7 100%);
+  background: linear-gradient(
+    180deg,
+    var(--ep-secondary-btn-bg, #6b7280) 0%,
+    var(--ep-accent, #374151) 100%
+  );
 }
 
 .effectConfetti:nth-child(3n) {
-  background: linear-gradient(180deg, #f9a8d4 0%, #fb7185 100%);
+  background: linear-gradient(
+    180deg,
+    var(--ep-secondary-btn-bg, #6b7280) 0%,
+    var(--ep-muted-text, #6b7280) 100%
+  );
 }
 
 .effectHeart {
   bottom: -8%;
   font-size: 18px;
   line-height: 1;
-  color: rgba(236, 72, 153, 0.82);
-  filter: drop-shadow(0 4px 10px rgba(236, 72, 153, 0.18));
+  color: var(--ep-accent, rgba(55, 65, 81, 0.82));
+  filter: drop-shadow(0 4px 10px var(--ep-accent, rgba(55, 65, 81, 0.18)));
   animation: floatingHearts 3.2s ease-in infinite;
 }
 
@@ -516,9 +618,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 12px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.18);
+  box-shadow: 0 2px 12px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.18);
   font-size: 18px;
-  color: var(--ep-primary-btn-bg, #ec4899);
+  color: var(--ep-primary-btn-bg, #111827);
   transition:
     transform 0.15s,
     box-shadow 0.15s;
@@ -556,18 +658,18 @@
   border-radius: 999px;
   border: 1px solid var(--ep-surface-stroke);
   background: var(--ep-surface-glass);
-  color: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.7);
+  color: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.7);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 4px 14px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.06);
+  box-shadow: 0 4px 14px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.06);
 }
 
 .effectChipActive {
   border-color: transparent;
   background: var(--ep-gradient-primary);
   color: white;
-  box-shadow: 0 8px 20px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.24);
+  box-shadow: 0 8px 20px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.24);
 }
 
 .exportSheetOverlay,
@@ -626,7 +728,7 @@
 
 .exportSheetEyebrow,
 .shareFallbackEyebrow {
-  color: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.52);
+  color: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.52);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.18em;
@@ -636,7 +738,7 @@
 .exportSheetTitle,
 .shareFallbackTitle {
   margin: 6px 0 0;
-  color: var(--ep-text, #831843);
+  color: var(--ep-text, #111827);
   font-size: 24px;
   line-height: 1.1;
   font-weight: 800;
@@ -649,7 +751,7 @@
   border-radius: 50%;
   border: none;
   background: var(--ep-accent-soft);
-  color: var(--ep-accent, #be185d);
+  color: var(--ep-accent, #374151);
   font-size: 14px;
   font-weight: 800;
   flex-shrink: 0;
@@ -658,7 +760,7 @@
 .exportSheetNote,
 .shareFallbackText {
   margin: 12px 0 0;
-  color: rgba(var(--ep-text-rgb, 91, 33, 72), 0.74);
+  color: rgba(var(--ep-text-rgb, 17, 24, 39), 0.74);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -677,7 +779,7 @@
   background: rgba(255, 255, 255, 0.9);
   box-shadow:
     inset 0 0 0 1px rgba(var(--ep-surface-border-rgb, 111, 122, 106), 0.2),
-    0 10px 24px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.08);
+    0 10px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.08);
   text-align: left;
 }
 
@@ -696,8 +798,8 @@
 .exportPreviewOriginal {
   background: linear-gradient(
     180deg,
-    rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 0.96) 0%,
-    rgba(var(--ep-page-bg-rgb, 255, 245, 247), 0.98) 100%
+    rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.96) 0%,
+    rgba(var(--ep-page-bg-rgb, 255, 255, 255), 0.98) 100%
   );
   aspect-ratio: 9 / 16;
 }
@@ -734,7 +836,7 @@
 }
 
 .exportPreviewEventName {
-  color: var(--ep-accent, #9d174d);
+  color: var(--ep-accent, #374151);
   font-size: 14px;
   font-weight: 800;
   line-height: 1.2;
@@ -742,14 +844,14 @@
 
 .exportOptionLabel {
   margin-top: 10px;
-  color: var(--ep-text, #831843);
+  color: var(--ep-text, #111827);
   font-size: 14px;
   font-weight: 800;
 }
 
 .exportOptionBusy {
   margin-top: 4px;
-  color: rgba(var(--ep-text-rgb, 91, 33, 72), 0.68);
+  color: rgba(var(--ep-text-rgb, 17, 24, 39), 0.68);
   font-size: 12px;
   font-weight: 700;
 }
@@ -773,8 +875,8 @@
   overflow: hidden;
   background: linear-gradient(
     180deg,
-    rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 0.96) 0%,
-    rgba(var(--ep-page-bg-rgb, 255, 245, 247), 0.98) 100%
+    rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.96) 0%,
+    rgba(var(--ep-page-bg-rgb, 255, 255, 255), 0.98) 100%
   );
   box-shadow: inset 0 0 0 1px rgba(var(--ep-surface-border-rgb, 111, 122, 106), 0.16);
 }
@@ -803,13 +905,13 @@
   border: none;
   background: var(--ep-gradient-primary);
   color: white;
-  box-shadow: 0 10px 24px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.22);
+  box-shadow: 0 10px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.22);
 }
 
 .shareFallbackSecondary {
   border: 1px solid var(--ep-surface-stroke);
   background: var(--ep-surface-glass);
-  color: var(--ep-accent, #9d174d);
+  color: var(--ep-accent, #374151);
 }
 
 /* Action buttons */
@@ -827,21 +929,21 @@
   height: 52px;
   border-radius: 16px;
   background: transparent;
-  border: 2px solid rgba(var(--ep-secondary-btn-bg-rgb, 249, 168, 212), 0.45);
+  border: 2px solid rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  font-family: "Public Sans", sans-serif;
+  font-family: var(--ep-font-body, "Public Sans"), sans-serif;
   font-size: 15px;
   font-weight: 600;
-  color: var(--ep-accent, #9d174d);
+  color: var(--ep-accent, #374151);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btnSave:active {
-  background: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.1);
+  background: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.1);
   transform: scale(0.97);
 }
 
@@ -861,25 +963,25 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  font-family: "Public Sans", sans-serif;
+  font-family: var(--ep-font-body, "Public Sans"), sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: white;
   cursor: pointer;
-  box-shadow: 0 6px 24px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.3);
+  box-shadow: 0 6px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.3);
   transition: all 0.2s;
 }
 
 .btnShare:active {
   transform: scale(0.97);
-  box-shadow: 0 2px 8px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.2);
+  box-shadow: 0 2px 8px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.2);
 }
 
 .btnShare:disabled {
   opacity: 0.8;
   cursor: wait;
   transform: none;
-  box-shadow: 0 6px 24px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.2);
+  box-shadow: 0 6px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.2);
 }
 
 .sessionInlineCta {
@@ -903,7 +1005,7 @@
   font-size: 16px;
   line-height: 1;
   background: rgba(var(--ep-surface-bg-rgb, 255, 253, 247), 0.96);
-  box-shadow: 0 6px 16px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.22);
+  box-shadow: 0 6px 16px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.22);
   cursor: pointer;
   z-index: 1;
   transition:
@@ -936,12 +1038,12 @@
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   box-shadow:
-    0 10px 28px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.22),
+    0 10px 28px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.22),
     0 2px 8px rgba(0, 0, 0, 0.08);
   font-family: var(--ep-font-body, "Public Sans"), sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: var(--ep-accent, #9d174d);
+  color: var(--ep-accent, #374151);
   white-space: nowrap;
   cursor: pointer;
   opacity: 0;
@@ -1029,7 +1131,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  border: 0.5px solid var(--ep-surface-border, #f4c0d1);
+  border: 0.5px solid var(--ep-surface-border, #e5e7eb);
   background: rgba(var(--ep-surface-bg-rgb, 255, 253, 247), 0.94);
   color: var(--ep-accent, #993556);
   display: flex;
@@ -1064,7 +1166,7 @@
   margin: 0 auto 10px;
   padding: 3px 10px;
   border-radius: 20px;
-  background: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.12);
+  background: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.12);
   color: var(--ep-accent, #72243e);
   font-size: 9px;
   font-weight: 600;
@@ -1098,7 +1200,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.12);
+  background: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.12);
   color: var(--ep-accent, #993556);
   font-size: 10px;
   font-weight: 600;
@@ -1155,10 +1257,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 24px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.2);
+  box-shadow: 0 4px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.2);
   font-size: 13px;
   font-weight: 600;
-  color: var(--ep-accent, #be185d);
+  color: var(--ep-accent, #374151);
   pointer-events: none;
   white-space: nowrap;
   z-index: 200;

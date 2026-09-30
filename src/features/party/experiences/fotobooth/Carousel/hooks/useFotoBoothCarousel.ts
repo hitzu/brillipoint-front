@@ -15,7 +15,7 @@ import { trackEvent } from "../../../../../../api/services/eventAnalyticsService
 import { useFotoBoothCarouselStore } from "../stores/useFotoBoothCarouselStore";
 import { buildFallbackItems } from "../types";
 import { appendSourceToPath } from "../../../../utils/sourceTracking";
-import { SocialPlatform } from "../../../../components/SocialMediaCTA";
+import { SocialPlatform } from "../../../../components/SocialCta";
 
 const SWIPE_THRESHOLD_PX = 40;
 

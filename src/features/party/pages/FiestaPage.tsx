@@ -17,15 +17,15 @@ import {
 import styles from "@assets/css/fotobooth-overview.module.css";
 import {
   getEventGalleryV2,
-  getEventTheme,
   getPublicPhotosByEventToken,
 } from "../../../api/services/partyPublicService";
 import { formatSplashDate } from "../utils/formatSplashDate";
 import { isExpiredEventStatus } from "../utils/eventStatus";
 import { preloadImages } from "../utils/preloadImages";
-import { tokensToEventPageTheme } from "../utils/tokensToEventPageTheme";
 import { buildThemeVars } from "../utils/themeVars";
-import { EventPageTheme } from "../types/eventPageTheme";
+import { useEventTheme } from "../hooks/useEventTheme";
+import { isFreshThemeCacheEnabled } from "../utils/freshThemeCache";
+import { useSocialCtaViewModel } from "../hooks/useSocialCtaViewModel";
 import {
   appendSourceToPath,
   readSourceFromRouter,
@@ -71,10 +71,6 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
   const [allPhotos, setAllPhotos] = useState<EventPhoto[]>([]);
   const [allPhotosLoading, setAllPhotosLoading] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
-  const [resolvedTheme, setResolvedTheme] = useState<EventPageTheme | null>(
-    null,
-  );
-  const [themeReady, setThemeReady] = useState(false);
 
   const hasTrackedGalleryOpened = useRef(false);
   const source = readSourceFromRouter(router);
@@ -82,6 +78,10 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
     eventToken ||
     getQueryValue(router.query.eventToken) ||
     getFiestaTokenFromPath(router.asPath);
+  const freshTheme = isFreshThemeCacheEnabled(
+    router.isReady,
+    router.query.cache,
+  );
 
   const preloadGalleryCovers = async (
     gallerySessions: GallerySessionItem[],
@@ -136,25 +136,14 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
   // Theme travels in its own request, separate from the gallery (different
   // cache lifecycle — the gallery keeps loading in the background after the
   // splash ends, the splash only waits on the theme).
-  const fetchTheme = async () => {
-    if (!resolvedEventToken) return;
-
-    try {
-      const { eventTheme } = await getEventTheme(resolvedEventToken);
-      setResolvedTheme(
-        tokensToEventPageTheme(eventTheme.tokens, eventTheme.images),
-      );
-    } catch {
-      setResolvedTheme(null);
-    } finally {
-      setThemeReady(true);
-    }
-  };
+  const { eventTheme, pageTheme, status: themeStatus } =
+    useEventTheme(router.isReady ? resolvedEventToken : undefined, freshTheme);
+  const themeReady = themeStatus !== "default";
+  const socialCta = useSocialCtaViewModel(eventTheme);
 
   useEffect(() => {
     if (!resolvedEventToken) return;
     fetchGallery();
-    fetchTheme();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedEventToken]);
 
@@ -258,10 +247,8 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
     });
   }, [resolvedEventToken, router.isReady, source]);
 
-  const { Splash, Overview, theme: fallbackTheme } = getExperience(
-    eventData?.eventTheme?.key,
-  );
-  const theme = resolvedTheme ?? fallbackTheme;
+  const { Splash, Overview } = getExperience(eventData?.eventTheme?.key);
+  const theme = pageTheme;
   const themeVars = theme ? buildThemeVars(theme) : undefined;
   const splashDate = formatSplashDate(eventData?.date);
 
@@ -276,6 +263,8 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
         duration={SPLASH_DURATION_MS}
         canFinish={themeReady}
         theme={theme}
+        images={eventTheme.images}
+        decorations={eventTheme.decorations}
       />
     );
   }
@@ -328,6 +317,8 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
         sessionId={null}
         path={`/fiesta/${resolvedEventToken}`}
         theme={theme}
+        socialCta={socialCta}
+        images={eventTheme.images}
       />
     );
   }
@@ -356,6 +347,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
         }
         isViewAllPhotosLoading={allPhotosLoading}
         theme={theme}
+        socialCta={socialCta}
       />
       <PhotoViewerLightbox
         isOpen={viewerIndex !== null && allPhotos.length > 0}
@@ -371,6 +363,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
         showNavigationHints
         backdropColor={theme.pageBackground}
         themeVars={themeVars}
+        socialCta={socialCta}
       />
     </>
   );

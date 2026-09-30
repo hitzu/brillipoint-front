@@ -1797,11 +1797,11 @@
   position: relative;
   background: linear-gradient(
     135deg,
-    var(--ep-accent, #9d174d) 0%,
-    var(--ep-secondary-btn-bg, #86198f) 100%
+    var(--ep-accent, #374151) 0%,
+    var(--ep-secondary-btn-bg, #6b7280) 100%
   );
   box-shadow:
-    0 4px 18px rgba(var(--ep-accent-rgb, 157, 23, 77), 0.35),
+    0 4px 18px rgba(var(--ep-accent-rgb, 55, 65, 81), 0.35),
     inset 0 1px 1px rgba(255, 255, 255, 0.12);
 }
 
@@ -1852,17 +1852,17 @@
   border-radius: 50%;
   background: linear-gradient(
     135deg,
-    var(--ep-primary-btn-bg, #ec4899) 0%,
-    var(--ep-secondary-btn-bg, #a855f7) 100%
+    var(--ep-primary-btn-bg, #111827) 0%,
+    var(--ep-secondary-btn-bg, #6b7280) 100%
   );
   color: var(--ep-primary-btn-text, #ffffff);
-  box-shadow: 0 8px 22px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.38);
+  box-shadow: 0 8px 22px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.38);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btnIconSolid:active {
   transform: scale(0.95);
-  box-shadow: 0 4px 12px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.28);
+  box-shadow: 0 4px 12px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.28);
 }
 
 .modalEndState {

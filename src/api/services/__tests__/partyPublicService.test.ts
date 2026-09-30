@@ -7,7 +7,11 @@ vi.mock("../../config/axiosConfig", () => ({
 }));
 
 import { axiosInstanceWithoutToken } from "../../config/axiosConfig";
-import { getEventPhotosPage, getPublicEventByToken } from "../partyPublicService";
+import {
+  getEventPhotosPage,
+  getEventTheme,
+  getPublicEventByToken,
+} from "../partyPublicService";
 
 const mockedGet = axiosInstanceWithoutToken.get as unknown as ReturnType<
   typeof vi.fn
@@ -105,5 +109,26 @@ describe("getPublicEventByToken", () => {
       createdAt: "2026-01-01",
       updatedAt: "2026-01-02",
     });
+  });
+});
+
+describe("getEventTheme", () => {
+  beforeEach(() => {
+    mockedGet.mockReset();
+    mockedGet.mockResolvedValue({ data: { eventTheme: {} } });
+  });
+
+  it("adds cache=off only when fresh theme testing is explicitly enabled", async () => {
+    await getEventTheme("event-token", true);
+
+    expect(mockedGet).toHaveBeenCalledWith("/events/event-token/theme", {
+      params: { cache: "off" },
+    });
+  });
+
+  it("leaves ordinary theme requests on the default HTTP cache path", async () => {
+    await getEventTheme("event-token");
+
+    expect(mockedGet).toHaveBeenCalledWith("/events/event-token/theme");
   });
 });

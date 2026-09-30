@@ -14,6 +14,7 @@ import { getContractById } from "../../api/services/contractService";
 import { getEventTypes } from "../../api/services/eventTypesService";
 import { getEventThemes } from "../../api/services/eventThemesService";
 import { buildUpdateEventPayload } from "../../features/events/utils/eventPayload";
+import EventThemeSection from "../../features/events/theme/EventThemeSection";
 import * as yup from "yup";
 
 interface EventFormValues {
@@ -55,6 +56,7 @@ const EventEdit = () => {
   const [contractLabel, setContractLabel] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [allEvents, setAllEvents] = useState<EventV2[]>([]);
+  const [loadedEvent, setLoadedEvent] = useState<EventV2 | null>(null);
 
   const formik = useFormik<EventFormValues>({
     initialValues: {
@@ -89,6 +91,7 @@ const EventEdit = () => {
       const fetchEvent = async () => {
         try {
           const event = await getEventById(Number(id));
+          setLoadedEvent(event);
           formik.setValues({
             key: event.key || "",
             eventType: String(event.eventTypeId || ""),
@@ -427,6 +430,13 @@ const EventEdit = () => {
               </Form>
             </Card.Body>
           </Card>
+
+          {loadedEvent && (
+            <EventThemeSection
+              eventId={loadedEvent.id}
+              initialThemeOverrides={loadedEvent.themeOverrides}
+            />
+          )}
         </Col>
       </Row>
     </React.Fragment>

@@ -162,18 +162,13 @@ describe("useCreateContractForm — validation", () => {
     expect(api.generateContract).not.toHaveBeenCalled();
   });
 
-  it("rejects submit when the start time is not before the end time", async () => {
+  it("allows a valid overnight time range", async () => {
+    api.generateContract.mockResolvedValue({ id: 88, token: "tok", sku: "sku" });
+    api.createPayment.mockResolvedValue({ id: 1 });
+    api.createBooking.mockResolvedValue({ id: 99 });
     const { result } = renderHook(() => useCreateContractForm());
-    act(() => result.current.setSelectedBrandId(1));
-    await waitFor(() => expect(result.current.packages.length).toBe(1));
+    await fillValidForm(result);
     act(() => {
-      result.current.setSelectedUserId(11);
-      result.current.setClientName("Ana Ruiz");
-    });
-    act(() => result.current.addPackageToCart(photoboothPkg.id));
-    await waitFor(() => expect(result.current.cart.length).toBe(1));
-    act(() => {
-      result.current.setEventDate("2026-09-19");
       result.current.setStartTime("18:00");
       result.current.setEndTime("12:00");
     });
@@ -182,10 +177,8 @@ describe("useCreateContractForm — validation", () => {
       await result.current.handleSubmit();
     });
 
-    expect(result.current.errorMsg).toBe(
-      "La hora de inicio debe ser anterior a la hora de fin.",
-    );
-    expect(api.generateContract).not.toHaveBeenCalled();
+    expect(result.current.errorMsg).toBeNull();
+    expect(api.generateContract).toHaveBeenCalledTimes(1);
   });
 
   it("keeps only digits in the phone, capped at 10", () => {
@@ -224,25 +217,17 @@ describe("useCreateContractForm — validation", () => {
     expect(api.generateContract).not.toHaveBeenCalled();
   });
 
-  it("rejects submit when the end date is before the start date", async () => {
+  it("rejects malformed custom times", async () => {
     const { result } = renderHook(() => useCreateContractForm());
     await fillValidForm(result);
-    // The end date follows the start date by default; picking an earlier
-    // one overrides that, and it must still be refused.
-    act(() => result.current.setEndDate("2026-09-18"));
-
-    await act(async () => {
-      await result.current.handleSubmit();
-    });
-
-    expect(result.current.errorMsg).toBe(
-      "La hora de inicio debe ser anterior a la hora de fin.",
-    );
+    act(() => result.current.setStartTime("25:99"));
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(result.current.errorMsg).toBe("Selecciona la hora de inicio y de fin.");
     expect(api.generateContract).not.toHaveBeenCalled();
   });
 });
 
-describe("useCreateContractForm — end date", () => {
+describe("useCreateContractForm — next-day derivation", () => {
   beforeEach(() => {
     Object.values(api).forEach((mock) => mock.mockReset());
     api.getUsers.mockResolvedValue([{ id: 11, name: "Vendedor" }]);
@@ -251,40 +236,18 @@ describe("useCreateContractForm — end date", () => {
     api.getExtras.mockResolvedValue([]);
   });
 
-  it("follows the start date when it hasn't been picked separately", () => {
-    const { result } = renderHook(() => useCreateContractForm());
-    act(() => result.current.setEventDate("2026-09-19"));
-    expect(result.current.endDate).toBe("2026-09-19");
-
-    act(() => result.current.setEventDate("2026-09-20"));
-    expect(result.current.endDate).toBe("2026-09-20");
-  });
-
-  it("keeps a manually picked end date as the start date moves earlier", () => {
+  it("keeps the end day derived from times, including the equal-time 24-hour boundary", () => {
     const { result } = renderHook(() => useCreateContractForm());
     act(() => result.current.setEventDate("2026-09-20"));
-    act(() => result.current.setEndDate("2026-09-22"));
-
-    act(() => result.current.setEventDate("2026-09-21"));
-    expect(result.current.endDate).toBe("2026-09-22");
+    act(() => { result.current.setStartTime("18:00"); result.current.setEndTime("18:00"); });
+    expect(result.current.endsNextDay).toBe(true);
+    act(() => result.current.setEndTime("18:30"));
+    expect(result.current.endsNextDay).toBe(false);
   });
 
-  it("clamps a manually picked end date back to the start date when it would precede it", () => {
+  it("does not expose an all-day shortcut handler", () => {
     const { result } = renderHook(() => useCreateContractForm());
-    act(() => result.current.setEventDate("2026-09-20"));
-    act(() => result.current.setEndDate("2026-09-22"));
-
-    act(() => result.current.setEventDate("2026-09-25"));
-    expect(result.current.endDate).toBe("2026-09-25");
-  });
-
-  it("sets the end date to the start date with the all-day preset", () => {
-    const { result } = renderHook(() => useCreateContractForm());
-    act(() => result.current.setEventDate("2026-09-19"));
-    act(() => result.current.setEndDate("2026-09-22"));
-
-    act(() => result.current.applyAllDay());
-    expect(result.current.endDate).toBe("2026-09-19");
+    expect(result.current).not.toHaveProperty("applyAllDay");
   });
 });
 
@@ -425,7 +388,6 @@ describe("useCreateContractForm — submit flow", () => {
     act(() => {
       result.current.setEventDate("2026-09-24");
       result.current.setStartTime("23:00");
-      result.current.setEndDate("2026-09-25");
       result.current.setEndTime("03:00");
     });
 
@@ -438,6 +400,22 @@ describe("useCreateContractForm — submit flow", () => {
       eventDate: "2026-09-24",
       serviceStartsAt: "2026-09-25T05:00:00.000Z",
       serviceEndsAt: "2026-09-25T09:00:00.000Z",
+    });
+  });
+
+  it("serializes equal times as a 24-hour booking ending next day", async () => {
+    const { result } = renderHook(() => useCreateContractForm());
+    await fillValidForm(result);
+    act(() => {
+      result.current.setEventDate("2026-09-24");
+      result.current.setStartTime("18:00");
+      result.current.setEndTime("18:00");
+    });
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(api.createBooking.mock.calls[0][0]).toMatchObject({
+      eventDate: "2026-09-24",
+      serviceStartsAt: "2026-09-25T00:00:00.000Z",
+      serviceEndsAt: "2026-09-26T00:00:00.000Z",
     });
   });
 

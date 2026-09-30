@@ -2,8 +2,11 @@ import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import { trackEvent } from "../../../api/services/eventAnalyticsService";
 import { RecoverPhotosCTA } from "../components/RecoverPhotosCTA";
-import { SocialMediaCTA } from "../components/SocialMediaCTA";
+import { SocialCta } from "../components/SocialCta";
+import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
+import { resolveImageAlt } from "../theme/resolveImageAlt";
 import { EventPageTheme } from "../types/eventPageTheme";
+import { ThemeImages } from "../types/themeContract";
 import { buildThemeVars } from "../utils/themeVars";
 import {
   expiredEventFor,
@@ -21,6 +24,9 @@ interface EventExpiredPageProps {
   sessionId: string | null;
   path: string;
   theme?: EventPageTheme;
+  socialCta?: SocialCtaViewModel | null;
+  /** Typed image slots (T5) — only `logo` has an existing spot on this page. */
+  images?: ThemeImages;
 }
 
 export function EventExpiredPage({
@@ -31,6 +37,8 @@ export function EventExpiredPage({
   sessionId,
   path,
   theme,
+  socialCta,
+  images,
 }: EventExpiredPageProps) {
   const hasTrackedView = useRef(false);
 
@@ -61,12 +69,21 @@ export function EventExpiredPage({
     >
       <section className={styles.card}>
         <div className={styles.logoBadge}>
-          <Image
-            src={logo}
-            alt="Brillipoint Experience"
-            className={styles.logo}
-            priority
-          />
+          {images?.logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={images.logo.url}
+              alt={resolveImageAlt(images.logo.alt) || "Logo"}
+              className={styles.logo}
+            />
+          ) : (
+            <Image
+              src={logo}
+              alt="Brillipoint Experience"
+              className={styles.logo}
+              priority
+            />
+          )}
         </div>
         <p className={styles.kicker}>Evento finalizado</p>
         <h1 className={styles.title}>Gracias por acompañar a {eventName}</h1>
@@ -77,11 +94,10 @@ export function EventExpiredPage({
 
         <div className={styles.divider} />
 
-        <SocialMediaCTA
-          context="event_expired"
+        <SocialCta
+          viewModel={socialCta ?? null}
           variant="page"
-          nombreFestejado={eventName}
-          onWAClick={handleMessageClick}
+          onPrimaryActionClick={handleMessageClick}
         />
 
         <div className={styles.recoverSection}>

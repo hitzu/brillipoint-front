@@ -22,3 +22,4 @@ export * from "./analyticsAction";
 export * from "./eventThemes";
 export * from "./eventGallery";
 export * from "./carousels";
+export * from "./themeAssets";

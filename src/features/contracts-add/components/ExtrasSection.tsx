@@ -8,6 +8,8 @@ export interface ExtrasSectionProps {
   extras: Extra[];
   cart: CartItem[];
   extraCart: ExtraCartItem[];
+  /** Extras are scoped to one brand; show a hint until one is picked. */
+  brandSelected: boolean;
   onAdd: (extraId: number, packageClientRef: string | null) => void;
   onRemove: (extraId: number) => void;
   onQuantityChange: (extraId: number, quantity: number) => void;
@@ -20,6 +22,7 @@ export function ExtrasSection({
   extras,
   cart,
   extraCart,
+  brandSelected,
   onAdd,
   onRemove,
   onQuantityChange,
@@ -34,6 +37,19 @@ export function ExtrasSection({
     onAdd(Number(selectedExtraId), selectedPackageClientRef || null);
     setSelectedExtraId("");
   };
+
+  if (!brandSelected) {
+    return (
+      <Card className="mb-3">
+        <Card.Header as="h5">Extras</Card.Header>
+        <Card.Body>
+          <p className="text-muted mb-0">
+            Selecciona una marca para ver los extras disponibles.
+          </p>
+        </Card.Body>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mb-3">

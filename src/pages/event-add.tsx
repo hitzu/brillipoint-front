@@ -1,5 +1,6 @@
 import Layout from "@layout/index";
 import React, { ReactElement, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import BreadcrumbItem from "@common/BreadcrumbItem";
 import { Card, Col, Form, Row, Toast, Button } from "react-bootstrap";
 import { useFormik } from "formik";
@@ -38,6 +39,7 @@ const validationSchema = yup.object().shape({
 });
 
 const EventAdd = () => {
+  const router = useRouter();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState<"success" | "danger">(
@@ -81,13 +83,8 @@ const EventAdd = () => {
     validationSchema,
     onSubmit: async (values) => {
       try {
-        await createEvent(buildCreateEventPayload(values));
-        setToastMessage("Evento creado exitosamente");
-        setToastVariant("success");
-        setShowToast(true);
-        setTimeout(() => {
-          formik.resetForm();
-        }, 500);
+        const createdEvent = await createEvent(buildCreateEventPayload(values));
+        await router.push(`/event-edit/${createdEvent.id}`);
       } catch (error: any) {
         console.error("Error creating event:", error);
         const msg =

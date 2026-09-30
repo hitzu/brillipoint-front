@@ -1,7 +1,7 @@
 import React from "react";
 import { EventPageTheme } from "../types/eventPageTheme";
 
-const toCssRgbTriplet = (value?: string) => {
+export const toCssRgbTriplet = (value?: string) => {
   if (!value) return undefined;
 
   const hex = value.trim();

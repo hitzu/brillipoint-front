@@ -4,10 +4,29 @@ import {
   ExportVariant,
   SessionItem,
 } from "../../../../types/session";
+import { getConfettiColors } from "../../../../theme/confettiColors";
+import { systemDefaultPageTheme } from "../../../../theme/systemDefaultPageTheme";
+import { toCssRgbTriplet } from "../../../../utils/themeVars";
 
 export const EXPORT_MIME_TYPE = "image/jpeg";
 export const EXPORT_QUALITY = 0.94;
 export const MAX_EXPORT_DIMENSION = 1600;
+
+// This module has no caller today (verified repo-wide: nothing imports
+// `generateStaticExportAsset`/`renderOriginalVariantFromSource`/
+// `renderPolaroidVariantFromSource`), so no resolved `EventPageTheme` ever
+// reaches it. Its colors fall back to the neutral system default rather
+// than a hardcoded pink palette (T6); wire an actual theme through here
+// if/when a caller is added.
+export const CONFETTI_OVERLAY_COLORS = getConfettiColors();
+export const HEARTS_OVERLAY_COLOR = `rgba(${
+  toCssRgbTriplet(systemDefaultPageTheme.accentColor) ?? "55, 65, 81"
+}, 0.8)`;
+export const POLAROID_FOOTER_TITLE_COLOR =
+  systemDefaultPageTheme.accentColor ?? "#374151";
+export const POLAROID_FOOTER_DATE_COLOR = `rgba(${
+  toCssRgbTriplet(systemDefaultPageTheme.mutedTextColor) ?? "107, 114, 128"
+}, 0.72)`;
 
 type GenerateStaticExportAssetParams = {
   effect: EffectName;
@@ -48,7 +67,7 @@ const drawConfettiOverlay = (
   height: number,
   phase = 0,
 ) => {
-  const colors = ["#ec4899", "#f9a8d4", "#a855f7", "#fb7185", "#c084fc"];
+  const colors = CONFETTI_OVERLAY_COLORS;
   const pieces = 28;
 
   for (let index = 0; index < pieces; index += 1) {
@@ -75,7 +94,7 @@ const drawHeartsOverlay = (
 ) => {
   const hearts = 10;
   ctx.save();
-  ctx.fillStyle = "rgba(236, 72, 153, 0.8)";
+  ctx.fillStyle = HEARTS_OVERLAY_COLOR;
   ctx.textAlign = "center";
 
   for (let index = 0; index < hearts; index += 1) {
@@ -202,11 +221,11 @@ export const renderPolaroidVariantFromSource = ({
   const footerTop = imageY + contentSize.height + Math.round(framePadding * 0.9);
   const textPadding = Math.round(framePadding * 1.1);
 
-  ctx.fillStyle = "#be185d";
+  ctx.fillStyle = POLAROID_FOOTER_TITLE_COLOR;
   ctx.font = `700 ${Math.max(24, Math.round(canvas.width * 0.046))}px "Public Sans", sans-serif`;
   ctx.fillText(eventData.honoreesNames || "Tu evento", textPadding, footerTop);
 
-  ctx.fillStyle = "rgba(91, 33, 72, 0.72)";
+  ctx.fillStyle = POLAROID_FOOTER_DATE_COLOR;
   ctx.font = `500 ${Math.max(18, Math.round(canvas.width * 0.028))}px "Public Sans", sans-serif`;
   const dateLabel = formatEventDate(eventData.date);
   if (dateLabel) {

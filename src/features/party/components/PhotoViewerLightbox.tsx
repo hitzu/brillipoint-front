@@ -11,7 +11,8 @@ import { sharePhoto } from "../utils/mediaActions";
 import { trackEvent } from "../../../api/services/eventAnalyticsService";
 import { useModalStateMachine } from "../hooks/useModalStateMachine";
 import { PostActionConfirmation } from "./PostActionConfirmation";
-import { SocialPlatform } from "./SocialMediaCTA";
+import { SocialPlatform } from "./SocialCta";
+import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
 
 type PhotoViewerLightboxProps = {
   isOpen: boolean;
@@ -30,6 +31,12 @@ type PhotoViewerLightboxProps = {
   showNavigationHints?: boolean;
   backdropColor?: string;
   themeVars?: React.CSSProperties;
+  /**
+   * `undefined`/`null` hides the post-action CTA — the deprecated
+   * `/party/[token]` route (`PartyPublicPage`) doesn't have a resolved
+   * theme to pass and is left unchanged, so it simply omits this prop.
+   */
+  socialCta?: SocialCtaViewModel | null;
 };
 
 const PhotoViewerLightbox = ({
@@ -48,6 +55,7 @@ const PhotoViewerLightbox = ({
   showNavigationHints = false,
   backdropColor,
   themeVars,
+  socialCta,
 }: PhotoViewerLightboxProps) => {
   const [currentIndex, setCurrentIndex] = React.useState(activeIndex ?? 0);
   const [hintVisible, setHintVisible] = useState(false);
@@ -339,6 +347,7 @@ const PhotoViewerLightbox = ({
                             dispatch({ type: "RETURN_TO_GALLERY" })
                           }
                           nombreFestejado={eventTitle}
+                          socialCta={socialCta}
                           onWAClick={handlePostActionWaClick}
                           onSocialClick={handlePostActionSocialClick}
                         />
@@ -353,6 +362,7 @@ const PhotoViewerLightbox = ({
                             dispatch({ type: "RETURN_TO_GALLERY" })
                           }
                           nombreFestejado={eventTitle}
+                          socialCta={socialCta}
                           onWAClick={handlePostActionWaClick}
                           onSocialClick={handlePostActionSocialClick}
                         />

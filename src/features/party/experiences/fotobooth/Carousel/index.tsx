@@ -92,6 +92,7 @@ const FotoBoothCarousel = (props: CarouselProps) => {
 
       <SessionInlineCta
         eventName={props.eventData.honoreesNames}
+        socialCta={props.socialCta}
         onWAClick={handleSessionWhatsAppClick}
         onSocialClick={handleSessionSocialClick}
         onGiftPress={() => {
@@ -112,6 +113,7 @@ const FotoBoothCarousel = (props: CarouselProps) => {
 
       <SuccessCtaModal
         eventName={props.eventData.honoreesNames}
+        socialCta={props.socialCta}
         isOpen={isSuccessCtaOpen}
         onClose={closeSuccessCta}
         onSocialClick={handleSuccessCtaSocialClick}

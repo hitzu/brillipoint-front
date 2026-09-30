@@ -4,7 +4,7 @@
     max(28px, env(safe-area-inset-top, 28px))
     clamp(16px, 4vw, 32px)
     max(28px, env(safe-area-inset-bottom, 28px));
-  background: var(--ep-page-bg, #fff5f7);
+  background: var(--ep-page-bg, #ffffff);
   color: var(--ep-text, #1a0a12);
 }
 
@@ -25,9 +25,9 @@
   border-radius: 999px;
   background: var(
     --ep-primary-btn-bg,
-    linear-gradient(135deg, #9d174d 0%, #6b21a8 100%)
+    linear-gradient(135deg, #111827 0%, #6b7280 100%)
   );
-  box-shadow: 0 10px 30px var(--ep-accent-glow, rgba(190, 24, 93, 0.16));
+  box-shadow: 0 10px 30px var(--ep-accent-glow, rgba(55, 65, 81, 0.16));
 }
 
 .logo {
@@ -39,7 +39,7 @@
 
 .kicker {
   margin: 0;
-  color: var(--ep-muted-text, rgba(190, 24, 93, 0.45));
+  color: var(--ep-muted-text, rgba(107, 114, 128, 0.45));
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -48,7 +48,7 @@
 
 .title {
   margin: 0;
-  color: var(--ep-accent, #be185d);
+  color: var(--ep-accent, #374151);
   font-size: clamp(28px, 8vw, 42px);
   font-weight: 800;
   line-height: 1.08;
@@ -58,21 +58,21 @@
 .message,
 .recoverCopy {
   margin: 0;
-  color: var(--ep-muted-text, rgba(190, 24, 93, 0.45));
+  color: var(--ep-muted-text, rgba(107, 114, 128, 0.45));
   font-size: 16px;
   line-height: 1.58;
 }
 
 .divider {
   height: 1px;
-  background: linear-gradient(to right, transparent, var(--ep-divider, #fbcfe8), transparent);
+  background: linear-gradient(to right, transparent, var(--ep-divider, #e5e7eb), transparent);
 }
 
 .recoverSection {
   display: grid;
   gap: 10px;
   padding: 20px;
-  border: 1px solid var(--ep-surface-border, rgba(236, 72, 153, 0.12));
+  border: 1px solid var(--ep-surface-border, rgba(229, 231, 235, 0.12));
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.58);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);

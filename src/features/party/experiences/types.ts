@@ -3,6 +3,8 @@ import { GallerySessionItem, SessionEventData, SessionPhoto } from "../../../int
 import { SessionItem } from "../types/session";
 import { GallerySource } from "../utils/sourceTracking";
 import { EventPageTheme } from "../types/eventPageTheme";
+import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
+import { ThemeDecorations, ThemeImages } from "../types/themeContract";
 
 export interface SplashProps {
   honoreesNames?: string;
@@ -14,6 +16,10 @@ export interface SplashProps {
   /** Gate before starting the completion timer — splash waits while this is false. */
   canFinish?: boolean;
   theme?: EventPageTheme;
+  /** Typed image slots (T5) — `background` and `cover` render on the splash screen. */
+  images?: ThemeImages;
+  /** Decoration toggles (T5) — gates the confetti shown while the splash is active. */
+  decorations?: ThemeDecorations;
 }
 
 export interface CarouselProps {
@@ -24,6 +30,7 @@ export interface CarouselProps {
   sessionToken?: string;
   source?: GallerySource;
   theme?: EventPageTheme;
+  socialCta?: SocialCtaViewModel | null;
 }
 
 export interface OverviewProps {
@@ -36,12 +43,11 @@ export interface OverviewProps {
   onViewAllPhotos?: () => void | Promise<void>;
   isViewAllPhotosLoading?: boolean;
   theme?: EventPageTheme;
+  socialCta?: SocialCtaViewModel | null;
 }
 
 export interface ExperienceConfig {
   Splash: ComponentType<SplashProps>;
   Carousel: ComponentType<CarouselProps>;
   Overview: ComponentType<OverviewProps>;
-  theme: EventPageTheme;
-  pageBackground: string;
 }

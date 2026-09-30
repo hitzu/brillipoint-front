@@ -1,4 +1,5 @@
 import { EventThemes } from "./eventThemes";
+import { ThemeOverrides } from "../features/party/types/themeContract";
 
 export interface GetEventServiceTypesResponse {
   id: number;
@@ -33,6 +34,7 @@ export interface EventV2 {
   createdAt: string;
   updatedAt: string;
   eventTheme?: EventThemes;
+  themeOverrides?: ThemeOverrides | null;
 }
 
 export interface CreateEventPayload {
@@ -54,6 +56,7 @@ export interface UpdateEventPayload {
   albumPhrase?: string;
   delegateName?: string;
   photoCount?: number;
+  themeOverrides?: ThemeOverrides | null;
 }
 
 export type EventPhraseResponse = {

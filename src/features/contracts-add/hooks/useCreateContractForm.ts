@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   Contract,
   Extra,
@@ -18,6 +18,7 @@ import { generateContract } from "../../../api/services/contractService";
 import { createPayment } from "../../../api/services/paymentService";
 import { createNote } from "../../../api/services/notesService";
 import { createBooking } from "../../booking-agenda/services/bookingDetailsService";
+import { isNextDayEnd, isValidTime } from "../../booking-agenda/utils/timeOptions";
 import { bookingConflictMessage } from "@shared/scheduling/bookingConflict";
 import { clampQuantity } from "../../expo-bebe/utils/quantity";
 import { formatSkuDate, normalizeSkuText } from "../../expo-bebe/utils/sku";
@@ -46,12 +47,7 @@ export function useCreateContractForm() {
   const [extraCart, setExtraCart] = useState<ExtraCartItem[]>([]);
   const [eventDate, setEventDate] = useState("");
   const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
-  // Tracks the previous eventDate so the end-date-follows-start effect can
-  // tell "the user never touched endDate" (it still equals the old start
-  // date) apart from "the user picked their own endDate".
-  const previousEventDateRef = useRef("");
   const [depositAmount, setDepositAmount] = useState("0");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [publicNote, setPublicNote] = useState("");
@@ -126,22 +122,6 @@ export function useCreateContractForm() {
       prev.filter((item) => item.extra.brandId === Number(selectedBrandId)),
     );
   }, [selectedBrandId]);
-
-  // endDate follows eventDate until the user picks a different one. It
-  // detects "still following" by comparing against the *previous* eventDate
-  // rather than a separate boolean: if endDate equalled the old start date,
-  // it was tracking it and keeps tracking the new one. A custom endDate that
-  // would now precede the (possibly later) start date is clamped back to it
-  // — an event can't end before it starts.
-  useEffect(() => {
-    setEndDate((currentEndDate) => {
-      if (!currentEndDate) return eventDate;
-      if (currentEndDate === previousEventDateRef.current) return eventDate;
-      if (currentEndDate < eventDate) return eventDate;
-      return currentEndDate;
-    });
-    previousEventDateRef.current = eventDate;
-  }, [eventDate]);
 
   const depositNum = Math.max(
     0,
@@ -226,12 +206,6 @@ export function useCreateContractForm() {
       ),
     );
 
-  const applyAllDay = () => {
-    setStartTime("00:00");
-    setEndTime("23:59");
-    setEndDate(eventDate);
-  };
-
   const resetForm = () => {
     setContract(null);
     setBookingWarning(null);
@@ -245,9 +219,7 @@ export function useCreateContractForm() {
     setExtraCart([]);
     setEventDate("");
     setStartTime("");
-    setEndDate("");
     setEndTime("");
-    previousEventDateRef.current = "";
     setDepositAmount("0");
     setPaymentMethod("cash");
     setPublicNote("");
@@ -271,7 +243,6 @@ export function useCreateContractForm() {
       cart,
       eventDate,
       startTime,
-      endDate,
       endTime,
       mapsUrl,
       depositNum,
@@ -342,7 +313,6 @@ export function useCreateContractForm() {
           buildExactBookingPayload({
             eventDate,
             startTime,
-            endDate,
             endTime,
             contractId: newContract.id,
             title: trimmedName,
@@ -403,11 +373,12 @@ export function useCreateContractForm() {
     setEventDate,
     startTime,
     setStartTime,
-    endDate,
-    setEndDate,
     endTime,
     setEndTime,
-    applyAllDay,
+    endsNextDay:
+      isValidTime(startTime) && isValidTime(endTime)
+        ? isNextDayEnd(startTime, endTime)
+        : false,
     depositAmount,
     setDepositAmount,
     paymentMethod,

@@ -5,6 +5,7 @@ import {
   isValidPhoneLength,
 } from "../../expo-bebe/utils/contactValidation";
 import { validMapsUrl } from "@shared/scheduling/mapsUrl";
+import { isValidTime } from "../../booking-agenda/utils/timeOptions";
 
 export interface CartItem {
   pkg: GetPackagesResponse;
@@ -29,7 +30,6 @@ export interface ValidateCreateContractFormInput {
   cart: CartItem[];
   eventDate: string;
   startTime: string;
-  endDate: string;
   endTime: string;
   mapsUrl: string;
   depositNum: number;
@@ -43,12 +43,9 @@ export interface ValidateCreateContractFormInput {
  * date, times, deposit. Returns a Spanish, user-facing error message, or
  * null when the form is valid.
  *
- * Start and end are compared as full datetimes (date + time), not just
- * times: the event can cross midnight into the next civil day (endDate
- * follows startDate automatically but can be picked separately), so a
- * same-day time-only comparison would wrongly accept an overnight span with
- * the end date left behind, or wrongly reject one that legitimately spans
- * two days.
+ * An end time at or before the start time represents the next civil day,
+ * matching the Agenda booking form. The calendar date remains anchored to
+ * the start time.
  */
 export function validateCreateContractForm({
   selectedUserId,
@@ -59,7 +56,6 @@ export function validateCreateContractForm({
   cart,
   eventDate,
   startTime,
-  endDate,
   endTime,
   mapsUrl,
   depositNum,
@@ -74,12 +70,8 @@ export function validateCreateContractForm({
   if (!isValidEmailFormat(clientEmail)) return "Ingresa un email válido.";
   if (cart.length === 0) return "Agrega al menos un paquete.";
   if (!eventDate) return "Selecciona una fecha.";
-  if (!endDate) return "Selecciona una fecha de fin.";
-  if (!startTime || !endTime) {
+  if (!isValidTime(startTime) || !isValidTime(endTime)) {
     return "Selecciona la hora de inicio y de fin.";
-  }
-  if (`${eventDate}T${startTime}` >= `${endDate}T${endTime}`) {
-    return "La hora de inicio debe ser anterior a la hora de fin.";
   }
   if (!validMapsUrl(mapsUrl)) return "Ingresa una URL de Maps válida.";
   if (depositNum < 0) return "El anticipo no puede ser negativo.";

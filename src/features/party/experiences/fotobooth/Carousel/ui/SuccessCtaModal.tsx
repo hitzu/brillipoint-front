@@ -1,10 +1,12 @@
 import styles from "@assets/css/fotobooth.module.css";
 import { PostActionConfirmation } from "../../../../components/PostActionConfirmation";
-import { SocialPlatform } from "../../../../components/SocialMediaCTA";
+import { SocialPlatform } from "../../../../components/SocialCta";
+import { SocialCtaViewModel } from "../../../../theme/buildSocialCtaViewModel";
 import { CtaSource } from "../types";
 
 type SuccessCtaModalProps = {
   eventName: string;
+  socialCta?: SocialCtaViewModel | null;
   isOpen: boolean;
   onClose: () => void;
   onSocialClick?: (platform: SocialPlatform) => void;
@@ -14,6 +16,7 @@ type SuccessCtaModalProps = {
 
 const SuccessCtaModal = ({
   eventName,
+  socialCta,
   isOpen,
   onClose,
   onSocialClick,
@@ -33,6 +36,7 @@ const SuccessCtaModal = ({
         onClose={onClose}
         source={source}
         nombreFestejado={eventName}
+        socialCta={socialCta}
         onWAClick={onWAClick}
         onSocialClick={onSocialClick}
       />

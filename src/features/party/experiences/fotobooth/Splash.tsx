@@ -4,16 +4,11 @@ import logoExperience from "@assets/images/logo-experience-white.png";
 import styles from "@assets/css/fotobooth.module.css";
 import { SplashProps } from "../types";
 import { buildThemeVars } from "../../utils/themeVars";
-
-const CONFETTI_COLORS = [
-  "#ec4899",
-  "#f9a8d4",
-  "#a855f7",
-  "#c084fc",
-  "#fb7185",
-  "#818cf8",
-  "#f0abfc",
-];
+import { buildConfettiPieces } from "../../theme/buildConfettiPieces";
+import { shouldRenderDecoration } from "../../theme/shouldRenderDecoration";
+import { resolveImageAlt } from "../../theme/resolveImageAlt";
+import { resolveSplashLayout } from "../../theme/resolveSplashLayout";
+import { CONFETTI_SHAPE_ICON } from "../../components/ConfettiShapeIcons";
 
 const FotoBoothSplash = ({
   honoreesNames,
@@ -24,6 +19,8 @@ const FotoBoothSplash = ({
   duration = 3200,
   canFinish = true,
   theme,
+  images,
+  decorations,
 }: SplashProps) => {
   useEffect(() => {
     if (!canFinish) return;
@@ -32,44 +29,89 @@ const FotoBoothSplash = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canFinish]);
 
-  const confetti = useMemo(
-    () =>
-      Array.from({ length: 28 }, (_, i) => {
-        const size = 4 + Math.random() * 6;
-        return (
-          <div
-            key={i}
-            className={styles.confettiPiece}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: "-10px",
-              width: `${size}px`,
-              height: `${size}px`,
-              background:
-                CONFETTI_COLORS[
-                  Math.floor(Math.random() * CONFETTI_COLORS.length)
-                ],
-              borderRadius: Math.random() > 0.5 ? "50%" : "1px",
-              animationDuration: `${3 + Math.random() * 5}s`,
-              animationDelay: `${Math.random() * 4}s`,
-            }}
-          />
-        );
-      }),
-    [],
+  const showConfetti = shouldRenderDecoration(decorations, "confetti");
+
+  const confetti = useMemo(() => {
+    if (!showConfetti) return null;
+
+    return buildConfettiPieces(decorations, theme).map((piece) => {
+      const ShapeIcon = CONFETTI_SHAPE_ICON[piece.shape];
+      return (
+        <div
+          key={piece.id}
+          className={styles.confettiPiece}
+          style={{
+            left: `${piece.left}%`,
+            top: "-10px",
+            width: `${piece.size}px`,
+            height: `${piece.size}px`,
+            color: piece.color,
+            animationDuration: `${piece.animationDuration}s`,
+            animationDelay: `${piece.animationDelay}s`,
+          }}
+        >
+          <ShapeIcon />
+        </div>
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decorations, theme, showConfetti]);
+
+  const background = images?.background;
+  const layout = resolveSplashLayout(images);
+  const cover = images?.cover;
+
+  const coverImage = cover && (
+    <div className={styles.splashCoverWrap}>
+      <img
+        src={cover.url}
+        alt={resolveImageAlt(cover.alt)}
+        className={styles.splashCoverImage}
+      />
+    </div>
   );
 
   return (
     <div
-      className={styles.screen}
+      className={
+        layout.hasBackground
+          ? `${styles.screen} ${styles.splashHasBackground}`
+          : styles.screen
+      }
       style={theme ? buildThemeVars(theme) : undefined}
     >
-      <div className={styles.splashBg} />
-      <div className={styles.splashBlob1} />
-      <div className={styles.splashBlob2} />
+      {background && (
+        <img
+          src={background.url}
+          alt={resolveImageAlt(background.alt)}
+          className={styles.splashBackgroundImage}
+        />
+      )}
+      {layout.showScrim && <div className={styles.splashScrim} />}
+      {layout.showAmbientLayers && (
+        <>
+          <div className={styles.splashBg} />
+          <div className={styles.splashBlob1} />
+          <div className={styles.splashBlob2} />
+        </>
+      )}
       <div className={styles.confettiContainer}>{confetti}</div>
 
       <div className={styles.splashContent}>
+        {cover &&
+          (cover.link ? (
+            <a
+              href={cover.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.splashCoverLink}
+            >
+              {coverImage}
+            </a>
+          ) : (
+            coverImage
+          ))}
+
         <div
           className={
             theme?.splashEmblemUrl

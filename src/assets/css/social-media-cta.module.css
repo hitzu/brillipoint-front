@@ -1,4 +1,11 @@
-/* ── SocialMediaCTA — modal end state ── */
+/* ── Social CTA — modal end state ──
+   Shared by the new `SocialCta` component (in-scope /fiesta, /mis-fotos,
+   /inspiracion) and the legacy `SocialMediaCTA` component, which is still
+   used by the deprecated `/party/[token]` route's exclusive components
+   (PersonalizePhotoModal, DedicatePhotoModal) — see odd/tasks/theme-brand-kits.md
+   T4. Class names are kept as-is (including the "wa"-named ones, now used
+   for any of the 5 primary-action channels) so both components keep
+   working from one file. */
 
 .modalEndState {
   display: flex;
@@ -61,11 +68,75 @@
   color: rgba(255, 255, 255, 0.75);
 }
 
-.waBtn {
+/* ── Platform brand colors (T4b) ──
+   Fixed by each social network's own brand guidelines — NOT theme palette
+   tokens. Used only by the primary-action button's per-channel design
+   below, so a brand can promote WhatsApp, Facebook, Instagram or TikTok
+   with that network's real colors regardless of the event's theme. */
+.channelWhatsapp,
+.channelFacebook,
+.channelInstagram,
+.channelTiktok {
+  --social-whatsapp-bg: #075e54;
+  --social-facebook-bg: #0866ff;
+  --social-instagram-bg: linear-gradient(
+    45deg,
+    #dc2743,
+    #cc2366,
+    #bc1888,
+    #833ab4
+  );
+  --social-tiktok-bg: #000000;
+  --social-tiktok-accent-cyan: #25f4ee;
+  --social-tiktok-accent-pink: #fe2c55;
+}
+
+/* Per-channel primary-action design (T4b): combined with one of the layout
+   classes below (.primaryBtn/.pagePrimaryBtn/.sheetPrimaryBtn/.compactPrimaryBtn)
+   via `PrimaryActionButton`, driven only by `channel` (see
+   theme/primaryActionButtonVariant.ts). `.channelUrl` keeps the theme's own
+   primary-button color since a plain link has no fixed brand. */
+.channelWhatsapp {
+  background: var(--social-whatsapp-bg);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(7, 94, 84, 0.35);
+}
+
+.channelFacebook {
+  background: var(--social-facebook-bg);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(8, 102, 255, 0.35);
+}
+
+.channelInstagram {
+  background: var(--social-instagram-bg);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(220, 39, 67, 0.35);
+}
+
+.channelTiktok {
+  background: var(--social-tiktok-bg);
+  color: #ffffff;
+  text-shadow:
+    -1px -1px 0 var(--social-tiktok-accent-cyan),
+    1px 1px 0 var(--social-tiktok-accent-pink);
+  box-shadow:
+    -2px 0 0 var(--social-tiktok-accent-cyan),
+    2px 0 0 var(--social-tiktok-accent-pink);
+}
+
+.channelUrl {
+  background: var(--ep-primary-btn-bg, #111827);
+  color: var(--ep-primary-btn-text, #ffffff);
+  box-shadow: 0 8px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.3);
+}
+
+/* ── Primary-action button layout (new SocialCta, per-variant sizing) ──
+   Color/box-shadow come from the `.channel*` classes above, applied
+   together by `PrimaryActionButton`; these classes only carry layout. */
+.primaryBtn {
   display: block;
   width: 100%;
-  background: #25d366;
-  color: #fff;
   border-radius: 24px;
   padding: 13px 0;
   font-size: 13px;
@@ -73,7 +144,105 @@
   text-align: center;
   text-decoration: none;
   margin-bottom: 16px;
-  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.3);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-1px);
+}
+
+.primaryBtn:active {
+  transform: translateY(0);
+}
+
+.primaryBtn svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.pagePrimaryBtn {
+  width: 100%;
+  height: 50px;
+  border-radius: 16px;
+  border: none;
+  font-family: var(--ep-font-body, "DM Sans"), "Public Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  transition: transform 0.15s;
+  text-decoration: none;
+}
+
+.pagePrimaryBtn:active {
+  transform: scale(0.97);
+}
+
+.sheetPrimaryBtn {
+  margin-top: 6px;
+  height: 54px;
+  border-radius: 16px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--ep-font-body, "DM Sans"), "Public Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+  width: 100%;
+  text-decoration: none;
+}
+
+.sheetPrimaryBtn:active {
+  transform: scale(0.97);
+}
+
+.compactPrimaryBtn {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--ep-font-body, "DM Sans"), "Public Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .compactPrimaryBtn {
+    width: 100%;
+  }
+}
+
+/* The legacy SocialMediaCTA's primary action is always WhatsApp, so it
+   keeps the theme's own primary-button color as before. */
+.waBtn {
+  display: block;
+  width: 100%;
+  background: var(--ep-primary-btn-bg, #111827);
+  color: var(--ep-primary-btn-text, #ffffff);
+  border-radius: 24px;
+  padding: 13px 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.3);
   transition:
     transform 0.2s ease,
     opacity 0.2s ease;
@@ -115,6 +284,11 @@
     opacity 0.2s ease;
 }
 
+/* Each network's own brand color — unrelated to the app's theme palette. */
+.socialBrandWa {
+  color: #065f46;
+}
+
 .socialBrandIg {
   color: #c13584;
 }
@@ -127,6 +301,11 @@
   color: #1d4ed8;
 }
 
+/* Neutral style for the `url` (website) secondary chip — no fixed brand. */
+.socialBrandUrl {
+  color: #1e293b;
+}
+
 .red:hover {
   transform: translateY(-1px);
 }
@@ -135,50 +314,47 @@
   transform: translateY(0);
 }
 
-/* ── Variant: page (rosita card — footer de /fiesta) ── */
+/* ── Variant: page (footer card — /fiesta) ── */
 
 .pageCard {
   margin-top: 20px;
   border-radius: 24px;
-  background: var(
-    --ep-surface-bg,
-    linear-gradient(160deg, #fce7f3 0%, #f5e6ff 100%)
-  );
-  border: 1px solid var(--ep-surface-border, rgba(236, 72, 153, 0.12));
+  background: var(--ep-surface-bg, #f3f4f6);
+  border: 1px solid var(--ep-surface-border, #e5e7eb);
   padding: 24px 20px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 0;
-  box-shadow: var(--ep-surface-shadow, 0 18px 44px rgba(190, 24, 93, 0.12));
+  box-shadow: var(--ep-surface-shadow, 0 10px 30px rgb(17 24 39 / 0.08));
 }
 
 .pageSparkle {
   font-size: 22px;
   margin-bottom: 8px;
-  color: var(--ep-accent, #ec4899);
+  color: var(--ep-accent, #374151);
 }
 
 .pageTitulo {
-  font-family: "Dancing Script", cursive;
+  font-family: var(--ep-font-heading, "Dancing Script"), cursive;
   font-size: 22px;
   font-weight: 700;
-  color: var(--ep-accent, #be185d);
+  color: var(--ep-accent, #374151);
   line-height: 1.2;
   margin-bottom: 6px;
 }
 
 .pageSubtitulo {
   font-size: 13px;
-  color: var(--ep-muted-text, rgba(190, 24, 93, 0.45));
+  color: var(--ep-muted-text, #6b7280);
   line-height: 1.5;
   margin-bottom: 16px;
 }
 
 .pageFollowNote {
   font-size: 12px;
-  color: var(--ep-muted-text, rgba(190, 24, 93, 0.35));
+  color: var(--ep-muted-text, #6b7280);
   margin-bottom: 12px;
 }
 
@@ -186,18 +362,18 @@
   width: 100%;
   height: 50px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #16a34a, #22c55e);
+  background: var(--ep-primary-btn-bg, #111827);
+  color: var(--ep-primary-btn-text, #ffffff);
   border: none;
-  font-family: "DM Sans", "Public Sans", sans-serif;
+  font-family: var(--ep-font-body, "DM Sans"), "Public Sans", sans-serif;
   font-size: 15px;
   font-weight: 700;
-  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 6px 20px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.3);
   margin-bottom: 14px;
   transition: transform 0.15s;
   text-decoration: none;
@@ -209,7 +385,8 @@
 
 .pageSocialRow {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
   justify-content: center;
   margin-bottom: 14px;
 }
@@ -217,10 +394,10 @@
 .pageSocialBtn {
   height: 38px;
   border-radius: 10px;
-  padding: 0 16px;
+  padding: 0 10px;
   border: none;
-  font-family: "DM Sans", "Public Sans", sans-serif;
-  font-size: 13px;
+  font-family: var(--ep-font-body, "DM Sans"), "Public Sans", sans-serif;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -233,6 +410,17 @@
 .pageSocialBtn:active {
   transform: scale(0.95);
 }
+
+/* Each network's own brand color for its badge — unrelated to theme palette.
+   `.pageSocialBtnWa` / `.pageSocialBtnUrl` hex values mirror
+   `theme/socialSecondaryChipColors.ts` (WCAG-AA tested there). */
+.pageSocialBtnWa {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid rgba(6, 95, 70, 0.18);
+  box-shadow: 0 4px 14px rgba(6, 95, 70, 0.1);
+}
+
 .pageSocialBtnIg {
   background: #fce7f3;
   color: #c13584;
@@ -254,13 +442,21 @@
   box-shadow: 0 4px 14px rgba(29, 78, 216, 0.1);
 }
 
+/* Neutral style for the `url` (website) secondary chip — no fixed brand. */
+.pageSocialBtnUrl {
+  background: #e2e8f0;
+  color: #1e293b;
+  border: 1px solid rgba(30, 41, 59, 0.16);
+  box-shadow: 0 4px 14px rgba(30, 41, 59, 0.1);
+}
+
 .pageTagline {
   font-size: 11px;
-  color: var(--ep-muted-text, rgba(190, 24, 93, 0.3));
+  color: var(--ep-muted-text, #6b7280);
   letter-spacing: 0.06em;
 }
 
-/* ── Variant: sheet (contenido para bottom sheet blanco — /mis-fotos) ── */
+/* ── Variant: sheet (bottom sheet content — /mis-fotos) ── */
 
 .sheetContent {
   display: flex;
@@ -277,14 +473,14 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.12);
+  background: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.12);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 12px;
-  color: var(--ep-primary-btn-bg, #ec4899);
+  color: var(--ep-primary-btn-bg, #111827);
   transition: transform 0.15s;
 }
 
@@ -293,16 +489,16 @@
 }
 
 .sheetTitulo {
-  font-family: "Dancing Script", cursive;
+  font-family: var(--ep-font-heading, "Dancing Script"), cursive;
   font-size: 26px;
   font-weight: 700;
-  color: var(--ep-accent, #be185d);
+  color: var(--ep-accent, #374151);
   line-height: 1.1;
 }
 
 .sheetSubtitulo {
   font-size: 14px;
-  color: var(--ep-muted-text, #f9a8d4);
+  color: var(--ep-muted-text, #6b7280);
   font-weight: 400;
   line-height: 1.4;
 }
@@ -311,18 +507,18 @@
   margin-top: 6px;
   height: 54px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #16a34a, #22c55e);
+  background: var(--ep-primary-btn-bg, #111827);
+  color: var(--ep-primary-btn-text, #ffffff);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-family: "DM Sans", "Public Sans", sans-serif;
+  font-family: var(--ep-font-body, "DM Sans"), "Public Sans", sans-serif;
   font-size: 16px;
   font-weight: 700;
-  color: white;
   cursor: pointer;
-  box-shadow: 0 8px 28px rgba(34, 197, 94, 0.35);
+  box-shadow: 0 8px 28px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.35);
   transition: transform 0.2s;
   width: 100%;
   text-decoration: none;
@@ -343,14 +539,14 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 0.92);
+  background: rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.92);
   border: 1px solid transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: transform 0.15s;
-  color: var(--ep-primary-btn-bg, #ec4899);
+  color: var(--ep-primary-btn-bg, #111827);
   text-decoration: none;
 }
 
@@ -358,7 +554,7 @@
   transform: scale(0.9);
 }
 
-/* ── Variant: compact (presencia discreta en sesión) ── */
+/* ── Variant: compact (discreet inline presence during a session) ── */
 
 .compactCard {
   display: flex;
@@ -369,11 +565,11 @@
   border-radius: 20px;
   background: linear-gradient(
     135deg,
-    rgba(var(--ep-surface-bg-rgb, 255, 255, 255), 0.88),
-    rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.08)
+    rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.88),
+    rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.08)
   );
-  border: 1px solid rgba(var(--ep-surface-border-rgb, 236, 72, 153), 0.2);
-  box-shadow: 0 10px 24px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.08);
+  border: 1px solid rgba(var(--ep-surface-border-rgb, 229, 231, 235), 0.2);
+  box-shadow: 0 10px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.08);
 }
 
 .compactCopy {
@@ -396,12 +592,12 @@
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.46);
+  color: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.46);
 }
 
 .compactTitulo {
   margin: 0;
-  color: var(--ep-accent, #9d174d);
+  color: var(--ep-accent, #374151);
   font-size: 14px;
   font-weight: 800;
   line-height: 1.25;
@@ -409,7 +605,7 @@
 
 .compactSubtitulo {
   margin: 0;
-  color: rgba(var(--ep-text-rgb, 91, 33, 72), 0.64);
+  color: rgba(var(--ep-text-rgb, 17, 24, 39), 0.64);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -419,17 +615,17 @@
   height: 40px;
   padding: 0 14px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #16a34a, #22c55e);
+  background: var(--ep-primary-btn-bg, #111827);
+  color: var(--ep-primary-btn-text, #ffffff);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-family: "DM Sans", "Public Sans", sans-serif;
+  font-family: var(--ep-font-body, "DM Sans"), "Public Sans", sans-serif;
   font-size: 12px;
   font-weight: 800;
-  color: #fff;
   text-decoration: none;
-  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.24);
+  box-shadow: 0 8px 20px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.24);
 }
 
 .compactSocialRow {
@@ -448,7 +644,7 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.08);
+  box-shadow: 0 4px 14px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.08);
 }
 
 @media (max-width: 480px) {

@@ -9,13 +9,15 @@ import { trackEvent } from "../../../api/services/eventAnalyticsService";
 import {
   getPublicEventByToken,
   getEventPhrases,
-  getEventTheme,
 } from "../../../api/services/partyPublicService";
-import { SocialMediaCTA } from "../components/SocialMediaCTA";
+import { SocialCta } from "../components/SocialCta";
 import { readSourceFromRouter } from "../utils/sourceTracking";
-import { tokensToEventPageTheme } from "../utils/tokensToEventPageTheme";
 import { buildThemeVars } from "../utils/themeVars";
-import { EventPageTheme } from "../types/eventPageTheme";
+import { useEventTheme } from "../hooks/useEventTheme";
+import { isFreshThemeCacheEnabled } from "../utils/freshThemeCache";
+import { useSocialCtaViewModel } from "../hooks/useSocialCtaViewModel";
+import { resolveImageAlt } from "../theme/resolveImageAlt";
+import { shouldRenderDecoration } from "../theme/shouldRenderDecoration";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -144,8 +146,8 @@ function Sparkles() {
             left: `${sp.left}%`,
             fontSize: sp.size,
             color: sp.rose
-              ? "var(--ep-primary-btn-bg, #ec4899)"
-              : "var(--ep-secondary-btn-bg, #a855f7)",
+              ? "var(--ep-primary-btn-bg, #111827)"
+              : "var(--ep-secondary-btn-bg, #6b7280)",
             animationDelay: `${sp.delay}s`,
             animationDuration: `${sp.dur}s`,
           }}
@@ -160,7 +162,7 @@ function Sparkles() {
 function PersonSilhouette({ n, selected }: { n: number; selected: boolean }) {
   const color = selected
     ? "var(--ep-primary-btn-text, #fff)"
-    : "var(--ep-accent, #be185d)";
+    : "var(--ep-accent, #374151)";
   const opacity = selected ? 1 : 0.55;
   const W = n === 1 ? 14 : n === 2 ? 22 : n === 3 ? 28 : 34;
   const positions: { x: number }[] =
@@ -206,9 +208,6 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
   const [focusedStep, setFocusedStep] = useState(0);
   const [eventName, setEventName] = useState<string | null>(null);
   const [phrases, setPhrases] = useState<EventPhraseResponse[]>([]);
-  const [resolvedTheme, setResolvedTheme] = useState<EventPageTheme | null>(
-    null,
-  );
   const hasTracked = useRef(false);
   const stepsScrollRef = useRef<HTMLDivElement>(null);
   const stepElRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -238,19 +237,20 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
   }, [resolvedToken]);
 
   // Theme travels in its own request, separate from event/phrases data.
-  useEffect(() => {
-    if (!resolvedToken || isRoutePlaceholder(resolvedToken)) return;
-
-    getEventTheme(resolvedToken)
-      .then(({ eventTheme }) => {
-        setResolvedTheme(
-          tokensToEventPageTheme(eventTheme.tokens, eventTheme.images),
-        );
-      })
-      .catch(() => {
-        setResolvedTheme(null);
-      });
-  }, [resolvedToken]);
+  // Neutral system default on first paint and on any error.
+  const themeToken =
+    resolvedToken && !isRoutePlaceholder(resolvedToken)
+      ? resolvedToken
+      : undefined;
+  const freshTheme = isFreshThemeCacheEnabled(
+    router.isReady,
+    router.query.cache,
+  );
+  const { eventTheme, pageTheme } = useEventTheme(
+    router.isReady ? themeToken : undefined,
+    freshTheme,
+  );
+  const socialCta = useSocialCtaViewModel(eventTheme);
 
   useEffect(() => {
     if (
@@ -308,22 +308,33 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
   return (
     <div
       className={styles.pageRoot}
-      style={resolvedTheme ? buildThemeVars(resolvedTheme) : undefined}
+      style={buildThemeVars(pageTheme)}
     >
       <Head>
         <title>Inspiración{eventName ? ` - ${eventName}` : ""}</title>
       </Head>
-      <Sparkles />
+      {shouldRenderDecoration(eventTheme.decorations, "sparkles") && (
+        <Sparkles />
+      )}
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <header className={styles.header}>
         <div className={styles.logoPill}>
-          <Image
-            src={logoExperienceWhite}
-            alt="Brillipoint Beauty & Glitter Bar"
-            className={styles.logoImg}
-            priority
-          />
+          {eventTheme.images?.logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={eventTheme.images.logo.url}
+              alt={resolveImageAlt(eventTheme.images.logo.alt) || "Logo"}
+              className={styles.logoImg}
+            />
+          ) : (
+            <Image
+              src={logoExperienceWhite}
+              alt="Brillipoint Beauty & Glitter Bar"
+              className={styles.logoImg}
+              priority
+            />
+          )}
         </div>
         {eventName && <p className={styles.eventName}>{eventName}</p>}
       </header>
@@ -432,11 +443,7 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
 
       {/* ── CTA ─────────────────────────────────────────────────────────── */}
       <section className={styles.ctaWrap}>
-        <SocialMediaCTA
-          context="sessionPresence"
-          variant="compact"
-          nombreFestejado={eventName ?? ""}
-        />
+        <SocialCta viewModel={socialCta} variant="compact" />
       </section>
 
       {/* ── Sticky tabs ──────────────────────────────────────────────────── */}

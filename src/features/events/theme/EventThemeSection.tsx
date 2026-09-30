@@ -1,0 +1,218 @@
+import React, { useEffect, useState } from "react";
+import { Button, Card, Toast } from "react-bootstrap";
+import { getEventById, updateEventById } from "../../../api/services/eventsService";
+import {
+  createThemeAssetUploadUrl,
+  uploadThemeAssetBlobToSignedUrl,
+} from "../../../api/services/themeAssetsService";
+import { ThemeAssetMime } from "../../../interfaces";
+import { ThemeOverrides } from "../../party/types/themeContract";
+import { ConfettiShape } from "../../party/theme/confettiShapes";
+import {
+  RawThemeOverrides,
+  removeBackgroundImage,
+  setBackgroundImage,
+  setConfettiShapes,
+} from "./mergeThemeOverrides";
+import { getReadOnlyThemeEntries } from "./readOnlyThemeEntries";
+import ThemeBackgroundBlock from "./components/ThemeBackgroundBlock";
+import ThemeConfettiBlock from "./components/ThemeConfettiBlock";
+import ThemeReadOnlyBlock from "./components/ThemeReadOnlyBlock";
+
+interface EventThemeSectionProps {
+  eventId: number;
+  initialThemeOverrides?: ThemeOverrides | null;
+}
+
+const shapesFrom = (themeOverrides: RawThemeOverrides | null | undefined): string[] => {
+  const confetti = (themeOverrides as any)?.decorations?.confetti;
+  return Array.isArray(confetti?.shapes) ? confetti.shapes : [];
+};
+
+/**
+ * Own "Guardar tema" flow, independent from the main event form: uploads a
+ * new background (if picked), re-fetches the event to avoid clobbering
+ * concurrent edits, deep-merges the change, then PATCHes the full
+ * `themeOverrides` object (the backend replaces it wholesale).
+ */
+const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSectionProps) => {
+  const initialRawThemeOverrides = initialThemeOverrides as RawThemeOverrides | null | undefined;
+  const [themeOverrides, setThemeOverrides] = useState<RawThemeOverrides | null | undefined>(
+    initialRawThemeOverrides,
+  );
+  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
+  const [backgroundPreviewUrl, setBackgroundPreviewUrl] = useState<string | null>(null);
+  const [backgroundRemoved, setBackgroundRemoved] = useState(false);
+  const [selectedShapes, setSelectedShapes] = useState<string[]>(
+    shapesFrom(initialRawThemeOverrides),
+  );
+  // Confetti is only written when staff touched it, so a background-only save
+  // never overrides confetti inherited from the preset or brand kit.
+  const [confettiDirty, setConfettiDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState<"success" | "danger">("success");
+
+  useEffect(() => {
+    setThemeOverrides(initialThemeOverrides as RawThemeOverrides | null | undefined);
+    setSelectedShapes(shapesFrom(initialThemeOverrides as RawThemeOverrides | null | undefined));
+    setBackgroundFile(null);
+    setBackgroundRemoved(false);
+    setBackgroundPreviewUrl(null);
+    setConfettiDirty(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
+
+  const currentBackgroundUrl = backgroundFile
+    ? backgroundPreviewUrl
+    : backgroundRemoved
+      ? null
+      : ((themeOverrides as any)?.images?.background?.url ?? null);
+
+  const handleFileSelected = (file: File) => {
+    if (backgroundPreviewUrl) URL.revokeObjectURL(backgroundPreviewUrl);
+    setBackgroundFile(file);
+    setBackgroundRemoved(false);
+    setBackgroundPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleInvalidMime = () => {
+    setToastMessage("Formato de imagen no permitido. Usa PNG, JPEG o WEBP.");
+    setToastVariant("danger");
+    setShowToast(true);
+  };
+
+  const handleRemoveBackground = () => {
+    if (backgroundPreviewUrl) URL.revokeObjectURL(backgroundPreviewUrl);
+    setBackgroundFile(null);
+    setBackgroundPreviewUrl(null);
+    setBackgroundRemoved(true);
+  };
+
+  const handleToggleShape = (shape: ConfettiShape) => {
+    setConfettiDirty(true);
+    setSelectedShapes((prev) =>
+      prev.includes(shape) ? prev.filter((s) => s !== shape) : [...prev, shape],
+    );
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      let uploadedSlot: { path: string; url: string } | undefined;
+
+      if (backgroundFile) {
+        const uploadUrl = await createThemeAssetUploadUrl({
+          ownerType: "event",
+          ownerId: eventId,
+          slot: "background",
+          fileName: backgroundFile.name,
+          mime: backgroundFile.type as ThemeAssetMime,
+        });
+        await uploadThemeAssetBlobToSignedUrl({
+          signedUrl: uploadUrl.signedUrl,
+          blob: backgroundFile,
+          mime: backgroundFile.type,
+        });
+        uploadedSlot = { path: uploadUrl.path, url: uploadUrl.publicUrl };
+      }
+
+      const fresh = await getEventById(eventId);
+      let merged: RawThemeOverrides = (fresh.themeOverrides as RawThemeOverrides) ?? {};
+
+      if (uploadedSlot) {
+        merged = setBackgroundImage(merged, uploadedSlot);
+      } else if (backgroundRemoved) {
+        merged = removeBackgroundImage(merged);
+      }
+
+      if (confettiDirty) {
+        merged = setConfettiShapes(merged, selectedShapes);
+      }
+
+      await updateEventById(eventId, { themeOverrides: merged as ThemeOverrides });
+
+      if (backgroundPreviewUrl) URL.revokeObjectURL(backgroundPreviewUrl);
+      setThemeOverrides(merged);
+      setSelectedShapes(shapesFrom(merged));
+      setBackgroundFile(null);
+      setBackgroundPreviewUrl(null);
+      setBackgroundRemoved(false);
+      setConfettiDirty(false);
+      setToastMessage("Tema actualizado exitosamente");
+      setToastVariant("success");
+      setShowToast(true);
+    } catch (error: any) {
+      console.error("Error updating event theme:", error);
+      const msg =
+        error?.response?.data?.message || "Error al actualizar el tema del evento";
+      setToastMessage(msg);
+      setToastVariant("danger");
+      setShowToast(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const readOnlyEntries = getReadOnlyThemeEntries(themeOverrides);
+
+  return (
+    <Card className="mt-3">
+      <Card.Header>
+        <h5>Tema del evento</h5>
+      </Card.Header>
+      <Card.Body>
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            zIndex: 9999,
+          }}
+        >
+          <Toast
+            onClose={() => setShowToast(false)}
+            show={showToast}
+            delay={4000}
+            autohide
+            bg={toastVariant}
+          >
+            <Toast.Header>
+              <strong className="me-auto">
+                {toastVariant === "success" ? "Exito" : "Error"}
+              </strong>
+            </Toast.Header>
+            <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+          </Toast>
+        </div>
+
+        <ThemeBackgroundBlock
+          previewUrl={currentBackgroundUrl}
+          onFileSelected={handleFileSelected}
+          onInvalidMime={handleInvalidMime}
+          onRemove={handleRemoveBackground}
+          removeDisabled={!currentBackgroundUrl}
+        />
+
+        <ThemeConfettiBlock selectedShapes={selectedShapes} onToggleShape={handleToggleShape} />
+
+        {readOnlyEntries.length > 0 && (
+          <div className="mb-3">
+            <h6 className="text-muted">Otros valores del tema (solo lectura)</h6>
+            {readOnlyEntries.map((entry) => (
+              <ThemeReadOnlyBlock key={entry.key} entry={entry} />
+            ))}
+          </div>
+        )}
+
+        <Button type="button" variant="primary" onClick={handleSave} disabled={saving}>
+          {saving ? "Guardando..." : "Guardar tema"}
+        </Button>
+      </Card.Body>
+    </Card>
+  );
+};
+
+export default EventThemeSection;

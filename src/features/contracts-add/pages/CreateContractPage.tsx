@@ -76,11 +76,9 @@ export function CreateContractPage() {
               onEventDateChange={vm.setEventDate}
               startTime={vm.startTime}
               onStartTimeChange={vm.setStartTime}
-              endDate={vm.endDate}
-              onEndDateChange={vm.setEndDate}
               endTime={vm.endTime}
               onEndTimeChange={vm.setEndTime}
-              onApplyAllDay={vm.applyAllDay}
+              endsNextDay={vm.endsNextDay}
               venueName={vm.venueName}
               onVenueNameChange={vm.setVenueName}
               mapsUrl={vm.mapsUrl}
@@ -100,6 +98,7 @@ export function CreateContractPage() {
               extras={vm.extrasCatalog}
               cart={vm.cart}
               extraCart={vm.extraCart}
+              brandSelected={!!vm.selectedBrandId}
               onAdd={vm.addExtraToCart}
               onRemove={vm.removeExtraFromCart}
               onQuantityChange={vm.setExtraCartItemQuantity}

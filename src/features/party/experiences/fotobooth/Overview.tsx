@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "@assets/css/fotobooth-overview.module.css";
-import { SocialMediaCTA, SocialPlatform } from "../../components/SocialMediaCTA";
+import { SocialCta, SocialPlatform } from "../../components/SocialCta";
 import {
   GallerySessionItem,
   SessionEventData,
@@ -55,7 +55,7 @@ const IconStack = () => (
       width="8"
       height="6.5"
       rx="1.5"
-      stroke="var(--ep-primary-btn-bg, #ec4899)"
+      stroke="var(--ep-primary-btn-bg, #111827)"
       strokeWidth="1.3"
     />
     <rect
@@ -64,7 +64,7 @@ const IconStack = () => (
       width="8"
       height="6.5"
       rx="1.5"
-      stroke="var(--ep-primary-btn-bg, rgba(236,72,153,0.4))"
+      stroke="var(--ep-primary-btn-bg, rgba(17,24,39,0.4))"
       strokeWidth="1.1"
     />
   </svg>
@@ -76,7 +76,7 @@ const IconCamera = () => (
     height="32"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="var(--ep-primary-btn-bg, rgba(236,72,153,0.3))"
+    stroke="var(--ep-primary-btn-bg, rgba(17,24,39,0.3))"
     strokeWidth="1.4"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -185,6 +185,7 @@ const FotoBoothOverview = ({
   onViewAllPhotos,
   isViewAllPhotosLoading = false,
   theme,
+  socialCta,
 }: OverviewProps) => {
   const isEmpty = sessions.length === 0;
   const coverUrls = sessions
@@ -264,12 +265,11 @@ const FotoBoothOverview = ({
     });
   };
 
-  const socialCta = (
-    <SocialMediaCTA
-      context="eventOverview"
+  const socialCtaBlock = (
+    <SocialCta
+      viewModel={socialCta ?? null}
       variant="page"
-      nombreFestejado={eventData?.honoreesNames ?? ""}
-      onWAClick={handleGalleryWaClick}
+      onPrimaryActionClick={handleGalleryWaClick}
       onSocialClick={handleGallerySocialClick}
     />
   );
@@ -345,7 +345,7 @@ const FotoBoothOverview = ({
           </div>
         ) : (
           <>
-            {socialCta}
+            {socialCtaBlock}
 
             {onViewAllPhotos && (
               <button
@@ -387,7 +387,7 @@ const FotoBoothOverview = ({
           </div>
         )}
 
-        {isEmpty && socialCta}
+        {isEmpty && socialCtaBlock}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 .card {
   width: min(100%, 360px);
-  border: 1px solid rgba(var(--ep-surface-border-rgb, 236, 72, 153), 0.16);
+  border: 1px solid rgba(var(--ep-surface-border-rgb, 229, 231, 235), 0.16);
   border-radius: 26px;
   background:
     linear-gradient(
@@ -10,7 +10,7 @@
     ),
     radial-gradient(
       circle at 50% 0%,
-      rgba(var(--ep-accent-rgb, 236, 72, 153), 0.12),
+      rgba(var(--ep-accent-rgb, 55, 65, 81), 0.12),
       transparent 60%
     );
   box-shadow:
@@ -42,7 +42,7 @@
 
 .title {
   margin: 0;
-  color: var(--ep-text, #831843);
+  color: var(--ep-text, #111827);
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -57,7 +57,7 @@
 }
 
 .brand {
-  color: var(--ep-accent, #9d174d);
+  color: var(--ep-accent, #374151);
   font-weight: 800;
 }
 
@@ -75,14 +75,14 @@
   border-radius: 999px;
   background: linear-gradient(
     135deg,
-    var(--ep-primary-btn-bg, #be185d),
-    var(--ep-secondary-btn-bg, #7e22ce)
+    var(--ep-primary-btn-bg, #111827),
+    var(--ep-secondary-btn-bg, #6b7280)
   );
   color: var(--ep-primary-btn-text, #ffffff);
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(var(--ep-primary-btn-bg-rgb, 190, 24, 93), 0.24);
+  box-shadow: 0 10px 30px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.24);
 }
 
 .continueBtn:active {

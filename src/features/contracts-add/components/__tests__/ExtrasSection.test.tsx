@@ -25,6 +25,25 @@ const photobooth = {
 } as any;
 
 describe("ExtrasSection", () => {
+  it("prompts for a brand before showing extras", () => {
+    render(
+      <ExtrasSection
+        extras={[]}
+        cart={[]}
+        extraCart={[]}
+        brandSelected={false}
+        onAdd={vi.fn()}
+        onRemove={vi.fn()}
+        onQuantityChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText("Selecciona una marca para ver los extras disponibles."),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText("Extra")).toBeNull();
+  });
+
   it("adds the selected extra unlinked when there's no target picker", () => {
     const onAdd = vi.fn();
     render(
@@ -32,6 +51,7 @@ describe("ExtrasSection", () => {
         extras={[drinkExtra]}
         cart={[{ pkg: photobooth, quantity: 1, clientRef: "pkg-1" }]}
         extraCart={[]}
+        brandSelected
         onAdd={onAdd}
         onRemove={vi.fn()}
         onQuantityChange={vi.fn()}
@@ -55,6 +75,7 @@ describe("ExtrasSection", () => {
           { pkg: secondPackage, quantity: 1, clientRef: "pkg-2" },
         ]}
         extraCart={[]}
+        brandSelected
         onAdd={onAdd}
         onRemove={vi.fn()}
         onQuantityChange={vi.fn()}
@@ -80,6 +101,7 @@ describe("ExtrasSection", () => {
         extraCart={[
           { extra: drinkExtra, quantity: 2, packageClientRef: "pkg-1" },
         ]}
+        brandSelected
         onAdd={vi.fn()}
         onRemove={onRemove}
         onQuantityChange={onQuantityChange}

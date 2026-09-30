@@ -3,35 +3,35 @@
 /* ─── Page root (CSS vars cascade to all children) ──────────────────────── */
 
 .pageRoot {
-  --bp2-bg: var(--ep-page-bg, #fff5f7);
+  --bp2-bg: var(--ep-page-bg, #ffffff);
   --bp2-gradient: linear-gradient(
     135deg,
-    var(--ep-primary-btn-bg, #ec4899),
-    var(--ep-secondary-btn-bg, #a855f7)
+    var(--ep-primary-btn-bg, #111827),
+    var(--ep-secondary-btn-bg, #6b7280)
   );
-  --bp2-primary-soft: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.12);
-  --bp2-primary-soft-2: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.18);
-  --bp2-primary-soft-3: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.3);
-  --bp2-secondary-soft: rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.14);
+  --bp2-primary-soft: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.12);
+  --bp2-primary-soft-2: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.18);
+  --bp2-primary-soft-3: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.3);
+  --bp2-secondary-soft: rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.14);
   --bp2-surface: rgba(var(--ep-surface-bg-rgb, 255, 253, 247), 0.88);
   --bp2-surface-strong: rgba(var(--ep-surface-bg-rgb, 255, 253, 247), 0.94);
   --bp2-border: rgba(var(--ep-surface-border-rgb, 111, 122, 106), 0.26);
-  --bp2-shadow: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.12);
-  --bp2-text-deep: var(--ep-text, #831843);
-  --bp2-text-wine: var(--ep-accent, #9d174d);
-  --bp2-text-accent: var(--ep-accent, #be185d);
+  --bp2-shadow: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.12);
+  --bp2-text-deep: var(--ep-text, #111827);
+  --bp2-text-wine: var(--ep-accent, #374151);
+  --bp2-text-accent: var(--ep-accent, #374151);
   --bp2-text-body: var(--ep-text, #4a4a4a);
   --bp2-text-muted: var(--ep-muted-text, #9ca3af);
   min-height: 100dvh;
   background:
     radial-gradient(
       60% 40% at 50% 0%,
-      rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.14) 0%,
+      rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.14) 0%,
       transparent 60%
     ),
     radial-gradient(
       50% 50% at 100% 30%,
-      rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.1) 0%,
+      rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.1) 0%,
       transparent 60%
     ),
     var(--bp2-bg);
@@ -83,7 +83,7 @@
   border-radius: 50%;
   overflow: hidden;
   background: var(--bp2-gradient);
-  box-shadow: 0 4px 16px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.35);
+  box-shadow: 0 4px 16px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.35);
 }
 
 .logoImg {
@@ -96,7 +96,7 @@
 
 .eventName {
   margin-top: 16px;
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--ep-font-heading, 'Dancing Script'), cursive;
   font-size: clamp(28px, 8vw, 40px);
   font-weight: 700;
   line-height: 1.1;
@@ -150,7 +150,7 @@
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  background: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.08);
+  background: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.08);
   color: var(--bp2-text-accent);
   font-size: 14px;
   font-weight: 700;
@@ -181,7 +181,7 @@
   min-height: 24px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.1);
+  background: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.1);
   color: var(--bp2-text-wine);
   font-size: 11px;
   font-weight: 700;
@@ -203,13 +203,13 @@
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(var(--ep-accent-rgb, 190, 24, 93), 0.22);
+  background: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.22);
   cursor: pointer;
   transition: width 0.2s ease, background 0.2s ease;
 }
 
 .tutorialDot:focus-visible {
-  outline: 2px solid rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.45);
+  outline: 2px solid rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.45);
   outline-offset: 3px;
 }
 
@@ -245,13 +245,13 @@
   background: var(--bp2-surface);
   border: 1.5px solid var(--bp2-border);
   border-radius: 20px;
-  box-shadow: 0 2px 10px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.07);
+  box-shadow: 0 2px 10px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.07);
 }
 
 .tutorialStepFocused {
-  border-color: rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.4);
+  border-color: rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.4);
   background: var(--bp2-surface-strong);
-  box-shadow: 0 4px 16px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.18);
+  box-shadow: 0 4px 16px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.18);
 }
 
 .tutorialStepIcon {
@@ -264,7 +264,7 @@
   justify-content: center;
   font-size: 26px;
   flex-shrink: 0;
-  box-shadow: 0 3px 8px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.25);
+  box-shadow: 0 3px 8px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.25);
 }
 
 .tutorialStepContent {
@@ -321,7 +321,7 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: var(--ep-font-body, 'DM Sans'), system-ui, sans-serif;
   scroll-snap-align: start;
 }
 
@@ -331,10 +331,10 @@
   border-radius: 999px;
   background: linear-gradient(
     135deg,
-    rgba(var(--ep-page-bg-rgb, 255, 245, 247), 1),
-    rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 1)
+    rgba(var(--ep-page-bg-rgb, 255, 255, 255), 1),
+    rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 1)
   );
-  border: 1.5px solid rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.25);
+  border: 1.5px solid rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -352,7 +352,7 @@
 .tutorialCompactDash {
   flex: 0 0 14px;
   height: 1px;
-  border-top: 1.5px dashed rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.35);
+  border-top: 1.5px dashed rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.35);
   margin-top: 14px;
 }
 
@@ -371,10 +371,10 @@
   top: 0;
   z-index: 20;
   display: flex;
-  background: rgba(var(--ep-page-bg-rgb, 255, 245, 247), 0.92);
+  background: rgba(var(--ep-page-bg-rgb, 255, 255, 255), 0.92);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.08);
+  border-bottom: 1px solid rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.08);
   margin-top: 16px;
 }
 
@@ -388,7 +388,7 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--bp2-text-muted);
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: var(--ep-font-body, 'DM Sans'), system-ui, sans-serif;
   transition: color 0.2s;
 }
 
@@ -455,11 +455,11 @@
   overflow: hidden;
   position: relative;
   border: 1px solid var(--bp2-border);
-  box-shadow: 0 6px 14px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.1);
+  box-shadow: 0 6px 14px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.1);
   background: linear-gradient(
     135deg,
-    rgba(var(--ep-surface-bg-rgb, 252, 231, 243), 0.96),
-    rgba(var(--ep-page-bg-rgb, 255, 245, 247), 0.98)
+    rgba(var(--ep-surface-bg-rgb, 243, 244, 246), 0.96),
+    rgba(var(--ep-page-bg-rgb, 255, 255, 255), 0.98)
   );
 }
 
@@ -495,8 +495,8 @@
   flex: 1;
   height: 64px;
   border-radius: 12px;
-  background: rgba(var(--ep-page-bg-rgb, 255, 245, 247), 0.92);
-  border: 1px solid rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.2);
+  background: rgba(var(--ep-page-bg-rgb, 255, 255, 255), 0.92);
+  border: 1px solid rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -505,7 +505,7 @@
   padding: 6px 4px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: var(--ep-font-body, 'DM Sans'), system-ui, sans-serif;
 }
 
 .personBtn:active {
@@ -515,7 +515,7 @@
 .personBtnActive {
   background: var(--bp2-gradient);
   border-color: transparent;
-  box-shadow: 0 4px 14px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.3);
+  box-shadow: 0 4px 14px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.3);
 }
 
 .personBtnNum {
@@ -552,8 +552,8 @@
   margin-top: 18px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.08);
-  border: 1px solid rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.18);
+  background: rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.08);
+  border: 1px solid rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.18);
   font-size: 12px;
   color: var(--bp2-text-body);
   line-height: 1.45;
@@ -567,7 +567,7 @@
 }
 
 .frasesTitle {
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--ep-font-heading, 'Dancing Script'), cursive;
   font-size: 30px;
   font-weight: 700;
   line-height: 1.1;
@@ -618,7 +618,7 @@
   background: var(--bp2-surface-strong);
   border-radius: 12px;
   padding: 14px 16px 14px 20px;
-  box-shadow: 0 4px 14px rgba(var(--ep-primary-btn-bg-rgb, 236, 72, 153), 0.08);
+  box-shadow: 0 4px 14px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.08);
   overflow: hidden;
 }
 
@@ -630,8 +630,8 @@
   width: 3px;
   background: linear-gradient(
     180deg,
-    var(--ep-primary-btn-bg, #ec4899),
-    var(--ep-secondary-btn-bg, #a855f7)
+    var(--ep-primary-btn-bg, #111827),
+    var(--ep-secondary-btn-bg, #6b7280)
   );
 }
 
@@ -655,8 +655,8 @@
   margin-top: 18px;
   padding: 16px 18px;
   border-radius: 14px;
-  background: rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.1);
-  border: 1px solid rgba(var(--ep-secondary-btn-bg-rgb, 168, 85, 247), 0.2);
+  background: rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.1);
+  border: 1px solid rgba(var(--ep-secondary-btn-bg-rgb, 107, 114, 128), 0.2);
 }
 
 .tipBoxTitle {

@@ -1,11 +1,15 @@
 import styles from "./PostActionConfirmation.module.css";
 import { CtaSource } from "../experiences/fotobooth/Carousel/types";
-import { SocialMediaCTA, SocialPlatform } from "./SocialMediaCTA";
+import { SocialCta, SocialPlatform } from "./SocialCta";
+import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
 
 interface PostActionConfirmationProps {
   onClose: () => void;
   source?: CtaSource;
   nombreFestejado?: string;
+  /** `undefined`/`null` hides the CTA — e.g. the deprecated `/party/[token]`
+   * route (via `PhotoViewerLightbox`) doesn't have a resolved theme to pass. */
+  socialCta?: SocialCtaViewModel | null;
   onWAClick?: () => void;
   onSocialClick?: (platform: SocialPlatform) => void;
 }
@@ -13,7 +17,7 @@ interface PostActionConfirmationProps {
 export function PostActionConfirmation({
   onClose,
   source = "download",
-  nombreFestejado,
+  socialCta,
   onWAClick,
   onSocialClick,
 }: PostActionConfirmationProps) {
@@ -26,11 +30,10 @@ export function PostActionConfirmation({
   return (
     <div className={styles.card}>
       <div className={styles.ctaWrapper}>
-        <SocialMediaCTA
-          context="download"
+        <SocialCta
+          viewModel={socialCta ?? null}
           variant="sheet"
-          nombreFestejado={nombreFestejado}
-          onWAClick={onWAClick}
+          onPrimaryActionClick={onWAClick}
           onSocialClick={onSocialClick}
           contentAlign="center"
         />

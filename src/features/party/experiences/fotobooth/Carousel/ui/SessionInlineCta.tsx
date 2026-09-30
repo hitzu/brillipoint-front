@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import styles from "@assets/css/fotobooth.module.css";
 import {
-  SocialMediaCTA,
+  SocialCta,
   SocialPlatform,
-} from "../../../../components/SocialMediaCTA";
+} from "../../../../components/SocialCta";
+import { SocialCtaViewModel } from "../../../../theme/buildSocialCtaViewModel";
 
 type SessionInlineCtaProps = {
   eventName: string;
+  socialCta?: SocialCtaViewModel | null;
   onWAClick?: () => void;
   onSocialClick?: (platform: SocialPlatform) => void;
   onGiftPress?: () => void;
@@ -15,6 +17,7 @@ type SessionInlineCtaProps = {
 
 const SessionInlineCta = ({
   eventName,
+  socialCta,
   onWAClick,
   onSocialClick,
   onGiftPress,
@@ -54,11 +57,10 @@ const SessionInlineCta = ({
         </button>
       )}
 
-      <SocialMediaCTA
-        context="sessionPresence"
+      <SocialCta
+        viewModel={socialCta ?? null}
         variant="compact"
-        nombreFestejado={eventName}
-        onWAClick={onWAClick}
+        onPrimaryActionClick={onWAClick}
         onSocialClick={onSocialClick}
       />
     </div>

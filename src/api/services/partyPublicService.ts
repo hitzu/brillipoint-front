@@ -10,6 +10,7 @@ import {
   SessionResponse
 } from "../../interfaces";
 import { EventThemeResponse } from "../../features/party/types/themeContract";
+import { getFreshThemeRequestOptions } from "../../features/party/utils/freshThemeCache";
 import { axiosInstanceWithoutToken } from "../config/axiosConfig";
 
 const normalizePublicEvent = (
@@ -138,12 +139,18 @@ export const getEventGallerySessionV2 = async (
 // lifecycle: theme is stable/long-cache, photos are volatile/polled).
 export const getEventTheme = async (
   eventToken: string,
+  freshTheme = false,
 ): Promise<EventThemeResponse> => {
   const normalizedToken = encodeURIComponent(eventToken);
 
-  const response = await axiosInstanceWithoutToken.get<EventThemeResponse>(
-    `/events/${normalizedToken}/theme`,
-  );
+  const path = `/events/${normalizedToken}/theme`;
+  const requestOptions = getFreshThemeRequestOptions(freshTheme);
+  const response = requestOptions
+    ? await axiosInstanceWithoutToken.get<EventThemeResponse>(
+        path,
+        requestOptions,
+      )
+    : await axiosInstanceWithoutToken.get<EventThemeResponse>(path);
 
   return response.data;
 };
