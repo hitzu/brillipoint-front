@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ThemeOverrides } from "../../../party/types/themeContract";
 import {
   mergeThemeOverrides,
   removeBackgroundImage,
@@ -46,14 +47,18 @@ describe("mergeThemeOverrides", () => {
     expect(
       mergeThemeOverrides(null, {
         images: { background: { path: "bg.png", url: "https://x/bg.png" } },
-      }),
-    ).toEqual({ images: { background: { path: "bg.png", url: "https://x/bg.png" } } });
+      })
+    ).toEqual({
+      images: { background: { path: "bg.png", url: "https://x/bg.png" } },
+    });
 
     expect(
       mergeThemeOverrides(undefined, {
         images: { background: { path: "bg.png", url: "https://x/bg.png" } },
-      }),
-    ).toEqual({ images: { background: { path: "bg.png", url: "https://x/bg.png" } } });
+      })
+    ).toEqual({
+      images: { background: { path: "bg.png", url: "https://x/bg.png" } },
+    });
   });
 
   it("never sends socialCta: null even if a change tries to null it", () => {
@@ -104,7 +109,12 @@ describe("setConfettiShapes", () => {
   it("sets shapes and enabled:true while preserving colors/amount", () => {
     const current = {
       decorations: {
-        confetti: { enabled: false, colors: ["#fff", "#000"], amount: 40, shapes: ["star"] },
+        confetti: {
+          enabled: false,
+          colors: ["#fff", "#000"],
+          amount: 40,
+          shapes: ["star"],
+        },
       },
     };
 
@@ -131,7 +141,10 @@ describe("setConfettiShapes", () => {
   it("allows deselecting all shapes: keeps enabled true with an empty array", () => {
     const result = setConfettiShapes(null, []);
 
-    expect((result.decorations as any).confetti).toEqual({ enabled: true, shapes: [] });
+    expect((result.decorations as any).confetti).toEqual({
+      enabled: true,
+      shapes: [],
+    });
   });
 
   it("preserves unrelated decorations like sparkles", () => {
@@ -145,5 +158,21 @@ describe("setConfettiShapes", () => {
     const result = setConfettiShapes(current, ["rose"]);
 
     expect((result.decorations as any).sparkles).toEqual({ enabled: true });
+  });
+});
+
+describe("expanded confetti catalog", () => {
+  it("persists new shapes without losing explicit colors or count", () => {
+    const shapes = ["diamond", "bow", "butterfly", "camera"];
+    const result = setConfettiShapes(
+      { decorations: { confetti: { colors: ["#abcdef"], amount: 12 } } },
+      shapes
+    );
+    expect((result as ThemeOverrides).decorations?.confetti).toEqual({
+      enabled: true,
+      shapes,
+      colors: ["#abcdef"],
+      amount: 12,
+    });
   });
 });

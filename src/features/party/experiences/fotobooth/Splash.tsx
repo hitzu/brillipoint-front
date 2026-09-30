@@ -40,15 +40,20 @@ const FotoBoothSplash = ({
         <div
           key={piece.id}
           className={styles.confettiPiece}
-          style={{
-            left: `${piece.left}%`,
-            top: "-10px",
-            width: `${piece.size}px`,
-            height: `${piece.size}px`,
-            color: piece.color,
-            animationDuration: `${piece.animationDuration}s`,
-            animationDelay: `${piece.animationDelay}s`,
-          }}
+          style={
+            {
+              left: `${piece.left}%`,
+              top: "-32px",
+              width: `${piece.size}px`,
+              height: `${piece.size}px`,
+              color: piece.color,
+              animationDuration: `${piece.animationDuration}s`,
+              animationDelay: `${piece.animationDelay}s`,
+              "--confetti-drift": `${piece.drift}px`,
+              "--confetti-initial-rotation": `${piece.initialRotation}deg`,
+              "--confetti-rotation": `${piece.rotation}deg`,
+            } as React.CSSProperties
+          }
         >
           <ShapeIcon />
         </div>
@@ -95,7 +100,9 @@ const FotoBoothSplash = ({
           <div className={styles.splashBlob2} />
         </>
       )}
-      <div className={styles.confettiContainer}>{confetti}</div>
+      <div className={styles.confettiContainer} aria-hidden="true">
+        {confetti}
+      </div>
 
       <div className={styles.splashContent}>
         {cover &&

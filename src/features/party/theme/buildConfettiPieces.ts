@@ -1,7 +1,11 @@
 import { ThemeDecorations } from "../types/themeContract";
 import { EventPageTheme } from "../types/eventPageTheme";
 import { getConfettiColors } from "./confettiColors";
-import { CONFETTI_SHAPES, ConfettiShape, isConfettiShape } from "./confettiShapes";
+import {
+  CONFETTI_SHAPES,
+  ConfettiShape,
+  isConfettiShape,
+} from "./confettiShapes";
 
 /** Default piece count when `decorations.confetti.amount` is absent — matches the pre-T5 hardcoded count. */
 const DEFAULT_AMOUNT = 28;
@@ -22,11 +26,16 @@ export interface ConfettiPiece {
   animationDuration: number;
   /** seconds */
   animationDelay: number;
+  /** Horizontal travel in px. */
+  drift: number;
+  /** Degrees; small angles retain recognizable silhouettes. */
+  initialRotation: number;
+  rotation: number;
 }
 
 const resolveColors = (
   colors: string[] | undefined,
-  theme: EventPageTheme | undefined,
+  theme: EventPageTheme | undefined
 ): string[] => {
   if (colors && colors.length > 0) {
     return colors;
@@ -34,7 +43,9 @@ const resolveColors = (
   return getConfettiColors(theme);
 };
 
-const resolveShapes = (shapes: string[] | undefined): readonly ConfettiShape[] => {
+const resolveShapes = (
+  shapes: string[] | undefined
+): readonly ConfettiShape[] => {
   if (!shapes || shapes.length === 0) {
     return DEFAULT_SHAPES;
   }
@@ -68,22 +79,29 @@ const resolveAmount = (amount: number | undefined): number => {
 export function buildConfettiPieces(
   decorations: ThemeDecorations | undefined,
   theme: EventPageTheme | undefined,
-  random: () => number = Math.random,
+  random: () => number = Math.random
 ): ConfettiPiece[] {
   const confetti = decorations?.confetti;
   const colors = resolveColors(confetti?.colors, theme);
   const shapes = resolveShapes(confetti?.shapes);
   const amount = resolveAmount(confetti?.amount);
 
-  return Array.from({ length: amount }, (_, id) => ({
-    id,
-    shape: shapes[Math.floor(random() * shapes.length)],
-    color: colors[Math.floor(random() * colors.length)],
-    size: 4 + random() * 6,
-    left: random() * 100,
-    animationDuration: 3 + random() * 5,
-    animationDelay: random() * 4,
-  }));
+  return Array.from({ length: amount }, (_, id) => {
+    const shape = shapes[Math.floor(random() * shapes.length)];
+    const simple = shape === "rect" || shape === "circle";
+    return {
+      id,
+      shape,
+      color: colors[Math.floor(random() * colors.length)],
+      size: simple ? 10 + random() * 6 : 20 + random() * 10,
+      left: 3 + random() * 94,
+      animationDuration: 2.2 + random() * 0.8,
+      animationDelay: random() * 0.6,
+      drift: -48 + random() * 96,
+      initialRotation: -25 + random() * 50,
+      rotation: -60 + random() * 120,
+    };
+  });
 }
 
 export { CONFETTI_SHAPES };
