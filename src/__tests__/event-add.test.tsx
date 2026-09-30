@@ -18,7 +18,7 @@ import { createEvent } from "../api/services/eventsService";
 import { getContracts } from "../api/services/contractService";
 import { getEventTypes } from "../api/services/eventTypesService";
 import { getEventThemes } from "../api/services/eventThemesService";
-import EventAdd from "./event-add";
+import EventAdd from "../pages/event-add";
 
 const mockedCreateEvent = vi.mocked(createEvent);
 
