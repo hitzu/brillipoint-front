@@ -129,21 +129,40 @@
 
 .confettiPiece {
   position: absolute;
-  animation: confettiFall linear 1 both;
+  animation: confettiFall linear infinite both;
+}
+
+/* Inner layer: pendulum sway + 3D tilt so pieces flutter like paper. */
+.confettiSway {
+  width: 100%;
+  height: 100%;
+  animation: confettiSway ease-in-out infinite alternate both;
 }
 
 @keyframes confettiFall {
   0% {
-    transform: translate3d(0, 0, 0) rotate(var(--confetti-initial-rotation));
+    transform: translate3d(0, 0, 0);
     opacity: 1;
   }
-  75% {
+  90% {
     opacity: 1;
   }
   100% {
-    transform: translate3d(var(--confetti-drift), 110vh, 0)
-      rotate(calc(var(--confetti-initial-rotation) + var(--confetti-rotation)));
+    transform: translate3d(var(--confetti-drift), 110vh, 0);
     opacity: 0;
+  }
+}
+
+@keyframes confettiSway {
+  0% {
+    transform: translateX(calc(var(--confetti-sway) * -1))
+      rotate(calc(var(--confetti-initial-rotation) - var(--confetti-rotation) / 2))
+      rotateX(0deg) rotateY(-12deg);
+  }
+  100% {
+    transform: translateX(var(--confetti-sway))
+      rotate(calc(var(--confetti-initial-rotation) + var(--confetti-rotation) / 2))
+      rotateX(18deg) rotateY(12deg);
   }
 }
 
@@ -1088,7 +1107,8 @@
     display: none;
   }
 
-  .confettiPiece {
+  .confettiPiece,
+  .confettiSway {
     animation: none;
   }
 

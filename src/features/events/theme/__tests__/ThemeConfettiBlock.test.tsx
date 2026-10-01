@@ -100,13 +100,16 @@ describe("detailed confetti presentation", () => {
     }
   });
 
-  it("uses finite splash motion and hides decorative confetti with reduced motion", () => {
+  it("uses continuous paper-like splash motion and hides decorative confetti with reduced motion", () => {
     const css = readFileSync("src/assets/css/fotobooth.module.css", "utf8");
     const splash = readFileSync(
       "src/features/party/experiences/fotobooth/Splash.tsx",
       "utf8"
     );
-    expect(css).toMatch(/animation: confettiFall linear 1 both/);
+    expect(css).toMatch(/animation: confettiFall linear infinite both/);
+    expect(css).toMatch(/animation: confettiSway ease-in-out infinite alternate both/);
+    expect(css).toContain("var(--confetti-sway)");
+    expect(splash).toContain("className={styles.confettiSway}");
     expect(css).toMatch(
       /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.confettiContainer\s*\{\s*display: none/
     );

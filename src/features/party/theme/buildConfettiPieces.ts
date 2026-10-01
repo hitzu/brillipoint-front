@@ -7,8 +7,8 @@ import {
   isConfettiShape,
 } from "./confettiShapes";
 
-/** Default piece count when `decorations.confetti.amount` is absent — matches the pre-T5 hardcoded count. */
-const DEFAULT_AMOUNT = 28;
+/** Default piece count when `decorations.confetti.amount` is absent; pieces loop, so this is the steady on-screen density. */
+const DEFAULT_AMOUNT = 45;
 /** Hard cap so a theme-supplied `amount` can never render an unbounded number of pieces. */
 const MAX_AMOUNT = 150;
 /** Shapes used when `decorations.confetti.shapes` is absent or empty — the pre-T5 look. */
@@ -22,15 +22,22 @@ export interface ConfettiPiece {
   size: number;
   /** percent, 0-100 */
   left: number;
-  /** seconds */
+  /** Seconds for one full fall; the fall loops so the screen keeps refilling. */
   animationDuration: number;
-  /** seconds */
+  /** Seconds; negative values start the piece mid-fall (upper third only). */
   animationDelay: number;
   /** Horizontal travel in px. */
   drift: number;
   /** Degrees; small angles retain recognizable silhouettes. */
   initialRotation: number;
+  /** Degrees of pendulum tilt while swaying. */
   rotation: number;
+  /** Horizontal pendulum amplitude in px (paper-like flutter). */
+  sway: number;
+  /** Seconds for one sway half-cycle. */
+  swayDuration: number;
+  /** Seconds, always <= 0, so pieces sway out of phase from the first frame. */
+  swayDelay: number;
 }
 
 const resolveColors = (
@@ -71,7 +78,9 @@ const resolveAmount = (amount: number | undefined): number => {
  *   catalog (`confettiShapes.ts`); unknown values are dropped; empty/absent
  *   (after filtering) falls back to plain `rect` pieces.
  * - Amount: `decorations.confetti.amount`, clamped to `[0, 150]`; absent
- *   keeps the pre-T5 default of 28.
+ *   uses the default of 45.
+ * - Motion: slow looping fall with staggered (partly negative) delays so the
+ *   top never empties, plus a desynchronized pendulum sway for a paper feel.
  *
  * Pure — no DOM/React — so it can be unit-tested directly; components
  * render the returned pieces (`Splash.tsx`).
@@ -89,17 +98,22 @@ export function buildConfettiPieces(
   return Array.from({ length: amount }, (_, id) => {
     const shape = shapes[Math.floor(random() * shapes.length)];
     const simple = shape === "rect" || shape === "circle";
+    const animationDuration = 4.5 + random() * 2;
+    const swayDuration = 1.4 + random();
     return {
       id,
       shape,
       color: colors[Math.floor(random() * colors.length)],
       size: simple ? 10 + random() * 6 : 20 + random() * 10,
       left: 3 + random() * 94,
-      animationDuration: 2.2 + random() * 0.8,
-      animationDelay: random() * 0.6,
+      animationDuration,
+      animationDelay: animationDuration * (-0.3 + random() * 0.9),
       drift: -48 + random() * 96,
       initialRotation: -25 + random() * 50,
       rotation: -60 + random() * 120,
+      sway: 12 + random() * 20,
+      swayDuration,
+      swayDelay: -random() * swayDuration,
     };
   });
 }

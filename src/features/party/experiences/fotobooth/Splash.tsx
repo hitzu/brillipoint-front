@@ -50,12 +50,23 @@ const FotoBoothSplash = ({
               animationDuration: `${piece.animationDuration}s`,
               animationDelay: `${piece.animationDelay}s`,
               "--confetti-drift": `${piece.drift}px`,
-              "--confetti-initial-rotation": `${piece.initialRotation}deg`,
-              "--confetti-rotation": `${piece.rotation}deg`,
             } as React.CSSProperties
           }
         >
-          <ShapeIcon />
+          <div
+            className={styles.confettiSway}
+            style={
+              {
+                animationDuration: `${piece.swayDuration}s`,
+                animationDelay: `${piece.swayDelay}s`,
+                "--confetti-sway": `${piece.sway}px`,
+                "--confetti-initial-rotation": `${piece.initialRotation}deg`,
+                "--confetti-rotation": `${piece.rotation}deg`,
+              } as React.CSSProperties
+            }
+          >
+            <ShapeIcon />
+          </div>
         </div>
       );
     });

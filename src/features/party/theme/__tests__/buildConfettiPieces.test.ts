@@ -4,9 +4,9 @@ import { test } from "node:test";
 import { buildConfettiPieces } from "../buildConfettiPieces";
 import { systemDefaultPageTheme } from "../systemDefaultPageTheme";
 
-test("buildConfettiPieces defaults to 28 pieces when amount is absent", () => {
+test("buildConfettiPieces defaults to 45 pieces when amount is absent", () => {
   const pieces = buildConfettiPieces(undefined, undefined, () => 0);
-  assert.equal(pieces.length, 28);
+  assert.equal(pieces.length, 45);
 });
 
 test("buildConfettiPieces uses decorations.confetti.amount when present", () => {
@@ -183,25 +183,28 @@ test("simple pieces use smaller 10–16px sizes", () => {
   }
 });
 
-test("motion starts promptly and uses restrained, varied drift and rotation", () => {
+test("motion falls slowly and loops with staggered starts so the screen never empties", () => {
   for (const random of [0, 0.5, 0.999]) {
     const [piece] = buildConfettiPieces(undefined, undefined, () => random);
-    assert.ok(piece.animationDelay >= 0 && piece.animationDelay < 0.8);
-    assert.ok(piece.animationDuration >= 2.2 && piece.animationDuration <= 3);
     assert.ok(
-      "drift" in piece &&
-        typeof piece.drift === "number" &&
-        Math.abs(piece.drift) <= 48
+      piece.animationDuration >= 4.5 && piece.animationDuration <= 6.5,
+      `duration ${piece.animationDuration}`
     );
-    assert.ok(
-      "initialRotation" in piece &&
-        typeof piece.initialRotation === "number" &&
-        Math.abs(piece.initialRotation) <= 25
-    );
-    assert.ok(
-      "rotation" in piece &&
-        typeof piece.rotation === "number" &&
-        Math.abs(piece.rotation) <= 60
-    );
+    // Some pieces start mid-fall (negative delay, upper third only) while the
+    // rest enter over time; the loop keeps the top populated.
+    assert.ok(piece.animationDelay >= -0.3 * piece.animationDuration);
+    assert.ok(piece.animationDelay < 0.6 * piece.animationDuration);
+    assert.ok(Math.abs(piece.drift) <= 48);
+    assert.ok(Math.abs(piece.initialRotation) <= 25);
+    assert.ok(Math.abs(piece.rotation) <= 60);
+  }
+});
+
+test("pieces sway like paper with a bounded, desynchronized pendulum", () => {
+  for (const random of [0, 0.5, 0.999]) {
+    const [piece] = buildConfettiPieces(undefined, undefined, () => random);
+    assert.ok(piece.sway >= 12 && piece.sway <= 32, `sway ${piece.sway}`);
+    assert.ok(piece.swayDuration >= 1.4 && piece.swayDuration <= 2.4);
+    assert.ok(piece.swayDelay <= 0 && piece.swayDelay > -piece.swayDuration - 1e-9);
   }
 });
