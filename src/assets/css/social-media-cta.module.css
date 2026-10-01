@@ -330,12 +330,6 @@
   box-shadow: var(--ep-surface-shadow, 0 10px 30px rgb(17 24 39 / 0.08));
 }
 
-.pageSparkle {
-  font-size: 22px;
-  margin-bottom: 8px;
-  color: var(--ep-accent, #374151);
-}
-
 .pageTitulo {
   font-family: var(--ep-font-heading, "Dancing Script"), cursive;
   font-size: 22px;

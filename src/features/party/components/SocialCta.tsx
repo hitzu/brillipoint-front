@@ -113,7 +113,6 @@ export const SocialCta = ({
   if (variant === "page") {
     return (
       <div className={styles.pageCard}>
-        <span className={styles.pageSparkle}>✦</span>
         {headline && <p className={styles.pageTitulo}>{headline}</p>}
         {subtitle && <p className={styles.pageSubtitulo}>{subtitle}</p>}
         {primaryAction && (

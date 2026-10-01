@@ -192,7 +192,6 @@ export const SocialMediaCTA = ({
   if (variant === "page") {
     return (
       <div className={styles.pageCard}>
-        <span className={styles.pageSparkle}>✦</span>
         <p className={styles.pageTitulo}>{titulo}</p>
         <p className={styles.pageSubtitulo}>{subtitulo}</p>
         <a
