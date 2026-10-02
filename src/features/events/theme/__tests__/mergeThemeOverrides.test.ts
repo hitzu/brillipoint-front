@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { ThemeOverrides } from "../../../party/types/themeContract";
 import {
+  clearSocialCta,
   mergeThemeOverrides,
   removeBackgroundImage,
   removeSplashIconImage,
   setBackgroundImage,
   setConfettiShapes,
+  setSocialCta,
   setSplashIconImage,
   setSplashIconPlate,
 } from "../mergeThemeOverrides";
@@ -276,5 +278,48 @@ describe("splashIcon plate", () => {
     setSplashIconPlate(current, null);
     setSplashIconImage(current, { path: "n", url: "u" });
     expect(current).toEqual(snapshot);
+  });
+});
+
+describe("setSocialCta / clearSocialCta", () => {
+  const current = {
+    tokens: { primary: "#111" },
+    socialCta: {
+      headline: { text: { es: "Hola" } },
+      socials: {
+        instagram: "https://instagram.com/old",
+        tiktok: "https://www.tiktok.com/@old",
+      },
+    },
+    decorativeIcon: "flower",
+  };
+
+  it("replaces socialCta wholesale so dropped networks disappear", () => {
+    const next = { socials: { instagram: "https://instagram.com/new" }, primaryAction: null };
+
+    const result = setSocialCta(current, next);
+
+    expect(result.socialCta).toEqual(next);
+    expect(result.tokens).toEqual(current.tokens);
+    expect(result.decorativeIcon).toBe("flower");
+    expect(current.socialCta.socials.tiktok).toBe("https://www.tiktok.com/@old");
+  });
+
+  it("does not share references with the given socialCta", () => {
+    const next = { socials: { instagram: "https://instagram.com/new" } };
+
+    const result = setSocialCta(null, next);
+    next.socials.instagram = "mutated";
+
+    expect((result.socialCta as any).socials.instagram).toBe("https://instagram.com/new");
+  });
+
+  it("clearSocialCta deletes the key and never writes null", () => {
+    const result = clearSocialCta(current);
+
+    expect("socialCta" in result).toBe(false);
+    expect(result.tokens).toEqual(current.tokens);
+    expect(current.socialCta).toBeDefined();
+    expect(clearSocialCta(undefined)).toEqual({});
   });
 });

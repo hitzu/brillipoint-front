@@ -18,14 +18,21 @@ import {
   setSplashIconPlate,
 } from "./mergeThemeOverrides";
 import { getReadOnlyThemeEntries } from "./readOnlyThemeEntries";
+import { storedSocialCtaFrom, useSocialCtaEditor } from "./hooks/useSocialCtaEditor";
 import ThemeBackgroundBlock from "./components/ThemeBackgroundBlock";
 import ThemeConfettiBlock from "./components/ThemeConfettiBlock";
 import ThemeReadOnlyBlock from "./components/ThemeReadOnlyBlock";
 import ThemeSplashIconBlock from "./components/ThemeSplashIconBlock";
+import ThemeSocialCtaBlock from "./components/ThemeSocialCtaBlock";
+import ThemeSocialCtaPreview from "./components/ThemeSocialCtaPreview";
 
 interface EventThemeSectionProps {
   eventId: number;
   initialThemeOverrides?: ThemeOverrides | null;
+  /** Public event token, used to fetch the resolved theme for inherited values. */
+  token?: string;
+  /** Interpolated as `{{honoreesName}}` in the social CTA preview. */
+  honoreesNames?: string | null;
 }
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
@@ -46,7 +53,12 @@ const shapesFrom = (themeOverrides: RawThemeOverrides | null | undefined): strin
  * concurrent edits, deep-merges the change, then PATCHes the full
  * `themeOverrides` object (the backend replaces it wholesale).
  */
-const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSectionProps) => {
+const EventThemeSection = ({
+  eventId,
+  initialThemeOverrides,
+  token,
+  honoreesNames,
+}: EventThemeSectionProps) => {
   const initialRawThemeOverrides = initialThemeOverrides as RawThemeOverrides | null | undefined;
   const [themeOverrides, setThemeOverrides] = useState<RawThemeOverrides | null | undefined>(
     initialRawThemeOverrides,
@@ -65,6 +77,12 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
   // Confetti is only written when staff touched it, so a background-only save
   // never overrides confetti inherited from the preset or brand kit.
   const [confettiDirty, setConfettiDirty] = useState(false);
+  // Same rule for socialCta: written only when edited (dirty) or removed (cleared).
+  const socialCta = useSocialCtaEditor({
+    eventId,
+    token,
+    initialThemeOverrides: initialRawThemeOverrides,
+  });
   const [saving, setSaving] = useState(false);
 
   const [showToast, setShowToast] = useState(false);
@@ -154,6 +172,7 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
   };
 
   const handleSave = async () => {
+    if (socialCta.invalid) return;
     setSaving(true);
     try {
       let uploadedSlot: { path: string; url: string } | undefined;
@@ -216,6 +235,8 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
         merged = setConfettiShapes(merged, selectedShapes);
       }
 
+      merged = socialCta.applyTo(merged);
+
       await updateEventById(eventId, { themeOverrides: merged as ThemeOverrides });
 
       if (backgroundPreviewUrl) URL.revokeObjectURL(backgroundPreviewUrl);
@@ -231,6 +252,7 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
       setSplashPlate(plateFrom(merged));
       setPlateDirty(false);
       setConfettiDirty(false);
+      socialCta.resetAfterSave(merged);
       setToastMessage("Tema actualizado exitosamente");
       setToastVariant("success");
       setShowToast(true);
@@ -298,6 +320,26 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
 
         <ThemeConfettiBlock selectedShapes={selectedShapes} onToggleShape={handleToggleShape} />
 
+        <ThemeSocialCtaBlock
+          form={socialCta.form}
+          errors={socialCta.errors}
+          locale={socialCta.locale}
+          onLocaleChange={socialCta.setLocale}
+          onChange={socialCta.onChange}
+          inherited={socialCta.inherited}
+          cleared={socialCta.cleared}
+          canUseInherited={Boolean(storedSocialCtaFrom(themeOverrides))}
+          onUseInherited={socialCta.onUseInherited}
+          preview={
+            <ThemeSocialCtaPreview
+              form={socialCta.form}
+              locale={socialCta.locale}
+              honoreesNames={honoreesNames}
+              eventTheme={socialCta.eventTheme}
+            />
+          }
+        />
+
         {readOnlyEntries.length > 0 && (
           <div className="mb-3">
             <h6 className="text-muted">Otros valores del tema (solo lectura)</h6>
@@ -307,7 +349,12 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
           </div>
         )}
 
-        <Button type="button" variant="primary" onClick={handleSave} disabled={saving}>
+        <Button
+          type="button"
+          variant="primary"
+          onClick={handleSave}
+          disabled={saving || socialCta.invalid}
+        >
           {saving ? "Guardando..." : "Guardar tema"}
         </Button>
       </Card.Body>

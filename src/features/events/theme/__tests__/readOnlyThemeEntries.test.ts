@@ -63,7 +63,13 @@ describe("getReadOnlyThemeEntries", () => {
     expect(entries).toEqual([{ key: "decorations", value: { sparkles: { enabled: true } } }]);
   });
 
-  it("passes through tokens, socialCta, copy and unknown keys unchanged", () => {
+  it("excludes socialCta, which has its own editable block", () => {
+    expect(
+      getReadOnlyThemeEntries({ socialCta: { socials: { instagram: "https://instagram.com/x" } } }),
+    ).toEqual([]);
+  });
+
+  it("passes through tokens, copy and unknown keys unchanged", () => {
     const raw = {
       tokens: { primary: "#111" },
       socialCta: { brandKitKey: "wedding" },
@@ -75,7 +81,6 @@ describe("getReadOnlyThemeEntries", () => {
 
     expect(entries).toEqual([
       { key: "tokens", value: raw.tokens },
-      { key: "socialCta", value: raw.socialCta },
       { key: "copy", value: raw.copy },
       { key: "decorativeIcon", value: "flower" },
     ]);

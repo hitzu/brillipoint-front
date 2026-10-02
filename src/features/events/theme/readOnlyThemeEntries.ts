@@ -9,8 +9,8 @@ export interface ReadOnlyThemeEntry {
 /**
  * Splits a raw `themeOverrides` object into the entries this editor does
  * NOT let staff edit yet: everything except `images.background`,
- * `images.splashIcon` and `decorations.confetti`, which have their own
- * dedicated blocks.
+ * `images.splashIcon`, `decorations.confetti` and `socialCta`, which have
+ * their own dedicated blocks.
  *
  * `images`/`decorations` still appear here (minus their editable slot) so
  * the remaining slots (logo, hero, watermark, cover, sparkles)
@@ -27,6 +27,8 @@ export function getReadOnlyThemeEntries(
 
   for (const key of Object.keys(themeOverrides)) {
     const value = themeOverrides[key];
+
+    if (key === "socialCta") continue;
 
     if (key === "images" && value && typeof value === "object") {
       const {

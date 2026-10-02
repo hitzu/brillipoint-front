@@ -435,6 +435,8 @@ const EventEdit = () => {
             <EventThemeSection
               eventId={loadedEvent.id}
               initialThemeOverrides={loadedEvent.themeOverrides}
+              token={loadedEvent.token}
+              honoreesNames={loadedEvent.honoreesNames}
             />
           )}
         </Col>

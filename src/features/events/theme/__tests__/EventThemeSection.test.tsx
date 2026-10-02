@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("../../../../api/services/eventsService", () => ({
@@ -12,7 +12,12 @@ vi.mock("../../../../api/services/themeAssetsService", () => ({
   uploadThemeAssetBlobToSignedUrl: vi.fn(),
 }));
 
+vi.mock("../../../../api/services/partyPublicService", () => ({
+  getEventTheme: vi.fn(),
+}));
+
 import { getEventById, updateEventById } from "../../../../api/services/eventsService";
+import { getEventTheme } from "../../../../api/services/partyPublicService";
 import {
   createThemeAssetUploadUrl,
   uploadThemeAssetBlobToSignedUrl,
@@ -22,6 +27,7 @@ import EventThemeSection from "../EventThemeSection";
 const mockedGetEventById = getEventById as unknown as ReturnType<typeof vi.fn>;
 const mockedUpdateEventById = updateEventById as unknown as ReturnType<typeof vi.fn>;
 
+const mockedGetEventTheme = getEventTheme as unknown as ReturnType<typeof vi.fn>;
 const mockedCreateUploadUrl = createThemeAssetUploadUrl as unknown as ReturnType<typeof vi.fn>;
 const mockedUploadBlob = uploadThemeAssetBlobToSignedUrl as unknown as ReturnType<typeof vi.fn>;
 
@@ -46,6 +52,9 @@ beforeEach(() => {
   mockedUpdateEventById.mockReset();
   mockedCreateUploadUrl.mockReset();
   mockedUploadBlob.mockReset();
+  mockedGetEventTheme.mockReset();
+  // The section always fetches the resolved theme when it has a token.
+  mockedGetEventTheme.mockResolvedValue({ eventTheme: null });
   (URL as any).createObjectURL = vi.fn(() => "blob:preview");
   (URL as any).revokeObjectURL = vi.fn();
 });
@@ -341,6 +350,246 @@ describe("EventThemeSection", () => {
 
       const [, payload] = mockedUpdateEventById.mock.calls[0];
       expect(payload.themeOverrides.images.splashIcon).toBeNull();
+    });
+  });
+
+  describe("social CTA", () => {
+    const STORED_SOCIAL_CTA = {
+      headline: { text: { es: "Hola" } },
+      socials: {
+        instagram: "https://instagram.com/old",
+        tiktok: "https://www.tiktok.com/@old",
+      },
+    };
+    const withSocialCta = {
+      id: 7,
+      themeOverrides: { ...FRESH_EVENT.themeOverrides, socialCta: STORED_SOCIAL_CTA },
+    };
+
+    const save = async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Guardar tema" }));
+      await waitFor(() => expect(mockedUpdateEventById).toHaveBeenCalled());
+      return mockedUpdateEventById.mock.calls[0][1].themeOverrides;
+    };
+
+    it("keeps the stored override in the form while still fetching the theme for the preview", async () => {
+      mockedGetEventTheme.mockResolvedValueOnce({
+        eventTheme: {
+          tokens: { background: "#123456" },
+          socialCta: { socials: { facebook: "https://facebook.com/kit" } },
+        },
+      });
+
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          initialThemeOverrides={withSocialCta.themeOverrides as any}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("social-cta-preview-surface").style.getPropertyValue("--ep-page-bg"),
+        ).toBe("#123456"),
+      );
+      expect(mockedGetEventTheme).toHaveBeenCalledTimes(1);
+      expect(mockedGetEventTheme).toHaveBeenCalledWith("tok", true);
+      expect((screen.getByRole("switch", { name: "Instagram" }) as HTMLInputElement).checked).toBe(
+        true,
+      );
+      expect(
+        (screen.getByLabelText("Usuario o enlace de Instagram") as HTMLInputElement).value,
+      ).toBe("https://instagram.com/old");
+      expect((screen.getByRole("switch", { name: "Facebook" }) as HTMLInputElement).checked).toBe(
+        false,
+      );
+      expect(screen.queryByText(/Heredado del kit de marca/)).toBeNull();
+      expect(screen.queryByText("socialCta")).toBeNull();
+    });
+
+    it("prefills from the resolved theme when there is no stored override", async () => {
+      mockedGetEventTheme.mockResolvedValueOnce({
+        eventTheme: {
+          socialCta: {
+            headline: { text: { es: "Del kit" } },
+            socials: { facebook: "https://facebook.com/kit" },
+          },
+        },
+      });
+
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          initialThemeOverrides={FRESH_EVENT.themeOverrides as any}
+        />,
+      );
+
+      expect(await screen.findByText(/Heredado del kit de marca/)).toBeTruthy();
+      expect(mockedGetEventTheme).toHaveBeenCalledWith("tok", true);
+      expect(
+        (screen.getByLabelText("Usuario o enlace de Facebook") as HTMLInputElement).value,
+      ).toBe("https://facebook.com/kit");
+      expect((screen.getByLabelText(/Texto principal/) as HTMLInputElement).value).toBe("Del kit");
+      expect(screen.queryByRole("button", { name: "Usar el heredado" })).toBeNull();
+    });
+
+    it("falls back to an empty form when the resolved theme fails to load", async () => {
+      mockedGetEventTheme.mockRejectedValueOnce(new Error("offline"));
+
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          initialThemeOverrides={FRESH_EVENT.themeOverrides as any}
+        />,
+      );
+
+      await waitFor(() => expect(mockedGetEventTheme).toHaveBeenCalled());
+      expect((screen.getByRole("switch", { name: "Instagram" }) as HTMLInputElement).checked).toBe(
+        false,
+      );
+      expect(screen.queryByText(/Heredado del kit de marca/)).toBeNull();
+      expect(
+        (screen.getByRole("button", { name: "Guardar tema" }) as HTMLButtonElement).disabled,
+      ).toBe(false);
+    });
+
+    it("saving untouched social CTA does not write socialCta", async () => {
+      mockedGetEventById.mockResolvedValueOnce(FRESH_EVENT);
+      mockedUpdateEventById.mockResolvedValueOnce(undefined);
+      mockedGetEventTheme.mockResolvedValueOnce({
+        eventTheme: { socialCta: { socials: { facebook: "https://facebook.com/kit" } } },
+      });
+
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          initialThemeOverrides={FRESH_EVENT.themeOverrides as any}
+        />,
+      );
+      await screen.findByText(/Heredado del kit de marca/);
+
+      const payload = await save();
+
+      expect("socialCta" in payload).toBe(false);
+    });
+
+    it("saving an edited form replaces socialCta wholesale", async () => {
+      mockedGetEventById.mockResolvedValueOnce(withSocialCta);
+      mockedUpdateEventById.mockResolvedValueOnce(undefined);
+
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          initialThemeOverrides={withSocialCta.themeOverrides as any}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole("switch", { name: "TikTok" }));
+      fireEvent.click(screen.getByRole("switch", { name: "Sitio web" }));
+      fireEvent.change(screen.getByLabelText("Enlace de Sitio web"), {
+        target: { value: "http://lusso.mx" },
+      });
+
+      const payload = await save();
+
+      expect(payload.socialCta).toEqual({
+        headline: { text: { es: "Hola" } },
+        primaryAction: null,
+        socials: {
+          instagram: "https://instagram.com/old",
+          url: "https://lusso.mx",
+        },
+      });
+      expect(payload.decorativeIcon).toBe("flower");
+      await screen.findByText("Tema actualizado exitosamente");
+    });
+
+    it("'Usar el heredado' removes the socialCta key on save", async () => {
+      mockedGetEventById.mockResolvedValueOnce(withSocialCta);
+      mockedUpdateEventById.mockResolvedValueOnce(undefined);
+      mockedGetEventTheme.mockResolvedValue({ eventTheme: { socialCta: null } });
+
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          initialThemeOverrides={withSocialCta.themeOverrides as any}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "Usar el heredado" }));
+      const payload = await save();
+
+      expect("socialCta" in payload).toBe(false);
+      expect(payload.decorativeIcon).toBe("flower");
+    });
+
+    it("live-previews the edited texts with the honorees name and the editor locale", () => {
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          honoreesNames=" Ana y Luis "
+          initialThemeOverrides={withSocialCta.themeOverrides as any}
+        />,
+      );
+
+      const preview = screen.getByRole("region", { name: "Vista previa de redes sociales y CTA" });
+      expect(within(preview).getByText("Hola")).toBeTruthy();
+
+      fireEvent.change(screen.getByLabelText(/Texto principal/), {
+        target: { value: "Gracias, {{honoreesName}}" },
+      });
+      expect(within(preview).getByText("Gracias, Ana y Luis")).toBeTruthy();
+
+      fireEvent.click(screen.getByRole("button", { name: "EN" }));
+      // No English headline yet: the preview falls back to Spanish.
+      expect(within(preview).getByText("Gracias, Ana y Luis")).toBeTruthy();
+      expect(within(preview).getByText("EN")).toBeTruthy();
+    });
+
+    it("themes the preview with the resolved event theme it already fetched", async () => {
+      mockedGetEventTheme.mockResolvedValueOnce({
+        eventTheme: {
+          tokens: { background: "#123456", primary: "#aa0000" },
+          socialCta: { socials: { facebook: "https://facebook.com/kit" } },
+        },
+      });
+
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          initialThemeOverrides={FRESH_EVENT.themeOverrides as any}
+        />,
+      );
+
+      await screen.findByText(/Heredado del kit de marca/);
+      const surface = screen.getByTestId("social-cta-preview-surface");
+      expect(surface.style.getPropertyValue("--ep-page-bg")).toBe("#123456");
+      expect(mockedGetEventTheme).toHaveBeenCalledTimes(1);
+    });
+
+    it("blocks saving while the form has errors", () => {
+      render(
+        <EventThemeSection
+          eventId={7}
+          token="tok"
+          initialThemeOverrides={withSocialCta.themeOverrides as any}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole("switch", { name: "WhatsApp" }));
+
+      expect(screen.getByText("Escribe el número de WhatsApp.")).toBeTruthy();
+      expect(
+        (screen.getByRole("button", { name: "Guardar tema" }) as HTMLButtonElement).disabled,
+      ).toBe(true);
     });
   });
 });

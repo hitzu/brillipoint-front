@@ -152,3 +152,29 @@ export function setConfettiShapes(
     decorations: { confetti: { enabled: true, shapes: filtered } },
   });
 }
+
+/**
+ * Replaces `socialCta` wholesale (no deep merge): the backend picks the first
+ * usable block and never merges fields, so networks dropped in the editor must
+ * disappear instead of surviving from the previous override.
+ */
+export function setSocialCta(
+  current: RawThemeOverrides | null | undefined,
+  socialCta: object,
+): RawThemeOverrides {
+  const result = current ? deepClone(current) : {};
+  result.socialCta = deepClone(socialCta);
+  return result;
+}
+
+/**
+ * Removes the event's own `socialCta` so the brand kit block is inherited
+ * again. Deletes the key; never writes `socialCta: null` (rejected by the API).
+ */
+export function clearSocialCta(
+  current: RawThemeOverrides | null | undefined,
+): RawThemeOverrides {
+  const result = current ? deepClone(current) : {};
+  delete result.socialCta;
+  return result;
+}
