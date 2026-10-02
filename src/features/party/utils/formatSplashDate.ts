@@ -1,30 +1,26 @@
-import { parseLocalDate } from "@common/dates";
+import { parseLocalDate } from "../../../Common/dates";
+import { formatDate } from "../i18n/translate";
+import type { Locale } from "../theme/resolveThemeText";
 
-const MONTH_LABELS = [
-  "ENE",
-  "FEB",
-  "MAR",
-  "ABR",
-  "MAY",
-  "JUN",
-  "JUL",
-  "AGO",
-  "SEP",
-  "OCT",
-  "NOV",
-  "DIC",
-];
+/**
+ * Three-letter uppercase month for the splash date (e.g. "SEP" / "AUG").
+ * `Intl` may return "sept." or similar, so dots/spaces are dropped and cut.
+ */
+const formatMonth = (locale: Locale, date: Date) =>
+  formatDate(locale, date, { month: "short" })
+    .replace(/[.\s]/g, "")
+    .slice(0, 3)
+    .toUpperCase();
 
-export const formatSplashDate = (rawDate?: string) => {
+/** Formats an event date as `DD · MON · YYYY` in the guest's language. */
+export const formatSplashDate = (locale: Locale, rawDate?: string) => {
   if (!rawDate) return undefined;
 
   const date = parseLocalDate(rawDate);
   if (Number.isNaN(date.getTime())) return rawDate;
 
   const day = String(date.getDate()).padStart(2, "0");
-  const month = MONTH_LABELS[date.getMonth()];
   const year = date.getFullYear();
 
-  return `${day} · ${month} · ${year}`;
+  return `${day} · ${formatMonth(locale, date)} · ${year}`;
 };
-

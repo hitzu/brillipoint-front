@@ -1,5 +1,6 @@
 import React, { RefObject, useEffect, useState } from "react";
 import styles from "@assets/css/fotobooth.module.css";
+import { useT } from "../../../../i18n/LocaleProvider";
 
 type SaveActionsHintProps = {
   targetRef: RefObject<HTMLElement>;
@@ -12,6 +13,7 @@ const REVEAL_DELAY_MS = 900;
 // the fold. It never shows if the buttons are already on screen, and hides
 // for good once the guest reaches them.
 const SaveActionsHint = ({ targetRef }: SaveActionsHintProps) => {
+  const { t } = useT();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -60,7 +62,7 @@ const SaveActionsHint = ({ targetRef }: SaveActionsHintProps) => {
       aria-hidden={!isVisible}
       tabIndex={isVisible ? 0 : -1}
     >
-      Desliza para guardar tu foto
+      {t("carousel.saveHint")}
       <span className={styles.saveHintArrow} aria-hidden="true">
         <svg
           width="14"

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { inferMimeTypeFromExtension, shareUrl } from "../mediaActions";
+import { inferMimeTypeFromExtension, sharePhoto, shareUrl } from "../mediaActions";
 
 const setNavigator = (value: unknown) => {
   Object.defineProperty(globalThis, "navigator", {
@@ -59,4 +59,34 @@ test("inferMimeTypeFromExtension resolves jpg to image/jpeg", () => {
 
 test("inferMimeTypeFromExtension no longer special-cases gif (GIF feature removed)", () => {
   assert.equal(inferMimeTypeFromExtension("gif"), "application/octet-stream");
+});
+
+test("sharePhoto uses the caller's translated title for the native share sheet", async () => {
+  let sharePayload: { title?: string } | undefined;
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = (async () =>
+    new Response(new Blob(["x"], { type: "image/jpeg" }), {
+      status: 200,
+      headers: { "content-type": "image/jpeg" },
+    })) as typeof fetch;
+  setNavigator({
+    canShare: () => true,
+    share: async (payload: { title?: string }) => {
+      sharePayload = payload;
+    },
+  });
+
+  try {
+    const result = await sharePhoto(
+      "https://example.com/photo.jpg",
+      "Christian",
+      "A keepsake from Christian",
+    );
+
+    assert.equal(result, "shared");
+    assert.equal(sharePayload?.title, "A keepsake from Christian");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

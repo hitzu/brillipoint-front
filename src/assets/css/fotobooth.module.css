@@ -388,6 +388,13 @@
   gap: 8px;
 }
 
+.carouselHeaderEnd {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .carouselLogo {
   font-family: var(--ep-font-heading, "Dancing Script"), cursive;
   font-size: clamp(30px, 9vw, 42px);
@@ -1023,6 +1030,61 @@
   transform: none;
   box-shadow: 0 6px 24px rgba(var(--ep-primary-btn-bg-rgb, 17, 24, 39), 0.2);
 }
+
+/* Tertiary gallery action: below save/share and in the success modal.
+   Quieter than both: no fill, dashed hairline, accent-tinted text. */
+.viewAllPhotosRow {
+  padding: 0 20px 14px;
+  flex-shrink: 0;
+}
+
+
+.btnViewAllPhotos {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 16px;
+  /* Tertiary to Guardar/Compartir, but a solid tinted surface so it never
+     reads as disabled: guests reach it right after saving. */
+  border: 1.5px solid rgba(var(--ep-accent-rgb, 55, 65, 81), 0.35);
+  background: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--ep-font-body, "Public Sans"), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ep-accent, #374151);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.btnViewAllPhotos:hover {
+  background: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.14);
+  border-color: rgba(var(--ep-accent-rgb, 55, 65, 81), 0.5);
+}
+
+.btnViewAllPhotos:active {
+  transform: scale(0.98);
+}
+
+.btnViewAllPhotos:focus-visible {
+  outline: 2px solid rgba(var(--ep-accent-rgb, 55, 65, 81), 0.6);
+  outline-offset: 2px;
+}
+
+.btnViewAllPhotos:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+}
+
+
 
 .sessionInlineCta {
   position: relative;

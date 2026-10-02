@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styles from "@assets/css/fotobooth.module.css";
+import { useT } from "../../../../i18n/LocaleProvider";
 
 type ShareFallbackModalProps = {
   onClose: () => void;
@@ -14,6 +15,7 @@ const ShareFallbackModal = ({
   onDownload,
   previewUrl,
 }: ShareFallbackModalProps) => {
+  const { t } = useT();
   const [copied, setCopied] = useState(false);
 
   return (
@@ -28,23 +30,25 @@ const ShareFallbackModal = ({
           type="button"
           className={styles.shareFallbackClose}
           onClick={onClose}
-          aria-label="Cerrar"
+          aria-label={t("carousel.shareFallback.close")}
         >
           ✕
         </button>
 
-        <p className={styles.shareFallbackEyebrow}>Compartir manualmente</p>
+        <p className={styles.shareFallbackEyebrow}>
+          {t("carousel.shareFallback.eyebrow")}
+        </p>
         <h3 className={styles.shareFallbackTitle}>
-          Tu navegador no soporta compartir archivos
+          {t("carousel.shareFallback.title")}
         </h3>
         <p className={styles.shareFallbackText}>
-          Puedes descargar la imagen o copiar el link de la sesión.
+          {t("carousel.shareFallback.text")}
         </p>
 
         <div className={styles.shareFallbackPreviewCard}>
           <img
             src={previewUrl}
-            alt="Vista previa del archivo generado"
+            alt={t("carousel.shareFallback.previewAlt")}
             className={styles.shareFallbackPreviewImage}
           />
         </div>
@@ -55,7 +59,7 @@ const ShareFallbackModal = ({
             className={styles.shareFallbackPrimary}
             onClick={onDownload}
           >
-            Descargar
+            {t("carousel.shareFallback.download")}
           </button>
           <button
             type="button"
@@ -65,7 +69,9 @@ const ShareFallbackModal = ({
               setCopied(success);
             }}
           >
-            {copied ? "Link copiado" : "Copiar link"}
+            {copied
+              ? t("carousel.shareFallback.linkCopied")
+              : t("carousel.shareFallback.copyLink")}
           </button>
         </div>
       </div>

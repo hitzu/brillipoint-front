@@ -1,13 +1,15 @@
-export const rewardPromoCopy = {
-  triggerAriaLabel: "Abrir información del regalo",
-  eyebrowLabel: "BENEFICIO ESPECIAL",
-  leadLine: "Publica tu foto del evento",
-  supportLine: "en alguna de tus redes usando el",
-  shareLabel: "boton compartir",
-  closingLinePrefix: "Etiqueta a",
-  handleLabel: "@brillipoint",
-  closingLineSuffix: "y recibe un",
-  rewardLabel: "regalo en tu proximo servicio",
-} as const;
+import { en } from "../../../i18n/dictionaries/en";
+import { es } from "../../../i18n/dictionaries/es";
+import type { Dictionary } from "../../../i18n/types";
+import type { Locale } from "../../../theme/resolveThemeText";
 
-export type RewardPromoCopy = typeof rewardPromoCopy;
+export type RewardPromoCopy = Dictionary["carousel"]["rewardPromo"];
+
+const REWARD_PROMO_COPY: Record<Locale, RewardPromoCopy> = {
+  es: es.carousel.rewardPromo,
+  en: en.carousel.rewardPromo,
+};
+
+/** Reward promo copy for the guest's language (lives in the i18n dictionary). */
+export const getRewardPromoCopy = (locale: Locale): RewardPromoCopy =>
+  REWARD_PROMO_COPY[locale];

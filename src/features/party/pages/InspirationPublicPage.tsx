@@ -17,6 +17,8 @@ import { useEventTheme } from "../hooks/useEventTheme";
 import { isFreshThemeCacheEnabled } from "../utils/freshThemeCache";
 import { useSocialCtaViewModel } from "../hooks/useSocialCtaViewModel";
 import { resolveImageAlt } from "../theme/resolveImageAlt";
+import LanguageToggle from "../components/LanguageToggle";
+import { useT, withLocaleProvider } from "../i18n/LocaleProvider";
 import { shouldRenderDecoration } from "../theme/shouldRenderDecoration";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -34,50 +36,16 @@ const POSES: Record<PoseGroup, string[]> = {
   "3": [1, 2, 3, 4].map((n) => `/inspiracion/3/pose_3_${n}.png`),
 };
 
+/** Step copy lives in the dictionary under `inspiration.steps.<id>`. */
 const TUTORIAL_STEPS = [
-  {
-    icon: "🎭",
-    shortLabel: "Accesorios",
-    title: "Elige los accesorios",
-    desc: "Sombreros, lentes, letreros y más. Toma lo que te haga sentir bien.",
-  },
-  {
-    icon: "📸",
-    shortLabel: "Posa",
-    title: "Posa para tu foto",
-    desc: "Nuestro equipo te guía con la pose. Solo disfruta y brilla.",
-  },
-  {
-    icon: "🔄",
-    shortLabel: "Cambia",
-    title: "Cambia de accesorios",
-    desc: "Atrévete con otra vibra. La cabina es tuya, no hay prisa.",
-  },
-  {
-    icon: "✨",
-    shortLabel: "Posa",
-    title: "Posa de nuevo",
-    desc: "Otra ronda, otra energía. Tantas como necesites para tu foto perfecta.",
-  },
-  {
-    icon: "🖼️",
-    shortLabel: "Recoge",
-    title: "Pasa por tu foto impresa",
-    desc: "Recibes 2 copias al instante. Una es tuya, la otra para el libro.",
-  },
-  {
-    icon: "✍️",
-    shortLabel: "Firma",
-    title: "Firma con una dedicatoria",
-    desc: "Pega tu foto en el libro y déjales unas palabras especiales.",
-  },
-  {
-    icon: "📲",
-    shortLabel: "Descarga",
-    title: "Escanea y comparte",
-    desc: "En tu QR tienes todas tus fotos digitales para compartir donde quieras.",
-  },
-];
+  { id: "accessories", icon: "🎭" },
+  { id: "pose", icon: "📸" },
+  { id: "switch", icon: "🔄" },
+  { id: "poseAgain", icon: "✨" },
+  { id: "pickUp", icon: "🖼️" },
+  { id: "sign", icon: "✍️" },
+  { id: "download", icon: "📲" },
+] as const;
 
 const PERSON_FILTERS: {
   key: PoseGroup;
@@ -90,11 +58,7 @@ const PERSON_FILTERS: {
   { key: "3", silhouettes: 3 },
 ];
 
-const DEDICATION_TIPS = [
-  "Copia una frase y agrega algo personal al final.",
-  'Firma con un detalle: "Ej. tu prima Caro de Puebla".',
-  "Si te equivocas, no te preocupes. Lo hecho a mano siempre es más bonito.",
-];
+const DEDICATION_TIPS = ["personal", "signature", "mistakes"] as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -212,6 +176,7 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
   const stepsScrollRef = useRef<HTMLDivElement>(null);
   const stepElRefs = useRef<(HTMLDivElement | null)[]>([]);
   const source = readSourceFromRouter(router);
+  const { t, locale } = useT();
 
   const resolvedToken =
     eventToken ||
@@ -311,8 +276,13 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
       style={buildThemeVars(pageTheme)}
     >
       <Head>
-        <title>Inspiración{eventName ? ` - ${eventName}` : ""}</title>
+        <title>
+          {eventName
+            ? t("inspiration.pageTitleWithNames", { names: eventName })
+            : t("inspiration.pageTitle")}
+        </title>
       </Head>
+      <LanguageToggle variant="floating" />
       {shouldRenderDecoration(eventTheme.decorations, "sparkles") && (
         <Sparkles />
       )}
@@ -324,7 +294,7 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={eventTheme.images.logo.url}
-              alt={resolveImageAlt(eventTheme.images.logo.alt) || "Logo"}
+              alt={resolveImageAlt(eventTheme.images.logo.alt, locale) || "Logo"}
               className={styles.logoImg}
             />
           ) : (
@@ -349,7 +319,7 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
             aria-expanded={tutorialOpen}
           >
             <span className={styles.tutorialTitle}>
-              📸 ¿Cómo funciona tu sesión?
+              {t("inspiration.tutorialTitle")}
             </span>
             <span
               className={`${styles.chevron} ${tutorialOpen ? styles.chevronOpen : ""}`}
@@ -367,14 +337,17 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
               <>
                 <div className={styles.tutorialProgressRow}>
                   <span className={styles.tutorialProgressLabel}>
-                    Paso {focusedStep + 1}/{TUTORIAL_STEPS.length}
+                    {t("inspiration.stepProgress", {
+                      current: focusedStep + 1,
+                      total: TUTORIAL_STEPS.length,
+                    })}
                   </span>
                   <div className={styles.tutorialDots}>
                     {TUTORIAL_STEPS.map((_, i) => (
                       <button
                         key={i}
                         type="button"
-                        aria-label={`Ir al paso ${i + 1}`}
+                        aria-label={t("inspiration.goToStep", { number: i + 1 })}
                         className={`${styles.tutorialDot} ${focusedStep === i ? styles.tutorialDotActive : ""}`}
                         onClick={() => {
                           setFocusedStep(i);
@@ -401,12 +374,14 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
                       <div className={styles.tutorialStepIcon}>{s.icon}</div>
                       <div className={styles.tutorialStepContent}>
                         <div className={styles.tutorialStepLabel}>
-                          PASO {i + 1}
+                          {t("inspiration.stepLabel", { number: i + 1 })}
                         </div>
                         <div className={styles.tutorialStepTitle}>
-                          {s.title}
+                          {t(`inspiration.steps.${s.id}.title`)}
                         </div>
-                        <div className={styles.tutorialStepDesc}>{s.desc}</div>
+                        <div className={styles.tutorialStepDesc}>
+                          {t(`inspiration.steps.${s.id}.desc`)}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -419,12 +394,15 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
                     <button
                       type="button"
                       className={styles.tutorialCompactStep}
-                      aria-label={`Ver paso ${i + 1}: ${s.title}`}
+                      aria-label={t("inspiration.viewStep", {
+                        number: i + 1,
+                        title: t(`inspiration.steps.${s.id}.title`),
+                      })}
                       onClick={() => handleCompactStepClick(i)}
                     >
                       <div className={styles.tutorialCompactIcon}>{s.icon}</div>
                       <div className={styles.tutorialCompactLabel}>
-                        {s.shortLabel}
+                        {t(`inspiration.steps.${s.id}.shortLabel`)}
                       </div>
                     </button>
                     {i < TUTORIAL_STEPS.length - 1 && (
@@ -448,16 +426,18 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
 
       {/* ── Sticky tabs ──────────────────────────────────────────────────── */}
       <div className={styles.stickyTabs} role="tablist">
-        {(["poses", "frases"] as const).map((t) => (
+        {(["poses", "frases"] as const).map((tabKey) => (
           <button
-            key={t}
+            key={tabKey}
             role="tab"
-            aria-selected={tab === t}
-            className={`${styles.tabBtn} ${tab === t ? styles.tabBtnActive : ""}`}
-            onClick={() => setTab(t)}
+            aria-selected={tab === tabKey}
+            className={`${styles.tabBtn} ${tab === tabKey ? styles.tabBtnActive : ""}`}
+            onClick={() => setTab(tabKey)}
           >
-            {t === "poses" ? "📸 Poses" : "💌 Frases"}
-            {tab === t && (
+            {tabKey === "poses"
+              ? t("inspiration.tabs.poses")
+              : t("inspiration.tabs.phrases")}
+            {tab === tabKey && (
               <span className={styles.tabIndicator} aria-hidden="true" />
             )}
           </button>
@@ -468,7 +448,7 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
       {tab === "poses" ? (
         <section className={styles.tabContent}>
           <div className={styles.posesIntro}>
-            <p className={styles.posesTitle}>¿No sabes qué pose hacer?</p>
+            <p className={styles.posesTitle}>{t("inspiration.posesTitle")}</p>
           </div>
 
           <div className={styles.personFilterWrap}>
@@ -504,7 +484,7 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={url}
-                  alt={`Pose ${i + 1}`}
+                  alt={t("inspiration.poseAlt", { number: i + 1 })}
                   className={styles.poseImg}
                   loading="lazy"
                 />
@@ -515,19 +495,24 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
       ) : (
         <section className={styles.tabContent}>
           <div className={styles.frasesIntro}>
-            <p className={styles.frasesTitle}>Frases para tu dedicatoria</p>
+            <p className={styles.frasesTitle}>
+              {t("inspiration.phrasesTitle")}
+            </p>
             {eventName && (
               <p className={styles.frasesSubtitle}>
-                Inspírate con estas frases para el libro de{" "}
-                <strong>{eventName}</strong>.
+                {t("inspiration.phrasesSubtitleBeforeName")}{" "}
+                <strong>{eventName}</strong>
+                {t("inspiration.phrasesSubtitleAfterName")}
               </p>
             )}
           </div>
 
           {phrases.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>Estamos preparando las frases para este evento ✨</p>
-              <p className={styles.emptyStateSub}>Vuelve en unos minutos.</p>
+              <p>{t("inspiration.phrasesEmpty")}</p>
+              <p className={styles.emptyStateSub}>
+                {t("inspiration.phrasesEmptyHint")}
+              </p>
             </div>
           ) : (
             <div className={styles.phrasesList}>
@@ -541,12 +526,12 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
           )}
 
           <div className={styles.tipBoxPurple}>
-            <p className={styles.tipBoxTitle}>💡 Tips para tu dedicatoria</p>
+            <p className={styles.tipBoxTitle}>{t("inspiration.tipsTitle")}</p>
             <ul className={styles.tipList}>
-              {DEDICATION_TIPS.map((tip, i) => (
-                <li key={i} className={styles.tipItem}>
+              {DEDICATION_TIPS.map((tip) => (
+                <li key={tip} className={styles.tipItem}>
                   <span className={styles.tipDot} aria-hidden="true" />
-                  {tip}
+                  {t(`inspiration.tips.${tip}`)}
                 </li>
               ))}
             </ul>
@@ -559,4 +544,4 @@ const InspirationPublicPage = ({ eventToken }: InspirationPublicPageProps) => {
   );
 };
 
-export default InspirationPublicPage;
+export default withLocaleProvider(InspirationPublicPage);

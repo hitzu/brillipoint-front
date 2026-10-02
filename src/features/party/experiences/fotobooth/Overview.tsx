@@ -7,7 +7,9 @@ import {
 } from "../../../../interfaces/eventGallery";
 import { OverviewProps } from "../types";
 import { buildThemeVars } from "../../utils/themeVars";
-import { parseLocalDate } from "@common/dates";
+import LanguageToggle from "../../components/LanguageToggle";
+import { useT } from "../../i18n/LocaleProvider";
+import { formatOverviewDate } from "../../utils/formatOverviewDate";
 import { AnalyticsAction } from "../../../../interfaces";
 import { trackEvent } from "../../../../api/services/eventAnalyticsService";
 
@@ -160,16 +162,6 @@ const SessionCard = ({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const formatDate = (iso: string) => {
-  const d = parseLocalDate(iso);
-  if (isNaN(d.getTime())) return iso;
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-
-  return `${day}.${month}.${year}`;
-};
-
 const getAlbumPhrase = (eventData: SessionEventData | null) =>
   eventData?.albumPhrase || eventData?.albumPhase || "";
 
@@ -187,6 +179,7 @@ const FotoBoothOverview = ({
   theme,
   socialCta,
 }: OverviewProps) => {
+  const { locale, t } = useT();
   const isEmpty = sessions.length === 0;
   const coverUrls = sessions
     .map((s) => s.coverPhoto)
@@ -198,11 +191,11 @@ const FotoBoothOverview = ({
 
   useEffect(() => {
     if (coverUrls.length <= 1) return;
-    const t = setInterval(
+    const interval = setInterval(
       () => setActiveSlide((s) => (s + 1) % slideCount),
       3200,
     );
-    return () => clearInterval(t);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slideCount]);
 
@@ -228,7 +221,7 @@ const FotoBoothOverview = ({
     document.getElementById("sesiones")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const dateLabel = eventData?.date ? formatDate(eventData.date) : "";
+  const dateLabel = formatOverviewDate(locale, eventData?.date);
   const albumPhrase = getAlbumPhrase(eventData);
 
   const handleSessionClick = (
@@ -276,6 +269,7 @@ const FotoBoothOverview = ({
 
   return (
     <div className={styles.page} style={theme ? buildThemeVars(theme) : undefined}>
+      <LanguageToggle variant="floating" />
       {!isEmpty && (
         <section className={styles.mirrorHero}>
           {coverUrls.length > 0 ? (
@@ -299,7 +293,7 @@ const FotoBoothOverview = ({
               <p className={styles.mirrorPhrase}>{albumPhrase}</p>
             )}
             <h1 className={styles.mirrorName}>
-              {eventData?.honoreesNames ?? "Bienvenido"}
+              {eventData?.honoreesNames ?? t("overview.welcome")}
             </h1>
             {dateLabel && <p className={styles.mirrorDate}>{dateLabel}</p>}
           </div>
@@ -307,7 +301,7 @@ const FotoBoothOverview = ({
             type="button"
             className={styles.mirrorScrollHint}
             onClick={handleVerFotos}
-            aria-label="Desliza para ver las fotos"
+            aria-label={t("overview.scrollHint")}
           >
             <IconChevronDown />
           </button>
@@ -327,16 +321,13 @@ const FotoBoothOverview = ({
                 <p className={styles.emptyTitle}>{albumPhrase}</p>
               )}
               <h1 className={styles.emptyEventName}>
-                {eventData?.honoreesNames ?? "Bienvenido"}
+                {eventData?.honoreesNames ?? t("overview.welcome")}
               </h1>
               {dateLabel && (
                 <p className={styles.emptyEventDate}>{dateLabel}</p>
               )}
             </div>
-            <p className={styles.emptySub}>
-              Las fotos de tu fiesta aparecerán aquí en cuanto comiencen las
-              sesiones
-            </p>
+            <p className={styles.emptySub}>{t("overview.emptySubtitle")}</p>
             <div className={styles.emptyDots}>
               <div className={styles.emptyDot} />
               <div className={styles.emptyDot} />
@@ -356,8 +347,8 @@ const FotoBoothOverview = ({
                 aria-busy={isViewAllPhotosLoading}
               >
                 {isViewAllPhotosLoading
-                  ? "Cargando fotos…"
-                  : "Ver todas las fotos del evento"}
+                  ? t("overview.loadingPhotos")
+                  : t("overview.viewAllPhotos")}
               </button>
             )}
             <div className={styles.sessionsGrid}>
@@ -376,13 +367,13 @@ const FotoBoothOverview = ({
           <div className={styles.emptyActions}>
             <button className={styles.btnSecondary} onClick={handleShare}>
               <IconShare />
-              Compartir enlace
+              {t("overview.shareLink")}
             </button>
             <div
               className={`${styles.shareToast} ${showToast ? styles.shareToastVisible : ""}`}
             >
               <IconCheck />
-              Enlace copiado ✦
+              {t("overview.linkCopied")}
             </div>
           </div>
         )}

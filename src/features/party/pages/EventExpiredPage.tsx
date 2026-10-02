@@ -5,6 +5,8 @@ import { RecoverPhotosCTA } from "../components/RecoverPhotosCTA";
 import { SocialCta } from "../components/SocialCta";
 import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
 import { resolveImageAlt } from "../theme/resolveImageAlt";
+import LanguageToggle from "../components/LanguageToggle";
+import { useT } from "../i18n/LocaleProvider";
 import { EventPageTheme } from "../types/eventPageTheme";
 import { ThemeImages } from "../types/themeContract";
 import { buildThemeVars } from "../utils/themeVars";
@@ -41,6 +43,7 @@ export function EventExpiredPage({
   images,
 }: EventExpiredPageProps) {
   const hasTrackedView = useRef(false);
+  const { t, locale } = useT();
 
   const trackExpiredEvent = (intent: ExpiredIntent) => {
     trackEvent(expiredEventFor(surface, intent), eventToken, {
@@ -67,13 +70,14 @@ export function EventExpiredPage({
       className={styles.page}
       style={theme ? buildThemeVars(theme) : undefined}
     >
+      <LanguageToggle variant="floating" />
       <section className={styles.card}>
         <div className={styles.logoBadge}>
           {images?.logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={images.logo.url}
-              alt={resolveImageAlt(images.logo.alt) || "Logo"}
+              alt={resolveImageAlt(images.logo.alt, locale) || "Logo"}
               className={styles.logo}
             />
           ) : (
@@ -85,12 +89,9 @@ export function EventExpiredPage({
             />
           )}
         </div>
-        <p className={styles.kicker}>Evento finalizado</p>
-        <h1 className={styles.title}>Gracias por acompañar a {eventName}</h1>
-        <p className={styles.message}>
-          Las fotos de este evento ya no están disponibles porque han pasado 30
-          días desde la celebración.
-        </p>
+        <p className={styles.kicker}>{t("expired.kicker")}</p>
+        <h1 className={styles.title}>{t("expired.title", { eventName })}</h1>
+        <p className={styles.message}>{t("expired.message")}</p>
 
         <div className={styles.divider} />
 
@@ -101,10 +102,8 @@ export function EventExpiredPage({
         />
 
         <div className={styles.recoverSection}>
-          <p className={styles.recoverTitle}>¿Aún necesitas las fotos?</p>
-          <p className={styles.recoverCopy}>
-            Si todavía las quieres, podemos recuperarlas para ti.
-          </p>
+          <p className={styles.recoverTitle}>{t("expired.recoverTitle")}</p>
+          <p className={styles.recoverCopy}>{t("expired.recoverCopy")}</p>
           <RecoverPhotosCTA
             eventName={eventName}
             eventDate={eventDate}

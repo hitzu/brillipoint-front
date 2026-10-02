@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { axiosInstanceWithoutToken } from "../../../api/config/axiosConfig";
@@ -10,7 +10,11 @@ import {
 } from "../../../interfaces/eventGallery";
 import styles from "@assets/css/party-public.module.css";
 import { getEventGallerySessionV2 } from "../../../api/services/partyPublicService";
-import { buildSessionItems, getPhotoItems } from "../utils/buildSessionItems";
+import {
+  buildSessionItems,
+  getPhotoItems,
+  localizeSessionItems,
+} from "../utils/buildSessionItems";
 import {
   isExpiredEventStatus,
   isExpiredSessionStatus,
@@ -24,6 +28,8 @@ import { useSocialCtaViewModel } from "../hooks/useSocialCtaViewModel";
 import { SessionItem } from "../types/session";
 import { readSourceFromRouter } from "../utils/sourceTracking";
 import { EventExpiredPage } from "./EventExpiredPage";
+import { useT, withLocaleProvider } from "../i18n/LocaleProvider";
+import type { TranslationKey } from "../i18n/types";
 
 type PageState = "loading" | "ready" | "empty" | "error" | "expired";
 const SPLASH_DURATION_MS = 3200;
@@ -39,6 +45,8 @@ const EmptyStateEnCamino = ({
   sessionToken: string;
   theme?: EventPageTheme;
 }) => {
+  const { locale, t } = useT();
+
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -59,13 +67,15 @@ const EmptyStateEnCamino = ({
       style={theme ? buildThemeVars(theme) : undefined}
     >
       <p className={styles.emptyTitle}>
-        Tus fotos del evento de{" "}
-        <strong>{eventData?.honoreesNames ?? "tu evento"}</strong> están en
-        camino ✨
+        {t("misFotos.empty.titleBeforeNames")}{" "}
+        <strong>
+          {eventData?.honoreesNames ?? t("misFotos.fallbackEventName")}
+        </strong>{" "}
+        {t("misFotos.empty.titleAfterNames")}
       </p>
       {eventData?.date && (
         <p className={styles.emptySubtitle}>
-          {formatSplashDate(eventData.date)}
+          {formatSplashDate(locale, eventData.date)}
         </p>
       )}
     </div>
@@ -79,43 +89,52 @@ const EmptyStateError = ({
   eventData: SessionEventData | null;
   sessionToken: string;
   theme?: EventPageTheme;
-}) => (
-  <div
-    className={styles.centerState}
-    style={theme ? buildThemeVars(theme) : undefined}
-  >
-    <p className={styles.emptyTitle}>
-      Estamos teniendo problemas de conexión en{" "}
-      <strong>{eventData?.honoreesNames ?? "tu evento"}</strong> ✨
-    </p>
-    {eventData?.date && (
-      <p className={styles.emptySubtitle}>
-        {formatSplashDate(eventData.date)} · Mientras tanto puedes ir por tu foto impresa
-      </p>
-    )}
-    <button
-      className={styles.retryBtn}
-      onClick={() => window.location.reload()}
+}) => {
+  const { locale, t } = useT();
+
+  return (
+    <div
+      className={styles.centerState}
+      style={theme ? buildThemeVars(theme) : undefined}
     >
-      Reintentar
-    </button>
-  </div>
-);
+      <p className={styles.emptyTitle}>
+        {t("misFotos.error.titleBeforeNames")}{" "}
+        <strong>
+          {eventData?.honoreesNames ?? t("misFotos.fallbackEventName")}
+        </strong>{" "}
+        {t("misFotos.error.titleAfterNames")}
+      </p>
+      {eventData?.date && (
+        <p className={styles.emptySubtitle}>
+          {t("misFotos.error.dateHint", {
+            date: formatSplashDate(locale, eventData.date) ?? "",
+          })}
+        </p>
+      )}
+      <button
+        className={styles.retryBtn}
+        onClick={() => window.location.reload()}
+      >
+        {t("misFotos.error.retry")}
+      </button>
+    </div>
+  );
+};
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function MisFotosPage({
-  sessionToken,
-}: {
-  sessionToken: string;
-}) {
+function MisFotosPage({ sessionToken }: { sessionToken: string }) {
   const router = useRouter();
+  const { locale, t } = useT();
   const [pageState, setPageState] = useState<PageState>("loading");
   const [items, setItems] = useState<SessionItem[]>([]);
   const [photos, setPhotos] = useState<SessionPhoto[]>([]);
   const [eventData, setEventData] = useState<SessionEventData | null>(null);
   const [showSplash, setShowSplash] = useState(true);
-  const [splashStep, setSplashStep] = useState("Preparando la experiencia");
+  // Holds the key, not the copy, so the label follows a language switch.
+  const [splashStep, setSplashStep] = useState<TranslationKey>(
+    "misFotos.splash.preparing",
+  );
   const [themeEventToken, setThemeEventToken] = useState<string | null>(null);
   const [themeReadyOverride, setThemeReadyOverride] = useState(false);
 
@@ -131,19 +150,24 @@ export default function MisFotosPage({
   // gets eventData. The splash waits only on this — the session/photos keep
   // loading in the background and render their own loading state once the
   // splash ends.
-  const { eventTheme, pageTheme, status: themeStatus } =
-    useEventTheme(
-      router.isReady ? themeEventToken : undefined,
-      freshTheme,
-    );
+  const {
+    eventTheme,
+    pageTheme,
+    status: themeStatus,
+  } = useEventTheme(router.isReady ? themeEventToken : undefined, freshTheme);
   const socialCta = useSocialCtaViewModel(eventTheme);
+  // Alt texts follow a language switch made after the session loaded.
+  const localizedItems = useMemo(
+    () => localizeSessionItems(items, locale, eventData?.honoreesNames),
+    [items, locale, eventData?.honoreesNames],
+  );
   const themeReady = themeEventToken
     ? themeStatus !== "default"
     : themeReadyOverride;
 
   const fetchSession = async () => {
     try {
-      setSplashStep("Buscando tu sesión de fotos");
+      setSplashStep("misFotos.splash.findingSession");
       const session = await getEventGallerySessionV2(sessionToken);
       setEventData(session?.event ?? null);
 
@@ -163,7 +187,7 @@ export default function MisFotosPage({
         return;
       }
 
-      const sessionItems = buildSessionItems(session);
+      const sessionItems = buildSessionItems(session, locale);
       const orderedPhotos: SessionPhoto[] = getPhotoItems(sessionItems).map(
         (item) => ({
           // `SessionPhoto.url` is contractually the ORIGINAL — never the
@@ -183,7 +207,7 @@ export default function MisFotosPage({
         return;
       }
 
-      setSplashStep("Revelando tus fotos");
+      setSplashStep("misFotos.splash.revealing");
       setPhotos(orderedPhotos);
       setPageState("ready");
     } catch (error) {
@@ -207,7 +231,7 @@ export default function MisFotosPage({
   // Por ahora el factory devuelve siempre fotoBoothExperience.
   const { Splash, Carousel } = getExperience(eventData?.eventTheme?.key);
   const theme = pageTheme;
-  const splashDate = formatSplashDate(eventData?.date);
+  const splashDate = formatSplashDate(locale, eventData?.date);
 
   if (showSplash) {
     return (
@@ -215,7 +239,7 @@ export default function MisFotosPage({
         honoreesNames={eventData?.honoreesNames}
         date={splashDate}
         isReady={themeReady}
-        stepLabel={splashStep}
+        stepLabel={t(splashStep)}
         onComplete={() => setShowSplash(false)}
         duration={SPLASH_DURATION_MS}
         canFinish={themeReady}
@@ -232,7 +256,7 @@ export default function MisFotosPage({
         className={styles.centerState}
         style={theme ? buildThemeVars(theme) : undefined}
       >
-        <p className={styles.emptyTitle}>Cargando tus fotos...</p>
+        <p className={styles.emptyTitle}>{t("misFotos.loading")}</p>
       </div>
     );
   }
@@ -277,12 +301,15 @@ export default function MisFotosPage({
     <>
       <Head>
         <title>
-          Mis Fotos
-          {eventData?.honoreesNames ? ` - ${eventData.honoreesNames}` : ""}
+          {eventData?.honoreesNames
+            ? t("misFotos.pageTitleWithNames", {
+                names: eventData.honoreesNames,
+              })
+            : t("misFotos.pageTitle")}
         </title>
       </Head>
       <Carousel
-        items={items}
+        items={localizedItems}
         photos={photos}
         eventData={eventData!}
         eventToken={eventData?.eventToken}
@@ -294,3 +321,5 @@ export default function MisFotosPage({
     </>
   );
 }
+
+export default withLocaleProvider(MisFotosPage);

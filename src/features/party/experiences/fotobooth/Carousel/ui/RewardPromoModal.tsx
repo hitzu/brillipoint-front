@@ -32,7 +32,7 @@ const RewardPromoModal = ({
           type="button"
           className={styles.rewardPromoCloseBtn}
           onClick={onClose}
-          aria-label="Cerrar promoción"
+          aria-label={copy.closeAriaLabel}
         >
           ✕
         </button>

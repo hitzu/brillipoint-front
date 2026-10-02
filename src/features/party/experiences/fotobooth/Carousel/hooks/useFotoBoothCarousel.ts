@@ -16,20 +16,22 @@ import { useFotoBoothCarouselStore } from "../stores/useFotoBoothCarouselStore";
 import { buildFallbackItems } from "../types";
 import { appendSourceToPath } from "../../../../utils/sourceTracking";
 import { SocialPlatform } from "../../../../components/SocialCta";
+import { Translator, useT } from "../../../../i18n/LocaleProvider";
 
 const SWIPE_THRESHOLD_PX = 40;
 
-const formatDate = (isoDate: string) => {
+const formatEventDate = (
+  formatDate: Translator["formatDate"],
+  isoDate: string,
+) => {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) return isoDate;
 
-  return date
-    .toLocaleDateString("es-MX", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })
-    .toUpperCase();
+  return formatDate(date, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).toUpperCase();
 };
 
 export const useFotoBoothCarousel = ({
@@ -41,6 +43,7 @@ export const useFotoBoothCarousel = ({
   source = "direct",
 }: CarouselProps) => {
   const router = useRouter();
+  const { t, formatDate } = useT();
   const pointerStartX = useRef<number | null>(null);
 
   const {
@@ -67,14 +70,22 @@ export const useFotoBoothCarousel = ({
   const normalizedItems =
     items && items.length > 0
       ? items
-      : buildFallbackItems(photos.map((photo) => photo.url));
+      : buildFallbackItems(
+          photos.map((photo) => photo.url),
+          (number) => t("carousel.photoAlt", { number }),
+        );
 
   const activeItem = normalizedItems[index] ?? null;
-  const activeItemState = itemStates[index] ?? { retryCount: 0, status: "idle" };
+  const activeItemState = itemStates[index] ?? {
+    retryCount: 0,
+    status: "idle",
+  };
   const canNavigate = normalizedItems.length > 1;
   const resolvedEventToken = eventToken ?? eventData.eventToken;
   const canOpenGallery = Boolean(resolvedEventToken);
-  const formattedDate = eventData.date ? formatDate(eventData.date) : "";
+  const formattedDate = eventData.date
+    ? formatEventDate(formatDate, eventData.date)
+    : "";
 
   const trackSessionEvent = (
     action: AnalyticsAction,
@@ -96,7 +107,7 @@ export const useFotoBoothCarousel = ({
 
   const buildOriginalItemFile = async () => {
     if (!activeItem) {
-      throw new Error("No hay un item activo para exportar.");
+      throw new Error("There is no active item to export.");
     }
 
     return fetchRemoteFile(
@@ -125,7 +136,10 @@ export const useFotoBoothCarousel = ({
     if (!activeItem) return;
 
     const eventName = eventData.honoreesNames?.trim() || "Brillipoint";
-    const shareResult = await shareFile(file, `${eventName} · original`);
+    const shareResult = await shareFile(
+      file,
+      t("carousel.shareTitle", { name: eventName }),
+    );
 
     if (shareResult === "shared") {
       trackSessionEvent(AnalyticsAction.SHARE_CONFIRM_EXECUTED, {

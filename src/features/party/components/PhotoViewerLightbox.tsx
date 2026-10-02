@@ -13,6 +13,7 @@ import { useModalStateMachine } from "../hooks/useModalStateMachine";
 import { PostActionConfirmation } from "./PostActionConfirmation";
 import { SocialPlatform } from "./SocialCta";
 import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
+import { useT } from "../i18n/LocaleProvider";
 
 type PhotoViewerLightboxProps = {
   isOpen: boolean;
@@ -57,6 +58,7 @@ const PhotoViewerLightbox = ({
   themeVars,
   socialCta,
 }: PhotoViewerLightboxProps) => {
+  const { t } = useT();
   const [currentIndex, setCurrentIndex] = React.useState(activeIndex ?? 0);
   const [hintVisible, setHintVisible] = useState(false);
   const { state: modalState, dispatch, reset } = useModalStateMachine();
@@ -206,7 +208,7 @@ const PhotoViewerLightbox = ({
             type="button"
             className={styles.viewerClose}
             onClick={handleClose}
-            aria-label="Volver a la galería"
+            aria-label={t("lightbox.backAriaLabel")}
           >
             <svg
               width="18"
@@ -221,7 +223,7 @@ const PhotoViewerLightbox = ({
             >
               <polyline points="15 18 9 12 15 6" />
             </svg>
-            Volver
+            {t("lightbox.back")}
           </button>
         ),
         buttonPrev: showNavigationUi ? () => null : undefined,
@@ -235,7 +237,7 @@ const PhotoViewerLightbox = ({
                     type="button"
                     className={`${styles.viewerNav} ${styles.viewerNavLeft}`}
                     onClick={handlePrev}
-                    aria-label="Foto anterior"
+                    aria-label={t("lightbox.previousPhoto")}
                   >
                     ‹
                   </button>
@@ -243,7 +245,7 @@ const PhotoViewerLightbox = ({
                     type="button"
                     className={`${styles.viewerNav} ${styles.viewerNavRight}`}
                     onClick={handleNext}
-                    aria-label="Foto siguiente"
+                    aria-label={t("lightbox.nextPhoto")}
                   >
                     ›
                   </button>
@@ -253,7 +255,7 @@ const PhotoViewerLightbox = ({
                 {showNavigationUi && hintVisible ? (
                   <div className={styles.viewerNavigationMeta}>
                     <p className={styles.viewerHint}>
-                      Desliza o usa las flechas para ver mas fotos
+                      {t("lightbox.navigationHint")}
                     </p>
                   </div>
                 ) : null}
@@ -268,9 +270,9 @@ const PhotoViewerLightbox = ({
                               type="button"
                               className={`${styles.btnExperience} ${styles.btnPersonalizar}`}
                               onClick={() => onPersonalize(currentPhoto)}
-                              aria-label="Personalizar foto"
+                              aria-label={t("lightbox.personalizeAriaLabel")}
                             >
-                              Personalizar
+                              {t("lightbox.personalize")}
                             </button>
                           ) : null}
                           {onDedicate ? (
@@ -278,10 +280,12 @@ const PhotoViewerLightbox = ({
                               type="button"
                               className={`${styles.btnExperience} ${styles.btnDedicar}`}
                               onClick={() => onDedicate(currentPhoto)}
-                              aria-label="Dedicar esta foto"
+                              aria-label={t("lightbox.dedicateAriaLabel")}
                             >
-                              Dedicar
-                              <span className={styles.badgeNew}>Nueva</span>
+                              {t("lightbox.dedicate")}
+                              <span className={styles.badgeNew}>
+                                {t("lightbox.newBadge")}
+                              </span>
                             </button>
                           ) : null}
                         </div>
@@ -291,7 +295,7 @@ const PhotoViewerLightbox = ({
                           <button
                             type="button"
                             className={`${styles.btnIcon}${backdropColor ? ` ${styles.btnIconSolid}` : ""}`}
-                            aria-label="Descargar foto"
+                            aria-label={t("lightbox.downloadAriaLabel")}
                             onClick={async () => {
                               await onDownload?.(currentPhoto);
                               dispatch({ type: "DOWNLOAD_ORIGINAL_SUCCESS" });
@@ -316,7 +320,7 @@ const PhotoViewerLightbox = ({
                             <button
                               type="button"
                               className={`${styles.btnIcon}${backdropColor ? ` ${styles.btnIconSolid}` : ""}`}
-                              aria-label="Compartir foto"
+                              aria-label={t("lightbox.shareAriaLabel")}
                               onClick={() =>
                                 dispatch({ type: "OPEN_SHARE_CONFIRM" })
                               }
@@ -378,19 +382,18 @@ const PhotoViewerLightbox = ({
                             onClick={() =>
                               dispatch({ type: "CLOSE_SHARE_CONFIRM" })
                             }
-                            aria-label="Cerrar"
+                            aria-label={t("lightbox.close")}
                           >
                             ✕
                           </button>
                           <p className={styles.endStateTitulo}>
-                            Comparte tu foto y etiqueta a{" "}
+                            {t("lightbox.shareConfirm.titleBeforeHandle")}{" "}
                             <span className={styles.shareHighlight}>
-                              @brillipoint
+                              {t("lightbox.shareConfirm.handle")}
                             </span>
                           </p>
                           <p className={styles.endStateSubtitulo}>
-                            Si nos etiquetas en tus redes, recibes un descuento
-                            en tu próximo servicio.
+                            {t("lightbox.shareConfirm.text")}
                           </p>
                           <button
                             type="button"
@@ -405,6 +408,7 @@ const PhotoViewerLightbox = ({
                               await sharePhoto(
                                 currentPhoto.publicUrl,
                                 eventTitle,
+                                t("lightbox.shareTitle", { name: eventTitle }),
                               );
                               dispatch({ type: "SHARE_SUCCESS" });
                             }}
@@ -422,7 +426,7 @@ const PhotoViewerLightbox = ({
                               <line x1="22" y1="2" x2="11" y2="13" />
                               <polygon points="22 2 15 22 11 13 2 9 22 2" />
                             </svg>
-                            Compartir foto
+                            {t("lightbox.shareConfirm.button")}
                           </button>
                         </div>
                       </div>

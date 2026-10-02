@@ -11,6 +11,7 @@ import SaveActionsHint from "./ui/SaveActionsHint";
 import SessionInlineCta from "./ui/SessionInlineCta";
 import ShareFallbackModal from "./ui/ShareFallbackModal";
 import SuccessCtaModal from "./ui/SuccessCtaModal";
+import ViewAllPhotosButton from "./ui/ViewAllPhotosButton";
 import { buildThemeVars } from "../../../utils/themeVars";
 
 const FotoBoothCarousel = (props: CarouselProps) => {
@@ -107,6 +108,11 @@ const FotoBoothCarousel = (props: CarouselProps) => {
         isBusy={isGeneratingAsset}
         onSave={handleSave}
         onShare={handleShare}
+      />
+
+      <ViewAllPhotosButton
+        disabled={!canOpenGallery}
+        onClick={handleOpenGallery}
       />
 
       <SaveActionsHint targetRef={actionBarRef} />

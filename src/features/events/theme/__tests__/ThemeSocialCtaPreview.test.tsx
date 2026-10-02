@@ -89,6 +89,19 @@ describe("ThemeSocialCtaPreview", () => {
     expect(screen.getByText("Lusso celebra a Kit")).toBeTruthy();
   });
 
+  it("labels the website link in the preview locale", () => {
+    const form = buildForm((f) => {
+      f.socials.url = { enabled: true, value: "lusso.mx" };
+    });
+
+    const { rerender } = render(<ThemeSocialCtaPreview form={form} locale="es" />);
+    expect(screen.getByRole("link", { name: "Sitio web" })).toBeTruthy();
+
+    rerender(<ThemeSocialCtaPreview form={form} locale="en" />);
+    expect(screen.getByRole("link", { name: "Website" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Sitio web" })).toBeNull();
+  });
+
   it("shows an empty state when there is nothing to preview", () => {
     render(<ThemeSocialCtaPreview form={emptySocialCtaForm()} locale="es" />);
 

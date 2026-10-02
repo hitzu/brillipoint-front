@@ -9,12 +9,13 @@ import { shouldRenderDecoration } from "../../theme/shouldRenderDecoration";
 import { resolveImageAlt } from "../../theme/resolveImageAlt";
 import { resolveSplashLayout } from "../../theme/resolveSplashLayout";
 import { CONFETTI_SHAPE_ICON } from "../../components/ConfettiShapeIcons";
+import { useT } from "../../i18n/LocaleProvider";
 
 const FotoBoothSplash = ({
   honoreesNames,
   date,
   isReady = false,
-  stepLabel = "Preparando la experiencia",
+  stepLabel,
   onComplete,
   duration = 3200,
   canFinish = true,
@@ -22,10 +23,11 @@ const FotoBoothSplash = ({
   images,
   decorations,
 }: SplashProps) => {
+  const { locale, t } = useT();
   useEffect(() => {
     if (!canFinish) return;
-    const t = setTimeout(onComplete, duration);
-    return () => clearTimeout(t);
+    const timeout = setTimeout(onComplete, duration);
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canFinish]);
 
@@ -88,7 +90,7 @@ const FotoBoothSplash = ({
     <div className={styles.splashCoverWrap}>
       <img
         src={cover.url}
-        alt={resolveImageAlt(cover.alt)}
+        alt={resolveImageAlt(cover.alt, locale)}
         className={styles.splashCoverImage}
       />
     </div>
@@ -106,7 +108,7 @@ const FotoBoothSplash = ({
       {background && (
         <img
           src={background.url}
-          alt={resolveImageAlt(background.alt)}
+          alt={resolveImageAlt(background.alt, locale)}
           className={styles.splashBackgroundImage}
         />
       )}
@@ -176,7 +178,9 @@ const FotoBoothSplash = ({
             {date && <div className={styles.splashDate}>{date}</div>}
           </>
         ) : (
-          <div className={styles.splashStep}>{stepLabel}</div>
+          <div className={styles.splashStep}>
+            {stepLabel ?? t("fiesta.splash.preparing")}
+          </div>
         )}
 
         <div className={styles.splashSparkles}>

@@ -7,6 +7,7 @@ import {
 } from "../../../../types/session";
 import { SessionEventData } from "../../../../../../interfaces/eventGallery";
 import EffectOverlay from "./EffectOverlay";
+import { useT } from "../../../../i18n/LocaleProvider";
 
 type AssetPickerSheetProps = {
   activeEffect: EffectName;
@@ -33,7 +34,11 @@ const PreviewSurface = ({
 }) => {
   const content = (
     <div className={styles.exportPreviewMedia}>
-      <img src={item.src} alt={item.alt} className={styles.exportPreviewImage} />
+      <img
+        src={item.src}
+        alt={item.alt}
+        className={styles.exportPreviewImage}
+      />
       <EffectOverlay effect={activeEffect} />
     </div>
   );
@@ -65,6 +70,8 @@ const AssetPickerSheet = ({
   onSelectVariant,
   supportsStaticExport,
 }: AssetPickerSheetProps) => {
+  const { t } = useT();
+
   if (!isOpen || !activeItem) return null;
 
   return (
@@ -79,15 +86,19 @@ const AssetPickerSheet = ({
         <div className={styles.exportSheetHeader}>
           <div>
             <div className={styles.exportSheetEyebrow}>
-              {supportsStaticExport ? "Elige formato" : "Exportacion en progreso"}
+              {supportsStaticExport
+                ? t("carousel.exportSheet.chooseFormat")
+                : t("carousel.exportSheet.inProgress")}
             </div>
-            <h3 className={styles.exportSheetTitle}>¿Cómo la quieres?</h3>
+            <h3 className={styles.exportSheetTitle}>
+              {t("carousel.exportSheet.title")}
+            </h3>
           </div>
           <button
             type="button"
             className={styles.exportSheetClose}
             onClick={onClose}
-            aria-label="Cerrar selector"
+            aria-label={t("carousel.exportSheet.close")}
             disabled={isGenerating}
           >
             ✕
@@ -98,7 +109,10 @@ const AssetPickerSheet = ({
 
         <div className={styles.exportOptionsGrid}>
           {(["original", "polaroid"] as ExportVariant[]).map((variant) => {
-            const label = variant === "original" ? "Original" : "Polaroid";
+            const label =
+              variant === "original"
+                ? t("carousel.exportSheet.original")
+                : t("carousel.exportSheet.polaroid");
 
             return (
               <button
@@ -116,7 +130,9 @@ const AssetPickerSheet = ({
                 />
                 <div className={styles.exportOptionLabel}>{label}</div>
                 {isGenerating && (
-                  <div className={styles.exportOptionBusy}>Generando...</div>
+                  <div className={styles.exportOptionBusy}>
+                    {t("carousel.exportSheet.generating")}
+                  </div>
                 )}
               </button>
             );

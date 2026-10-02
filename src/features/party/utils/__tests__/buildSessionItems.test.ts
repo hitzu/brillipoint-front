@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildSessionItems, getPhotoItems } from "../buildSessionItems";
+import {
+  buildSessionItems,
+  getPhotoItems,
+  localizeSessionItems,
+} from "../buildSessionItems";
 import { SessionResponse } from "../../../../interfaces/eventGallery";
 
 const baseSession = (
@@ -80,4 +84,21 @@ test("getPhotoItems: returns all items (type is always photo)", () => {
   );
 
   assert.equal(getPhotoItems(items).length, 2);
+});
+
+test("buildSessionItems: alt text follows the locale and names the event", () => {
+  const session = baseSession([{ url: "https://cdn.test/a.jpg", position: 0 }]);
+
+  assert.equal(buildSessionItems(session)[0].alt, "Foto 1 de Ana");
+  assert.equal(buildSessionItems(session, "en")[0].alt, "Photo 1 from Ana");
+});
+
+test("localizeSessionItems: rewrites alt text for a new locale, with a fallback event name", () => {
+  const items = buildSessionItems(
+    { ...baseSession([{ url: "https://cdn.test/a.jpg", position: 0 }]), event: undefined as unknown as SessionResponse["event"] },
+  );
+
+  assert.equal(items[0].alt, "Foto 1 de tu evento");
+  assert.equal(localizeSessionItems(items, "en", null)[0].alt, "Photo 1 from your event");
+  assert.equal(localizeSessionItems(items, "en", "Ana")[0].alt, "Photo 1 from Ana");
 });

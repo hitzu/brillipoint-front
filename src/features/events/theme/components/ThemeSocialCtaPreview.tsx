@@ -1,5 +1,6 @@
 import React, { CSSProperties } from "react";
 import { SocialCta } from "../../../party/components/SocialCta";
+import { LocaleProvider } from "../../../party/i18n/LocaleProvider";
 import {
   buildSocialCtaViewModel,
   SocialCtaViewModel,
@@ -64,7 +65,10 @@ const ThemeSocialCtaPreview = ({
         data-testid="social-cta-preview-surface"
       >
         {hasContent(viewModel) ? (
-          <SocialCta variant="page" viewModel={viewModel} />
+          // Pins the component's own labels (e.g. "Website") to the editor locale.
+          <LocaleProvider locale={locale}>
+            <SocialCta variant="page" viewModel={viewModel} />
+          </LocaleProvider>
         ) : (
           <p className={styles.empty}>Agrega una red o un texto para ver la vista previa</p>
         )}

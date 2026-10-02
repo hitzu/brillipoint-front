@@ -3,6 +3,7 @@ import styles from "@assets/css/fotobooth.module.css";
 import { EffectName, SessionItem } from "../../../../types/session";
 import { ItemLoadState } from "../types";
 import EffectOverlay from "./EffectOverlay";
+import { useT } from "../../../../i18n/LocaleProvider";
 
 type ItemStageProps = {
   activeEffect: EffectName;
@@ -30,102 +31,120 @@ const ItemStage = ({
   onPointerEnd,
   onPointerStart,
   onRetry,
-}: ItemStageProps) => (
-  <>
-    <div className={styles.photoArea}>
-      <div
-        className={styles.photoCard}
-        onPointerDown={onPointerStart}
-        onPointerUp={onPointerEnd}
-      >
+}: ItemStageProps) => {
+  const { t } = useT();
+
+  return (
+    <>
+      <div className={styles.photoArea}>
         <div
-          className={styles.viewerTrack}
-          style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+          className={styles.photoCard}
+          onPointerDown={onPointerStart}
+          onPointerUp={onPointerEnd}
         >
-          {items.map((item, itemIndex) => {
-            const isActive = itemIndex === activeIndex;
-            const currentState =
-              isActive ? itemState : { retryCount: 0, status: "idle" as const };
-            const shouldLoad = isActive || currentState.retryCount > 0;
-            const srcWithRetry = `${item.src}${
-              currentState.retryCount > 0
-                ? `${item.src.includes("?") ? "&" : "?"}retry=${currentState.retryCount}`
-                : ""
-            }`;
+          <div
+            className={styles.viewerTrack}
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+          >
+            {items.map((item, itemIndex) => {
+              const isActive = itemIndex === activeIndex;
+              const currentState = isActive
+                ? itemState
+                : { retryCount: 0, status: "idle" as const };
+              const shouldLoad = isActive || currentState.retryCount > 0;
+              const srcWithRetry = `${item.src}${
+                currentState.retryCount > 0
+                  ? `${item.src.includes("?") ? "&" : "?"}retry=${currentState.retryCount}`
+                  : ""
+              }`;
 
-            return (
-              <div key={`${item.src}-${itemIndex}`} className={styles.viewerSlide}>
-                <div className={styles.viewerMediaFrame}>
-                  {currentState.status !== "loaded" && (
-                    <div className={styles.viewerSkeleton}>
-                      <div className={styles.viewerSkeletonShimmer} />
-                    </div>
-                  )}
-
-                  {currentState.status === "error" ? (
-                    <div className={styles.viewerErrorState}>
-                      <div className={styles.viewerErrorIcon}>!</div>
-                      <div className={styles.viewerErrorText}>
-                        No se pudo cargar
+              return (
+                <div
+                  key={`${item.src}-${itemIndex}`}
+                  className={styles.viewerSlide}
+                >
+                  <div className={styles.viewerMediaFrame}>
+                    {currentState.status !== "loaded" && (
+                      <div className={styles.viewerSkeleton}>
+                        <div className={styles.viewerSkeletonShimmer} />
                       </div>
-                      <button
-                        type="button"
-                        className={styles.viewerRetryBtn}
-                        onClick={() => onRetry(itemIndex)}
-                      >
-                        Reintentar
-                      </button>
-                    </div>
-                  ) : shouldLoad ? (
-                    <img
-                      key={srcWithRetry}
-                      src={srcWithRetry}
-                      alt={item.alt}
-                      className={`${styles.photoImg} ${
-                        currentState.status === "loaded"
-                          ? styles.photoImgVisible
-                          : styles.photoImgHidden
-                      }`}
-                      onLoad={() => onItemLoad(itemIndex)}
-                      onError={() => onItemError(itemIndex)}
-                      draggable={false}
-                    />
-                  ) : null}
+                    )}
 
-                  {isActive && currentState.status === "loaded" ? (
-                    <EffectOverlay effect={activeEffect} />
-                  ) : null}
+                    {currentState.status === "error" ? (
+                      <div className={styles.viewerErrorState}>
+                        <div className={styles.viewerErrorIcon}>!</div>
+                        <div className={styles.viewerErrorText}>
+                          {t("carousel.itemLoadError")}
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.viewerRetryBtn}
+                          onClick={() => onRetry(itemIndex)}
+                        >
+                          {t("carousel.retry")}
+                        </button>
+                      </div>
+                    ) : shouldLoad ? (
+                      <img
+                        key={srcWithRetry}
+                        src={srcWithRetry}
+                        alt={item.alt}
+                        className={`${styles.photoImg} ${
+                          currentState.status === "loaded"
+                            ? styles.photoImgVisible
+                            : styles.photoImgHidden
+                        }`}
+                        onLoad={() => onItemLoad(itemIndex)}
+                        onError={() => onItemError(itemIndex)}
+                        draggable={false}
+                      />
+                    ) : null}
+
+                    {isActive && currentState.status === "loaded" ? (
+                      <EffectOverlay effect={activeEffect} />
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {canNavigate && (
-        <>
-          <button
-            className={`${styles.navBtn} ${styles.navBtnPrev}`}
-            onClick={() => onGoTo(activeIndex - 1)}
-            aria-label="Foto anterior"
-          >
-            <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor">
-              <polygon points="12,0 0,8 12,16" />
-            </svg>
-          </button>
-          <button
-            className={`${styles.navBtn} ${styles.navBtnNext}`}
-            onClick={() => onGoTo(activeIndex + 1)}
-            aria-label="Foto siguiente"
-          >
-            <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor">
-              <polygon points="0,0 12,8 0,16" />
-            </svg>
-          </button>
-        </>
-      )}
-    </div>
-  </>
-);
+        {canNavigate && (
+          <>
+            <button
+              className={`${styles.navBtn} ${styles.navBtnPrev}`}
+              onClick={() => onGoTo(activeIndex - 1)}
+              aria-label={t("carousel.previousPhoto")}
+            >
+              <svg
+                width="12"
+                height="16"
+                viewBox="0 0 12 16"
+                fill="currentColor"
+              >
+                <polygon points="12,0 0,8 12,16" />
+              </svg>
+            </button>
+            <button
+              className={`${styles.navBtn} ${styles.navBtnNext}`}
+              onClick={() => onGoTo(activeIndex + 1)}
+              aria-label={t("carousel.nextPhoto")}
+            >
+              <svg
+                width="12"
+                height="16"
+                viewBox="0 0 12 16"
+                fill="currentColor"
+              >
+                <polygon points="0,0 12,8 0,16" />
+              </svg>
+            </button>
+          </>
+        )}
+      </div>
+    </>
+  );
+};
 
 export default ItemStage;

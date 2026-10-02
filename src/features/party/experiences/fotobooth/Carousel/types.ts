@@ -1,3 +1,4 @@
+import type { TranslationKey } from "../../../i18n/types";
 import { EffectName, SessionItem } from "../../../types/session";
 
 export type CtaSource = "download" | "share";
@@ -11,20 +12,23 @@ export type ItemLoadState = {
 
 export type EffectOption = {
   id: EffectName;
-  label: string;
+  labelKey: TranslationKey;
 };
 
 export const EFFECT_OPTIONS: EffectOption[] = [
-  { id: "original", label: "Original" },
-  { id: "confetti", label: "Confeti" },
-  { id: "hearts", label: "Corazones" },
+  { id: "original", labelKey: "carousel.effects.original" },
+  { id: "confetti", labelKey: "carousel.effects.confetti" },
+  { id: "hearts", labelKey: "carousel.effects.hearts" },
 ];
 
-export const buildFallbackItems = (photoUrls: string[]): SessionItem[] =>
+export const buildFallbackItems = (
+  photoUrls: string[],
+  buildAlt: (photoNumber: number) => string,
+): SessionItem[] =>
   photoUrls.map((src, index) => ({
     type: "photo",
     src,
     originalSrc: src,
-    alt: `Foto ${index + 1}`,
+    alt: buildAlt(index + 1),
     index,
   }));

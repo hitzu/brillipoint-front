@@ -83,7 +83,7 @@ const scheduleObjectUrlRevoke = (objectUrl: string) => {
 
 export const downloadPhoto = async (url: string, filename: string) => {
   const response = await fetch(url);
-  if (!response.ok) throw new Error("No se pudo descargar la foto");
+  if (!response.ok) throw new Error("Could not download the photo");
 
   const blob = await response.blob();
   const objectUrl = URL.createObjectURL(blob);
@@ -110,7 +110,7 @@ export const downloadFile = (file: File, filename?: string) => {
 export const fetchRemoteFile = async (url: string, filename?: string) => {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error("No se pudo descargar el archivo original");
+    throw new Error("Could not download the original file");
   }
 
   const blob = await response.blob();
@@ -158,16 +158,21 @@ export const copyToClipboard = async (value: string): Promise<boolean> => {
   }
 };
 
+/**
+ * `shareTitle` is the share-sheet title in the guest's language; callers
+ * without a translator (the deprecated `/party` route) fall back to Spanish.
+ */
 export const sharePhoto = async (
   imageUrl: string,
   nombreEvento: string,
+  shareTitle = `Recuerdo de ${nombreEvento}`,
 ): Promise<ShareResult> => {
   if (typeof navigator === "undefined") return "unsupported";
 
   try {
     const file = await fetchRemoteFile(imageUrl);
 
-    const result = await shareFile(file, `Recuerdo de ${nombreEvento}`);
+    const result = await shareFile(file, shareTitle);
     if (result === "shared") {
       return "shared";
     }

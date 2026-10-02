@@ -32,6 +32,8 @@ import {
 } from "../utils/sourceTracking";
 import PhotoViewerLightbox from "../components/PhotoViewerLightbox";
 import { EventExpiredPage } from "./EventExpiredPage";
+import { useT, withLocaleProvider } from "../i18n/LocaleProvider";
+import type { TranslationKey } from "../i18n/types";
 
 const SPLASH_DURATION_MS = 3200;
 const CRITICAL_COVER_COUNT = 10;
@@ -57,7 +59,8 @@ const getFiestaTokenFromPath = (asPath: string) => {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function FiestaPage({ eventToken }: { eventToken?: string }) {
+function FiestaPage({ eventToken }: { eventToken?: string }) {
+  const { locale, t } = useT();
   const router = useRouter();
 
   const [showSplash, setShowSplash] = useState(true);
@@ -67,7 +70,9 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
   const [isEmpty, setIsEmpty] = useState(false);
   const [error, setError] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
-  const [splashStep, setSplashStep] = useState("Preparando la experiencia");
+  const [splashStep, setSplashStep] = useState<TranslationKey>(
+    "fiesta.splash.preparing",
+  );
   const [allPhotos, setAllPhotos] = useState<EventPhoto[]>([]);
   const [allPhotosLoading, setAllPhotosLoading] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
@@ -93,7 +98,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
     const backgroundCoverUrls = coverUrls.slice(CRITICAL_COVER_COUNT);
 
     if (criticalCoverUrls.length > 0) {
-      setSplashStep("Revelando los mejores momentos");
+      setSplashStep("fiesta.splash.revealing");
       await preloadImages(criticalCoverUrls);
     }
 
@@ -106,7 +111,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
     if (!resolvedEventToken) return;
 
     try {
-      setSplashStep("Buscando las fotos de la fiesta");
+      setSplashStep("fiesta.splash.findingPhotos");
       const data = await getEventGalleryV2(resolvedEventToken);
       setEventData(data.event);
 
@@ -124,7 +129,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
       setIsEmpty(data.sessions.length === 0);
       setError(false);
 
-      setSplashStep("Acomodando la galería");
+      setSplashStep("fiesta.splash.arranging");
       await preloadGalleryCovers(data.sessions);
       setLoading(false);
     } catch {
@@ -157,7 +162,10 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
 
   const handleShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    await shareUrl(url, eventData?.honoreesNames ?? "Evento");
+    await shareUrl(
+      url,
+      eventData?.honoreesNames ?? t("fiesta.fallbackEventName"),
+    );
   };
 
   const handleViewAllPhotos = async () => {
@@ -224,7 +232,11 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
 
   const handleSharePhoto = async (photo: EventPhoto) => {
     const title = eventData?.honoreesNames ?? "Brillipoint";
-    await sharePhoto(photo.publicUrl, `Brillipoint - ${title}`);
+    await sharePhoto(
+      photo.publicUrl,
+      title,
+      t("lightbox.shareTitle", { name: title }),
+    );
   };
 
   useEffect(() => {
@@ -250,7 +262,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
   const { Splash, Overview } = getExperience(eventData?.eventTheme?.key);
   const theme = pageTheme;
   const themeVars = theme ? buildThemeVars(theme) : undefined;
-  const splashDate = formatSplashDate(eventData?.date);
+  const splashDate = formatSplashDate(locale, eventData?.date);
 
   if (showSplash) {
     return (
@@ -258,7 +270,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
         honoreesNames={eventData?.honoreesNames}
         date={splashDate}
         isReady={themeReady}
-        stepLabel={splashStep}
+        stepLabel={t(splashStep)}
         onComplete={() => setShowSplash(false)}
         duration={SPLASH_DURATION_MS}
         canFinish={themeReady}
@@ -276,7 +288,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
         style={themeVars}
       >
         <div className={styles.loaderOrb} />
-        <p>Cargando galería del evento...</p>
+        <p>{t("fiesta.loading")}</p>
       </div>
     );
   }
@@ -287,9 +299,9 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
         className={styles.centerPage}
         style={themeVars}
       >
-        <p>No pudimos cargar la galería</p>
+        <p>{t("fiesta.error")}</p>
         <button className={styles.retryBtn} onClick={fetchGallery}>
-          Reintentar
+          {t("fiesta.retry")}
         </button>
       </div>
     );
@@ -302,7 +314,7 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
         style={themeVars}
       >
         <div className={styles.loaderOrb} />
-        <p>Cargando galería del evento...</p>
+        <p>{t("fiesta.loading")}</p>
       </div>
     );
   }
@@ -327,8 +339,9 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
     <>
       <Head>
         <title>
-          Fiesta
-          {eventData?.honoreesNames ? ` - ${eventData.honoreesNames}` : ""}
+          {eventData?.honoreesNames
+            ? t("fiesta.pageTitleWithNames", { names: eventData.honoreesNames })
+            : t("fiesta.pageTitle")}
         </title>
       </Head>
       <Overview
@@ -368,3 +381,5 @@ export default function FiestaPage({ eventToken }: { eventToken?: string }) {
     </>
   );
 }
+
+export default withLocaleProvider(FiestaPage);

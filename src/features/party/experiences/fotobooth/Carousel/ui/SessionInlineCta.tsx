@@ -5,6 +5,7 @@ import {
   SocialPlatform,
 } from "../../../../components/SocialCta";
 import { SocialCtaViewModel } from "../../../../theme/buildSocialCtaViewModel";
+import { useT } from "../../../../i18n/LocaleProvider";
 
 type SessionInlineCtaProps = {
   eventName: string;
@@ -23,6 +24,7 @@ const SessionInlineCta = ({
   onGiftPress,
   onCtaVisible,
 }: SessionInlineCtaProps) => {
+  const { t } = useT();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -51,7 +53,7 @@ const SessionInlineCta = ({
           type="button"
           className={styles.giftTeaser}
           onClick={onGiftPress}
-          aria-label="Sorpresa especial"
+          aria-label={t("carousel.giftTeaser")}
         >
           🎁
         </button>

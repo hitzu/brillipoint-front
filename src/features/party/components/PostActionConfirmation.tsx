@@ -2,6 +2,7 @@ import styles from "./PostActionConfirmation.module.css";
 import { CtaSource } from "../experiences/fotobooth/Carousel/types";
 import { SocialCta, SocialPlatform } from "./SocialCta";
 import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
+import { useT } from "../i18n/LocaleProvider";
 
 interface PostActionConfirmationProps {
   onClose: () => void;
@@ -21,11 +22,13 @@ export function PostActionConfirmation({
   onWAClick,
   onSocialClick,
 }: PostActionConfirmationProps) {
-  const title = source === "share" ? "¡Foto compartida!" : "¡Foto guardada!";
+  const { t } = useT();
+  const title =
+    source === "share" ? t("postAction.sharedTitle") : t("postAction.savedTitle");
   const subtitle =
     source === "share"
-      ? "Gracias por compartir tu momento"
-      : "Gracias por vivir tu momento";
+      ? t("postAction.sharedSubtitle")
+      : t("postAction.savedSubtitle");
 
   return (
     <div className={styles.card}>
@@ -44,11 +47,11 @@ export function PostActionConfirmation({
       <p className={styles.subtitle}>
         {subtitle}
         <br />
-        <span className={styles.brand}>Brillipoint Experience ✨</span>
+        <span className={styles.brand}>{t("postAction.brand")}</span>
       </p>
 
       <button type="button" className={styles.continueBtn} onClick={onClose}>
-        Continuar
+        {t("postAction.continue")}
       </button>
     </div>
   );

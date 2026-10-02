@@ -1,6 +1,8 @@
 import styles from "@assets/css/social-media-cta.module.css";
 import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
 import { PrimaryActionButton } from "./PrimaryActionButton";
+import { useT } from "../i18n/LocaleProvider";
+import type { TranslationKey } from "../i18n/types";
 import {
   IconExternalLink,
   IconFacebook,
@@ -36,12 +38,13 @@ const SOCIAL_ICON: Record<SocialPlatform, () => JSX.Element> = {
   url: IconExternalLink,
 };
 
-const SOCIAL_LABEL: Record<SocialPlatform, string> = {
+/** Brand names stay as-is; only the generic website label is translated. */
+const SOCIAL_LABEL: Record<SocialPlatform, string | { key: TranslationKey }> = {
   whatsapp: "WhatsApp",
   instagram: "Instagram",
   tiktok: "TikTok",
   facebook: "Facebook",
-  url: "Sitio web",
+  url: { key: "socialCta.website" },
 };
 
 const socialBrandClass: Record<SocialPlatform, string> = {
@@ -74,6 +77,8 @@ export const SocialCta = ({
   onClose,
   contentAlign,
 }: SocialCtaProps) => {
+  const { t } = useT();
+
   if (!viewModel) {
     return null;
   }
@@ -93,6 +98,8 @@ export const SocialCta = ({
   ) =>
     socialEntries.map((platform) => {
       const Icon = SOCIAL_ICON[platform];
+      const rawLabel = SOCIAL_LABEL[platform];
+      const label = typeof rawLabel === "string" ? rawLabel : t(rawLabel.key);
       return (
         <a
           key={platform}
@@ -100,11 +107,11 @@ export const SocialCta = ({
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => onSocialClick?.(platform)}
-          aria-label={SOCIAL_LABEL[platform]}
+          aria-label={label}
           className={`${styles[baseClassName]} ${styles[classNameByPlatform[platform]]}`}
         >
           <Icon />
-          {withLabel ? ` ${SOCIAL_LABEL[platform]}` : null}
+          {withLabel ? ` ${label}` : null}
         </a>
       );
     });
@@ -146,7 +153,7 @@ export const SocialCta = ({
             type="button"
             className={styles.sheetCloseBtn}
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={t("socialCta.close")}
           >
             ✕
           </button>
@@ -207,7 +214,7 @@ export const SocialCta = ({
           type="button"
           className={styles.closeBtn}
           onClick={onClose}
-          aria-label="Cerrar"
+          aria-label={t("socialCta.close")}
         >
           ✕
         </button>
