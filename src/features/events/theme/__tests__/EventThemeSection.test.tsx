@@ -13,10 +13,17 @@ vi.mock("../../../../api/services/themeAssetsService", () => ({
 }));
 
 import { getEventById, updateEventById } from "../../../../api/services/eventsService";
+import {
+  createThemeAssetUploadUrl,
+  uploadThemeAssetBlobToSignedUrl,
+} from "../../../../api/services/themeAssetsService";
 import EventThemeSection from "../EventThemeSection";
 
 const mockedGetEventById = getEventById as unknown as ReturnType<typeof vi.fn>;
 const mockedUpdateEventById = updateEventById as unknown as ReturnType<typeof vi.fn>;
+
+const mockedCreateUploadUrl = createThemeAssetUploadUrl as unknown as ReturnType<typeof vi.fn>;
+const mockedUploadBlob = uploadThemeAssetBlobToSignedUrl as unknown as ReturnType<typeof vi.fn>;
 
 const FRESH_EVENT = {
   id: 7,
@@ -37,6 +44,10 @@ const FRESH_EVENT = {
 beforeEach(() => {
   mockedGetEventById.mockReset();
   mockedUpdateEventById.mockReset();
+  mockedCreateUploadUrl.mockReset();
+  mockedUploadBlob.mockReset();
+  (URL as any).createObjectURL = vi.fn(() => "blob:preview");
+  (URL as any).revokeObjectURL = vi.fn();
 });
 
 describe("EventThemeSection", () => {
@@ -146,5 +157,190 @@ describe("EventThemeSection", () => {
 
     await screen.findByText("No se pudo actualizar");
     expect(mockedUpdateEventById).not.toHaveBeenCalled();
+  });
+
+  it("uploading a splash icon uses slot splashIcon and saves { path, url }", async () => {
+    mockedCreateUploadUrl.mockResolvedValueOnce({
+      signedUrl: "https://signed",
+      path: "events/7/splash.svg",
+      publicUrl: "https://x/splash.svg",
+    });
+    mockedUploadBlob.mockResolvedValueOnce(undefined);
+    mockedGetEventById.mockResolvedValueOnce(FRESH_EVENT);
+    mockedUpdateEventById.mockResolvedValueOnce(undefined);
+
+    render(
+      <EventThemeSection
+        eventId={7}
+        initialThemeOverrides={FRESH_EVENT.themeOverrides as any}
+      />,
+    );
+
+    const file = new File(["<svg/>"], "splash.svg", { type: "image/svg+xml" });
+    fireEvent.change(screen.getByLabelText("Archivo del logo de bienvenida"), {
+      target: { files: [file] },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar tema" }));
+
+    await waitFor(() => expect(mockedUpdateEventById).toHaveBeenCalled());
+
+    expect(mockedCreateUploadUrl).toHaveBeenCalledTimes(1);
+    expect(mockedCreateUploadUrl.mock.calls[0][0]).toMatchObject({
+      ownerType: "event",
+      ownerId: 7,
+      slot: "splashIcon",
+      mime: "image/svg+xml",
+    });
+    expect(mockedUploadBlob).toHaveBeenCalledTimes(1);
+
+    const [, payload] = mockedUpdateEventById.mock.calls[0];
+    expect(payload.themeOverrides.images.splashIcon).toEqual({
+      path: "events/7/splash.svg",
+      url: "https://x/splash.svg",
+    });
+    expect(payload.themeOverrides.images.background).toEqual(
+      FRESH_EVENT.themeOverrides.images.background,
+    );
+    expect(payload.themeOverrides.decorativeIcon).toBe("flower");
+  });
+
+  it("removing the splash icon saves images.splashIcon = null", async () => {
+    const withSplash = {
+      id: 7,
+      themeOverrides: {
+        ...FRESH_EVENT.themeOverrides,
+        images: {
+          ...FRESH_EVENT.themeOverrides.images,
+          splashIcon: { path: "s.png", url: "https://x/s.png" },
+        },
+      },
+    };
+    mockedGetEventById.mockResolvedValueOnce(withSplash);
+    mockedUpdateEventById.mockResolvedValueOnce(undefined);
+
+    render(
+      <EventThemeSection eventId={7} initialThemeOverrides={withSplash.themeOverrides as any} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Quitar logo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar tema" }));
+
+    await waitFor(() => expect(mockedUpdateEventById).toHaveBeenCalled());
+
+    const [, payload] = mockedUpdateEventById.mock.calls[0];
+    expect(payload.themeOverrides.images.splashIcon).toBeNull();
+    expect(payload.themeOverrides.images.background).toEqual(
+      FRESH_EVENT.themeOverrides.images.background,
+    );
+    expect(mockedCreateUploadUrl).not.toHaveBeenCalled();
+  });
+
+  it("does not rewrite splashIcon when staff did not touch it", async () => {
+    const withSplash = {
+      id: 7,
+      themeOverrides: {
+        images: { splashIcon: { path: "s.png", url: "https://x/s.png" } },
+      },
+    };
+    mockedGetEventById.mockResolvedValueOnce(withSplash);
+    mockedUpdateEventById.mockResolvedValueOnce(undefined);
+
+    render(
+      <EventThemeSection eventId={7} initialThemeOverrides={withSplash.themeOverrides as any} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Guardar tema" }));
+
+    await waitFor(() => expect(mockedUpdateEventById).toHaveBeenCalled());
+
+    const [, payload] = mockedUpdateEventById.mock.calls[0];
+    expect(payload.themeOverrides.images.splashIcon).toEqual(withSplash.themeOverrides.images.splashIcon);
+  });
+
+  describe("splash plate", () => {
+    const withPlate = (plate?: string) => ({
+      id: 7,
+      themeOverrides: {
+        images: { splashIcon: { path: "s.png", url: "https://x/s.png", ...(plate ? { plate } : {}) } },
+        decorativeIcon: "flower",
+      },
+    });
+    const setPlate = (value: string) =>
+      fireEvent.change(screen.getByLabelText("Color del círculo"), { target: { value } });
+
+    it("saves the plate with a new upload", async () => {
+      mockedCreateUploadUrl.mockResolvedValueOnce({
+        signedUrl: "https://signed",
+        path: "events/7/n.jpg",
+        publicUrl: "https://x/n.jpg",
+      });
+      mockedUploadBlob.mockResolvedValueOnce(undefined);
+      mockedGetEventById.mockResolvedValueOnce(FRESH_EVENT);
+      mockedUpdateEventById.mockResolvedValueOnce(undefined);
+      render(<EventThemeSection eventId={7} initialThemeOverrides={FRESH_EVENT.themeOverrides as any} />);
+
+      fireEvent.change(screen.getByLabelText("Archivo del logo de bienvenida"), {
+        target: { files: [new File(["x"], "n.jpg", { type: "image/jpeg" })] },
+      });
+      setPlate("#000000");
+      fireEvent.click(screen.getByRole("button", { name: "Guardar tema" }));
+      await waitFor(() => expect(mockedUpdateEventById).toHaveBeenCalled());
+
+      const [, payload] = mockedUpdateEventById.mock.calls[0];
+      expect(payload.themeOverrides.images.splashIcon).toEqual({
+        path: "events/7/n.jpg",
+        url: "https://x/n.jpg",
+        plate: "#000000",
+      });
+    });
+
+    it("plate-only change keeps path/url and does not upload", async () => {
+      const ev = withPlate();
+      mockedGetEventById.mockResolvedValueOnce(ev);
+      mockedUpdateEventById.mockResolvedValueOnce(undefined);
+      render(<EventThemeSection eventId={7} initialThemeOverrides={ev.themeOverrides as any} />);
+
+      setPlate("#101010");
+      fireEvent.click(screen.getByRole("button", { name: "Guardar tema" }));
+      await waitFor(() => expect(mockedUpdateEventById).toHaveBeenCalled());
+
+      const [, payload] = mockedUpdateEventById.mock.calls[0];
+      expect(payload.themeOverrides.images.splashIcon).toEqual({
+        path: "s.png",
+        url: "https://x/s.png",
+        plate: "#101010",
+      });
+      expect(mockedCreateUploadUrl).not.toHaveBeenCalled();
+      expect(payload.themeOverrides.decorativeIcon).toBe("flower");
+    });
+
+    it("clearing the plate drops the key", async () => {
+      const ev = withPlate("#000000");
+      mockedGetEventById.mockResolvedValueOnce(ev);
+      mockedUpdateEventById.mockResolvedValueOnce(undefined);
+      render(<EventThemeSection eventId={7} initialThemeOverrides={ev.themeOverrides as any} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Sin color" }));
+      fireEvent.click(screen.getByRole("button", { name: "Guardar tema" }));
+      await waitFor(() => expect(mockedUpdateEventById).toHaveBeenCalled());
+
+      const [, payload] = mockedUpdateEventById.mock.calls[0];
+      expect(payload.themeOverrides.images.splashIcon).toEqual({ path: "s.png", url: "https://x/s.png" });
+      expect("plate" in payload.themeOverrides.images.splashIcon).toBe(false);
+    });
+
+    it("removing the logo writes null even when a plate exists", async () => {
+      const ev = withPlate("#000000");
+      mockedGetEventById.mockResolvedValueOnce(ev);
+      mockedUpdateEventById.mockResolvedValueOnce(undefined);
+      render(<EventThemeSection eventId={7} initialThemeOverrides={ev.themeOverrides as any} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Quitar logo" }));
+      fireEvent.click(screen.getByRole("button", { name: "Guardar tema" }));
+      await waitFor(() => expect(mockedUpdateEventById).toHaveBeenCalled());
+
+      const [, payload] = mockedUpdateEventById.mock.calls[0];
+      expect(payload.themeOverrides.images.splashIcon).toBeNull();
+    });
   });
 });

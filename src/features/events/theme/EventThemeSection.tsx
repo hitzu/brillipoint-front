@@ -11,18 +11,29 @@ import { ConfettiShape } from "../../party/theme/confettiShapes";
 import {
   RawThemeOverrides,
   removeBackgroundImage,
+  removeSplashIconImage,
   setBackgroundImage,
   setConfettiShapes,
+  setSplashIconImage,
+  setSplashIconPlate,
 } from "./mergeThemeOverrides";
 import { getReadOnlyThemeEntries } from "./readOnlyThemeEntries";
 import ThemeBackgroundBlock from "./components/ThemeBackgroundBlock";
 import ThemeConfettiBlock from "./components/ThemeConfettiBlock";
 import ThemeReadOnlyBlock from "./components/ThemeReadOnlyBlock";
+import ThemeSplashIconBlock from "./components/ThemeSplashIconBlock";
 
 interface EventThemeSectionProps {
   eventId: number;
   initialThemeOverrides?: ThemeOverrides | null;
 }
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
+const plateFrom = (themeOverrides: RawThemeOverrides | null | undefined): string | null => {
+  const plate = (themeOverrides as any)?.images?.splashIcon?.plate;
+  return typeof plate === "string" && HEX_COLOR.test(plate) ? plate : null;
+};
 
 const shapesFrom = (themeOverrides: RawThemeOverrides | null | undefined): string[] => {
   const confetti = (themeOverrides as any)?.decorations?.confetti;
@@ -31,7 +42,7 @@ const shapesFrom = (themeOverrides: RawThemeOverrides | null | undefined): strin
 
 /**
  * Own "Guardar tema" flow, independent from the main event form: uploads a
- * new background (if picked), re-fetches the event to avoid clobbering
+ * new background and/or splash icon (if picked), re-fetches the event to avoid clobbering
  * concurrent edits, deep-merges the change, then PATCHes the full
  * `themeOverrides` object (the backend replaces it wholesale).
  */
@@ -43,6 +54,11 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [backgroundPreviewUrl, setBackgroundPreviewUrl] = useState<string | null>(null);
   const [backgroundRemoved, setBackgroundRemoved] = useState(false);
+  const [splashFile, setSplashFile] = useState<File | null>(null);
+  const [splashPreviewUrl, setSplashPreviewUrl] = useState<string | null>(null);
+  const [splashRemoved, setSplashRemoved] = useState(false);
+  const [splashPlate, setSplashPlate] = useState<string | null>(plateFrom(initialRawThemeOverrides));
+  const [plateDirty, setPlateDirty] = useState(false);
   const [selectedShapes, setSelectedShapes] = useState<string[]>(
     shapesFrom(initialRawThemeOverrides),
   );
@@ -61,6 +77,11 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
     setBackgroundFile(null);
     setBackgroundRemoved(false);
     setBackgroundPreviewUrl(null);
+    setSplashFile(null);
+    setSplashRemoved(false);
+    setSplashPreviewUrl(null);
+    setSplashPlate(plateFrom(initialThemeOverrides as RawThemeOverrides | null | undefined));
+    setPlateDirty(false);
     setConfettiDirty(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
@@ -70,6 +91,12 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
     : backgroundRemoved
       ? null
       : ((themeOverrides as any)?.images?.background?.url ?? null);
+
+  const currentSplashUrl = splashFile
+    ? splashPreviewUrl
+    : splashRemoved
+      ? null
+      : ((themeOverrides as any)?.images?.splashIcon?.url ?? null);
 
   const handleFileSelected = (file: File) => {
     if (backgroundPreviewUrl) URL.revokeObjectURL(backgroundPreviewUrl);
@@ -89,6 +116,34 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
     setBackgroundFile(null);
     setBackgroundPreviewUrl(null);
     setBackgroundRemoved(true);
+  };
+
+  const handleSplashFileSelected = (file: File) => {
+    if (splashPreviewUrl) URL.revokeObjectURL(splashPreviewUrl);
+    setSplashFile(file);
+    setSplashRemoved(false);
+    setSplashPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleInvalidSplashMime = () => {
+    setToastMessage("Formato de imagen no permitido. Usa PNG, JPEG, WEBP o SVG.");
+    setToastVariant("danger");
+    setShowToast(true);
+  };
+
+  const handleRemoveSplash = () => {
+    if (splashPreviewUrl) URL.revokeObjectURL(splashPreviewUrl);
+    setSplashFile(null);
+    setSplashPreviewUrl(null);
+    setSplashRemoved(true);
+    // The plate cannot exist without an image.
+    setSplashPlate(null);
+    setPlateDirty(false);
+  };
+
+  const handlePlateChange = (plate: string | null) => {
+    setSplashPlate(plate);
+    setPlateDirty(true);
   };
 
   const handleToggleShape = (shape: ConfettiShape) => {
@@ -119,6 +174,24 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
         uploadedSlot = { path: uploadUrl.path, url: uploadUrl.publicUrl };
       }
 
+      let uploadedSplash: { path: string; url: string } | undefined;
+
+      if (splashFile) {
+        const uploadUrl = await createThemeAssetUploadUrl({
+          ownerType: "event",
+          ownerId: eventId,
+          slot: "splashIcon",
+          fileName: splashFile.name,
+          mime: splashFile.type as ThemeAssetMime,
+        });
+        await uploadThemeAssetBlobToSignedUrl({
+          signedUrl: uploadUrl.signedUrl,
+          blob: splashFile,
+          mime: splashFile.type,
+        });
+        uploadedSplash = { path: uploadUrl.path, url: uploadUrl.publicUrl };
+      }
+
       const fresh = await getEventById(eventId);
       let merged: RawThemeOverrides = (fresh.themeOverrides as RawThemeOverrides) ?? {};
 
@@ -126,6 +199,17 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
         merged = setBackgroundImage(merged, uploadedSlot);
       } else if (backgroundRemoved) {
         merged = removeBackgroundImage(merged);
+      }
+
+      if (uploadedSplash) {
+        merged = setSplashIconImage(merged, {
+          ...uploadedSplash,
+          plate: splashPlate ?? undefined,
+        });
+      } else if (splashRemoved) {
+        merged = removeSplashIconImage(merged);
+      } else if (plateDirty) {
+        merged = setSplashIconPlate(merged, splashPlate);
       }
 
       if (confettiDirty) {
@@ -140,6 +224,12 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
       setBackgroundFile(null);
       setBackgroundPreviewUrl(null);
       setBackgroundRemoved(false);
+      if (splashPreviewUrl) URL.revokeObjectURL(splashPreviewUrl);
+      setSplashFile(null);
+      setSplashPreviewUrl(null);
+      setSplashRemoved(false);
+      setSplashPlate(plateFrom(merged));
+      setPlateDirty(false);
       setConfettiDirty(false);
       setToastMessage("Tema actualizado exitosamente");
       setToastVariant("success");
@@ -194,6 +284,16 @@ const EventThemeSection = ({ eventId, initialThemeOverrides }: EventThemeSection
           onInvalidMime={handleInvalidMime}
           onRemove={handleRemoveBackground}
           removeDisabled={!currentBackgroundUrl}
+        />
+
+        <ThemeSplashIconBlock
+          previewUrl={currentSplashUrl}
+          onFileSelected={handleSplashFileSelected}
+          onInvalidMime={handleInvalidSplashMime}
+          onRemove={handleRemoveSplash}
+          removeDisabled={!currentSplashUrl}
+          plate={splashPlate}
+          onPlateChange={handlePlateChange}
         />
 
         <ThemeConfettiBlock selectedShapes={selectedShapes} onToggleShape={handleToggleShape} />

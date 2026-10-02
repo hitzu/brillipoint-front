@@ -3,7 +3,7 @@ import { isConfettiShape } from "../../party/theme/confettiShapes";
 /**
  * `PATCH /events/:id` replaces the whole `themeOverrides` object (no deep
  * merge server-side). This module deep-merges client-side before saving so
- * editing one key (background, confetti shapes) never wipes the rest.
+ * editing one key (background, splash icon, confetti shapes) never wipes the rest.
  *
  * The raw object fetched from the API may carry keys that are not part of
  * the frontend `ThemeOverrides` type yet (e.g. `decorativeIcon`). Treating
@@ -79,6 +79,58 @@ export function removeBackgroundImage(
   current: RawThemeOverrides | null | undefined,
 ): RawThemeOverrides {
   return mergeThemeOverrides(current, { images: { background: null } });
+}
+
+export interface SplashIconSlotInput extends ThemeImageSlotInput {
+  /** Opaque `#RRGGBB` background of the splash logo circle. */
+  plate?: string;
+}
+
+const buildSplashSlot = (slot: SplashIconSlotInput) => ({
+  path: slot.path,
+  url: slot.url,
+  ...(slot.plate ? { plate: slot.plate } : {}),
+});
+
+/**
+ * Sets `images.splashIcon` (optionally with its `plate`), preserving every
+ * other image slot. The slot is replaced, not deep-merged, so a previous
+ * plate never leaks into a new upload that has none.
+ */
+export function setSplashIconImage(
+  current: RawThemeOverrides | null | undefined,
+  slot: SplashIconSlotInput,
+): RawThemeOverrides {
+  const cleared = mergeThemeOverrides(current, { images: { splashIcon: null } });
+  return mergeThemeOverrides(cleared, { images: { splashIcon: buildSplashSlot(slot) } });
+}
+
+/**
+ * Updates only the plate of the existing splash icon slot (`null` removes the
+ * key). A plate cannot exist without an image, so this is a no-op when the
+ * slot is missing.
+ */
+export function setSplashIconPlate(
+  current: RawThemeOverrides | null | undefined,
+  plate: string | null,
+): RawThemeOverrides {
+  const images = isPlainObject(current?.images) ? current.images : undefined;
+  const slot = images && isPlainObject(images.splashIcon) ? images.splashIcon : undefined;
+  if (!slot || typeof slot.path !== "string" || typeof slot.url !== "string") {
+    return mergeThemeOverrides(current, {});
+  }
+  return setSplashIconImage(current, {
+    path: slot.path,
+    url: slot.url,
+    plate: plate ?? undefined,
+  });
+}
+
+/** Explicitly removes the splash icon slot (`images.splashIcon = null`). */
+export function removeSplashIconImage(
+  current: RawThemeOverrides | null | undefined,
+): RawThemeOverrides {
+  return mergeThemeOverrides(current, { images: { splashIcon: null } });
 }
 
 const MAX_CONFETTI_SHAPES = 20;

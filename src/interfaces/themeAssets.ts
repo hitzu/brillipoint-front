@@ -1,10 +1,14 @@
-/** Only image mimes accepted by `POST /theme-assets/upload-url` for now (no SVG). */
-export type ThemeAssetMime = "image/png" | "image/jpeg" | "image/webp";
+/** Image mimes accepted by `POST /theme-assets/upload-url`; SVG only for icon-like slots (e.g. `splashIcon`). */
+export type ThemeAssetMime =
+  | "image/png"
+  | "image/jpeg"
+  | "image/webp"
+  | "image/svg+xml";
 
 export type ThemeAssetOwnerType = "event";
 
-/** Only the `background` slot is editable from the event theme section (T3). */
-export type ThemeAssetSlot = "background";
+/** Slots editable from the event theme section. */
+export type ThemeAssetSlot = "background" | "splashIcon";
 
 export interface ThemeAssetUploadUrlPayload {
   ownerType: ThemeAssetOwnerType;

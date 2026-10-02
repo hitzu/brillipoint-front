@@ -207,6 +207,18 @@
   object-fit: cover;
 }
 
+/* Staff-chosen solid plate behind the logo: no transparency, logo never cropped. */
+.splashLogoRing.splashLogoRingPlate {
+  background: var(--splash-plate);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+}
+
+.splashLogoRingPlate .splashEmblemImage {
+  object-fit: contain;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
 .splashDivider {
   height: 1px;
   background: linear-gradient(
@@ -298,6 +310,11 @@
 
 .splashHasBackground .splashLogoRingEmblem {
   background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+}
+
+.splashHasBackground .splashLogoRingEmblem.splashLogoRingPlate {
+  background: var(--splash-plate);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
 }
 

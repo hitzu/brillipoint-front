@@ -76,6 +76,13 @@ const FotoBoothSplash = ({
   const background = images?.background;
   const layout = resolveSplashLayout(images);
   const cover = images?.cover;
+  // A plate only applies together with an emblem image.
+  const hasPlate = Boolean(theme?.splashEmblemUrl && theme?.splashEmblemPlate);
+  const ringClassName = hasPlate
+    ? `${styles.splashLogoRing} ${styles.splashLogoRingEmblem} ${styles.splashLogoRingPlate}`
+    : theme?.splashEmblemUrl
+      ? `${styles.splashLogoRing} ${styles.splashLogoRingEmblem}`
+      : styles.splashLogoRing;
 
   const coverImage = cover && (
     <div className={styles.splashCoverWrap}>
@@ -131,10 +138,11 @@ const FotoBoothSplash = ({
           ))}
 
         <div
-          className={
-            theme?.splashEmblemUrl
-              ? `${styles.splashLogoRing} ${styles.splashLogoRingEmblem}`
-              : styles.splashLogoRing
+          className={ringClassName}
+          style={
+            hasPlate
+              ? ({ "--splash-plate": theme?.splashEmblemPlate } as React.CSSProperties)
+              : undefined
           }
         >
           {theme?.splashEmblemUrl ? (

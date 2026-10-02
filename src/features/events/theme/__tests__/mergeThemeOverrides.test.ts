@@ -3,8 +3,11 @@ import type { ThemeOverrides } from "../../../party/types/themeContract";
 import {
   mergeThemeOverrides,
   removeBackgroundImage,
+  removeSplashIconImage,
   setBackgroundImage,
   setConfettiShapes,
+  setSplashIconImage,
+  setSplashIconPlate,
 } from "../mergeThemeOverrides";
 
 describe("mergeThemeOverrides", () => {
@@ -174,5 +177,104 @@ describe("expanded confetti catalog", () => {
       colors: ["#abcdef"],
       amount: 12,
     });
+  });
+});
+
+describe("setSplashIconImage / removeSplashIconImage", () => {
+  const current = {
+    tokens: { primary: "#111" },
+    images: {
+      background: { path: "bg.png", url: "https://x/bg.png" },
+      splashIcon: { path: "old.png", url: "https://x/old.png" },
+    },
+    decorations: { confetti: { enabled: true, shapes: ["star"] } },
+    socialCta: { brandKitKey: "wedding" },
+    decorativeIcon: "flower",
+  };
+
+  it("sets images.splashIcon and preserves every other key", () => {
+    const result = setSplashIconImage(current, { path: "new.svg", url: "https://x/new.svg" });
+
+    expect((result.images as any).splashIcon).toEqual({ path: "new.svg", url: "https://x/new.svg" });
+    expect((result.images as any).background).toEqual(current.images.background);
+    expect(result.tokens).toEqual(current.tokens);
+    expect(result.decorations).toEqual(current.decorations);
+    expect(result.socialCta).toEqual(current.socialCta);
+    expect((result as any).decorativeIcon).toBe("flower");
+  });
+
+  it("sets images.splashIcon = null on removal and preserves every other key", () => {
+    const result = removeSplashIconImage(current);
+
+    expect((result.images as any).splashIcon).toBeNull();
+    expect((result.images as any).background).toEqual(current.images.background);
+    expect(result.tokens).toEqual(current.tokens);
+    expect(result.decorations).toEqual(current.decorations);
+    expect((result as any).decorativeIcon).toBe("flower");
+  });
+
+  it("does not touch splashIcon when only the background changes", () => {
+    const result = setBackgroundImage(current, { path: "b2.png", url: "https://x/b2.png" });
+
+    expect((result.images as any).splashIcon).toEqual(current.images.splashIcon);
+  });
+
+  it("does not mutate the input", () => {
+    const snapshot = JSON.parse(JSON.stringify(current));
+    setSplashIconImage(current, { path: "n.png", url: "https://x/n.png" });
+    removeSplashIconImage(current);
+    expect(current).toEqual(snapshot);
+  });
+});
+
+describe("splashIcon plate", () => {
+  const current = {
+    tokens: { primary: "#111" },
+    images: {
+      background: { path: "bg.png", url: "https://x/bg.png" },
+      splashIcon: { path: "old.png", url: "https://x/old.png", plate: "#000000" },
+    },
+    decorativeIcon: "flower",
+  };
+
+  it("setSplashIconImage stores the plate inside the slot", () => {
+    const result = setSplashIconImage(current, { path: "n.png", url: "https://x/n.png", plate: "#111111" });
+    expect((result.images as any).splashIcon).toEqual({ path: "n.png", url: "https://x/n.png", plate: "#111111" });
+    expect((result.images as any).background).toEqual(current.images.background);
+    expect((result as any).decorativeIcon).toBe("flower");
+  });
+
+  it("setSplashIconImage without plate drops a previous plate", () => {
+    const result = setSplashIconImage(current, { path: "n.png", url: "https://x/n.png" });
+    expect((result.images as any).splashIcon).toEqual({ path: "n.png", url: "https://x/n.png" });
+  });
+
+  it("setSplashIconPlate updates only the plate, keeping path/url and other keys", () => {
+    const result = setSplashIconPlate(current, "#ffffff");
+    expect((result.images as any).splashIcon).toEqual({ path: "old.png", url: "https://x/old.png", plate: "#ffffff" });
+    expect((result.images as any).background).toEqual(current.images.background);
+    expect(result.tokens).toEqual(current.tokens);
+  });
+
+  it("setSplashIconPlate(null) removes the plate key", () => {
+    const result = setSplashIconPlate(current, null);
+    expect((result.images as any).splashIcon).toEqual({ path: "old.png", url: "https://x/old.png" });
+    expect("plate" in (result.images as any).splashIcon).toBe(false);
+  });
+
+  it("setSplashIconPlate is a no-op when there is no splashIcon slot", () => {
+    const result = setSplashIconPlate({ images: {} }, "#000000");
+    expect((result.images as any).splashIcon).toBeUndefined();
+  });
+
+  it("removal writes null (plate goes with it)", () => {
+    expect((removeSplashIconImage(current).images as any).splashIcon).toBeNull();
+  });
+
+  it("does not mutate the input", () => {
+    const snapshot = JSON.parse(JSON.stringify(current));
+    setSplashIconPlate(current, null);
+    setSplashIconImage(current, { path: "n", url: "u" });
+    expect(current).toEqual(snapshot);
   });
 });

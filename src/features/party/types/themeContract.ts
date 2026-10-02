@@ -49,9 +49,14 @@ export interface ThemeCoverImageSlot extends ThemeImageSlot {
   link?: string;
 }
 
+/** The `splashIcon` slot may carry the opaque `#RRGGBB` background of its circle. */
+export interface ThemeSplashIconSlot extends ThemeImageSlot {
+  plate?: string;
+}
+
 export interface ThemeImages {
   logo?: ThemeImageSlot;
-  splashIcon?: ThemeImageSlot;
+  splashIcon?: ThemeSplashIconSlot;
   hero?: ThemeImageSlot;
   watermark?: ThemeImageSlot;
   background?: ThemeImageSlot;
@@ -61,7 +66,7 @@ export interface ThemeImages {
 /** Overridable image slots: any slot may be explicitly removed with `null`. */
 export interface ThemeImageOverrides {
   logo?: ThemeImageSlot | null;
-  splashIcon?: ThemeImageSlot | null;
+  splashIcon?: ThemeSplashIconSlot | null;
   hero?: ThemeImageSlot | null;
   watermark?: ThemeImageSlot | null;
   background?: ThemeImageSlot | null;

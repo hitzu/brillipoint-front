@@ -15,4 +15,6 @@ export interface EventPageTheme {
   fontHeading?: string;
   fontBody?: string;
   splashEmblemUrl?: string;
+  /** Opaque `#RRGGBB` background of the splash logo circle (only with an emblem). */
+  splashEmblemPlate?: string;
 }

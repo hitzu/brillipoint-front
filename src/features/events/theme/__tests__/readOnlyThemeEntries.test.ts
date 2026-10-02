@@ -28,6 +28,30 @@ describe("getReadOnlyThemeEntries", () => {
     expect(entries).toEqual([]);
   });
 
+  it("excludes images.splashIcon but keeps other image slots", () => {
+    const entries = getReadOnlyThemeEntries({
+      images: {
+        logo: { path: "logo.png", url: "https://x/logo.png" },
+        splashIcon: { path: "s.png", url: "https://x/s.png" },
+      },
+    });
+
+    expect(entries).toEqual([
+      { key: "images", value: { logo: { path: "logo.png", url: "https://x/logo.png" } } },
+    ]);
+  });
+
+  it("drops the images block when background and splashIcon were the only slots", () => {
+    const entries = getReadOnlyThemeEntries({
+      images: {
+        background: { path: "bg.png", url: "https://x/bg.png" },
+        splashIcon: null,
+      },
+    });
+
+    expect(entries).toEqual([]);
+  });
+
   it("excludes decorations.confetti but keeps sparkles", () => {
     const entries = getReadOnlyThemeEntries({
       decorations: {

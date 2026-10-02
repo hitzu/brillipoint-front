@@ -84,3 +84,19 @@ test("leaves splashEmblemUrl undefined when images is null, missing, or lacks th
     undefined,
   );
 });
+
+test("maps the splashIcon plate color alongside the emblem URL", () => {
+  const theme = tokensToEventPageTheme(baseTokens, {
+    splashIcon: { path: "p", url: "https://x/e.jpg", plate: "#000000" },
+  });
+  assert.equal(theme.splashEmblemPlate, "#000000");
+});
+
+test("leaves splashEmblemPlate undefined without plate or image", () => {
+  assert.equal(
+    tokensToEventPageTheme(baseTokens, { splashIcon: { path: "p", url: "https://x/e.jpg" } })
+      .splashEmblemPlate,
+    undefined,
+  );
+  assert.equal(tokensToEventPageTheme(baseTokens).splashEmblemPlate, undefined);
+});

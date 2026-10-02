@@ -27,5 +27,6 @@ export function tokensToEventPageTheme(
     fontHeading: t.fontHeading,
     fontBody: t.fontBody,
     splashEmblemUrl: images?.splashIcon?.url,
+    splashEmblemPlate: images?.splashIcon?.plate,
   };
 }
