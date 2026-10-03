@@ -83,7 +83,6 @@ export const en: Dictionary = {
       stepTagAfterHandle: "in your post",
       stepReward: "Get your surprise at your next booking",
       shareNow: "Share now",
-      disclaimer: "Valid on your next Brillipoint booking",
     },
     rewardPromo: {
       triggerAriaLabel: "Open gift details",
@@ -139,7 +138,7 @@ export const en: Dictionary = {
     shareTitle: "A keepsake from {{name}}",
     shareConfirm: {
       titleBeforeHandle: "Share your photo and tag",
-      handle: "@brillipoint",
+      titleNoPromo: "Share your photo",
       text: "Tag us on your socials and get a discount on your next booking.",
       button: "Share photo",
     },

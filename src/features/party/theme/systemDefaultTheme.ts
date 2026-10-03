@@ -23,5 +23,6 @@ export const systemDefaultEventTheme: EventTheme = {
   images: systemDefaultJson.theme.images,
   decorations: systemDefaultJson.theme.decorations,
   socialCta: systemDefaultJson.theme.socialCta,
+  rewardPromo: systemDefaultJson.theme.rewardPromo,
   copy: systemDefaultJson.theme.copy,
 };

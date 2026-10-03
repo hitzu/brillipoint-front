@@ -16,6 +16,7 @@ import { buildThemeVars } from "../../../utils/themeVars";
 
 const FotoBoothCarousel = (props: CarouselProps) => {
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const rewardPromo = props.rewardPromo ?? null;
   const actionBarRef = useRef<HTMLDivElement>(null);
   const {
     activeEffect,
@@ -96,10 +97,14 @@ const FotoBoothCarousel = (props: CarouselProps) => {
         socialCta={props.socialCta}
         onWAClick={handleSessionWhatsAppClick}
         onSocialClick={handleSessionSocialClick}
-        onGiftPress={() => {
-          handleOpenRewardPromo();
-          setIsGiftModalOpen(true);
-        }}
+        onGiftPress={
+          rewardPromo
+            ? () => {
+                handleOpenRewardPromo();
+                setIsGiftModalOpen(true);
+              }
+            : undefined
+        }
         onCtaVisible={handleSessionCtaVisible}
       />
 
@@ -127,15 +132,20 @@ const FotoBoothCarousel = (props: CarouselProps) => {
         source={successCtaSource}
       />
 
-      <GiftModal
-        visible={isGiftModalOpen}
-        onClose={() => setIsGiftModalOpen(false)}
-        onShare={() => {
-          setIsGiftModalOpen(false);
-          void handleShare();
-        }}
-        theme={props.theme}
-      />
+      {rewardPromo && (
+        <GiftModal
+          visible={isGiftModalOpen}
+          onClose={() => setIsGiftModalOpen(false)}
+          onShare={() => {
+            setIsGiftModalOpen(false);
+            void handleShare();
+          }}
+          handle={rewardPromo.handle}
+          title={rewardPromo.title ?? undefined}
+          disclaimer={rewardPromo.disclaimer ?? undefined}
+          theme={props.theme}
+        />
+      )}
 
       {isShareFallbackOpen && shareFallbackPreviewUrl && (
         <ShareFallbackModal

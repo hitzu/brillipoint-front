@@ -25,6 +25,7 @@ import { EventPageTheme } from "../types/eventPageTheme";
 import { useEventTheme } from "../hooks/useEventTheme";
 import { isFreshThemeCacheEnabled } from "../utils/freshThemeCache";
 import { useSocialCtaViewModel } from "../hooks/useSocialCtaViewModel";
+import { useRewardPromoViewModel } from "../hooks/useRewardPromoViewModel";
 import { SessionItem } from "../types/session";
 import { readSourceFromRouter } from "../utils/sourceTracking";
 import { EventExpiredPage } from "./EventExpiredPage";
@@ -156,6 +157,7 @@ function MisFotosPage({ sessionToken }: { sessionToken: string }) {
     status: themeStatus,
   } = useEventTheme(router.isReady ? themeEventToken : undefined, freshTheme);
   const socialCta = useSocialCtaViewModel(eventTheme);
+  const rewardPromo = useRewardPromoViewModel(eventTheme);
   // Alt texts follow a language switch made after the session loaded.
   const localizedItems = useMemo(
     () => localizeSessionItems(items, locale, eventData?.honoreesNames),
@@ -317,6 +319,7 @@ function MisFotosPage({ sessionToken }: { sessionToken: string }) {
         source={source}
         theme={theme}
         socialCta={socialCta}
+        rewardPromo={rewardPromo}
       />
     </>
   );

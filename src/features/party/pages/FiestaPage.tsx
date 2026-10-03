@@ -26,6 +26,7 @@ import { buildThemeVars } from "../utils/themeVars";
 import { useEventTheme } from "../hooks/useEventTheme";
 import { isFreshThemeCacheEnabled } from "../utils/freshThemeCache";
 import { useSocialCtaViewModel } from "../hooks/useSocialCtaViewModel";
+import { useRewardPromoViewModel } from "../hooks/useRewardPromoViewModel";
 import {
   appendSourceToPath,
   readSourceFromRouter,
@@ -145,6 +146,7 @@ function FiestaPage({ eventToken }: { eventToken?: string }) {
     useEventTheme(router.isReady ? resolvedEventToken : undefined, freshTheme);
   const themeReady = themeStatus !== "default";
   const socialCta = useSocialCtaViewModel(eventTheme);
+  const rewardPromo = useRewardPromoViewModel(eventTheme);
 
   useEffect(() => {
     if (!resolvedEventToken) return;
@@ -377,6 +379,7 @@ function FiestaPage({ eventToken }: { eventToken?: string }) {
         backdropColor={theme.pageBackground}
         themeVars={themeVars}
         socialCta={socialCta}
+        rewardPromo={rewardPromo}
       />
     </>
   );

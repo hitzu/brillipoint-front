@@ -13,6 +13,7 @@ import { useModalStateMachine } from "../hooks/useModalStateMachine";
 import { PostActionConfirmation } from "./PostActionConfirmation";
 import { SocialPlatform } from "./SocialCta";
 import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
+import { RewardPromoViewModel } from "../theme/buildRewardPromoViewModel";
 import { useT } from "../i18n/LocaleProvider";
 
 type PhotoViewerLightboxProps = {
@@ -38,6 +39,12 @@ type PhotoViewerLightboxProps = {
    * theme to pass and is left unchanged, so it simply omits this prop.
    */
   socialCta?: SocialCtaViewModel | null;
+  /**
+   * `undefined`/`null` hides the tag/discount copy in the share-confirm
+   * step (brand-kit events, or the deprecated `PartyPublicPage`); the share
+   * button keeps working with a neutral title.
+   */
+  rewardPromo?: RewardPromoViewModel | null;
 };
 
 const PhotoViewerLightbox = ({
@@ -57,6 +64,7 @@ const PhotoViewerLightbox = ({
   backdropColor,
   themeVars,
   socialCta,
+  rewardPromo,
 }: PhotoViewerLightboxProps) => {
   const { t } = useT();
   const [currentIndex, setCurrentIndex] = React.useState(activeIndex ?? 0);
@@ -386,15 +394,23 @@ const PhotoViewerLightbox = ({
                           >
                             ✕
                           </button>
-                          <p className={styles.endStateTitulo}>
-                            {t("lightbox.shareConfirm.titleBeforeHandle")}{" "}
-                            <span className={styles.shareHighlight}>
-                              {t("lightbox.shareConfirm.handle")}
-                            </span>
-                          </p>
-                          <p className={styles.endStateSubtitulo}>
-                            {t("lightbox.shareConfirm.text")}
-                          </p>
+                          {rewardPromo ? (
+                            <>
+                              <p className={styles.endStateTitulo}>
+                                {t("lightbox.shareConfirm.titleBeforeHandle")}{" "}
+                                <span className={styles.shareHighlight}>
+                                  {rewardPromo.handle}
+                                </span>
+                              </p>
+                              <p className={styles.endStateSubtitulo}>
+                                {t("lightbox.shareConfirm.text")}
+                              </p>
+                            </>
+                          ) : (
+                            <p className={styles.endStateTitulo}>
+                              {t("lightbox.shareConfirm.titleNoPromo")}
+                            </p>
+                          )}
                           <button
                             type="button"
                             className={styles.shareConfirmBtn}

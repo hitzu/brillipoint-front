@@ -9,13 +9,14 @@ export interface GiftModalProps {
   visible: boolean;
   onClose: () => void;
   onShare: () => void;
-  handle?: string;
-  /** Overrides the translated default disclaimer. */
+  /** Social handle guests must tag (from the theme's `rewardPromo`). */
+  handle: string;
+  /** Overrides the translated default headline. */
+  title?: string;
+  /** Fine print under the promo; rendered only when provided. */
   disclaimer?: string;
   theme?: EventPageTheme;
 }
-
-const DEFAULT_HANDLE = "@brillipoint";
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -24,7 +25,8 @@ const GiftModal = ({
   visible,
   onClose,
   onShare,
-  handle = DEFAULT_HANDLE,
+  handle,
+  title,
   disclaimer,
   theme,
 }: GiftModalProps) => {
@@ -138,7 +140,7 @@ const GiftModal = ({
         </span>
 
         <h3 id={titleId} className={styles.giftModalTitle}>
-          {t("carousel.giftModal.title")}
+          {title ?? t("carousel.giftModal.title")}
         </h3>
 
         <div id={descriptionId} className={styles.giftModalSteps}>
@@ -177,9 +179,9 @@ const GiftModal = ({
           {t("carousel.giftModal.shareNow")}
         </button>
 
-        <p className={styles.giftModalDisclaimer}>
-          {disclaimer ?? t("carousel.giftModal.disclaimer")}
-        </p>
+        {disclaimer && (
+          <p className={styles.giftModalDisclaimer}>{disclaimer}</p>
+        )}
       </div>
     </div>,
     portalTarget,

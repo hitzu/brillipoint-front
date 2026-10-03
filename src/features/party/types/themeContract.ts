@@ -162,6 +162,19 @@ export interface SocialCta {
   socials?: SocialCtaSocials;
 }
 
+/**
+ * Whole-block reward promo (gift button + modal in /mis-fotos, share-confirm
+ * tag copy in the /fiesta lightbox). `null` means hide the promo entirely.
+ */
+export interface RewardPromo {
+  /** Social handle guests must tag, e.g. `@brillipoint`. */
+  handle: string;
+  /** Modal headline; absent means the frontend's i18n default. */
+  title?: ThemeText;
+  /** Fine print under the promo; absent means no disclaimer. */
+  disclaimer?: ThemeText;
+}
+
 /** Free-form copy map, keyed by usage (e.g. gallery headline strings). */
 export type ThemeCopy = Record<string, ThemeText>;
 export type ThemeCopyOverrides = Record<string, ThemeText | null>;
@@ -182,6 +195,7 @@ export interface ThemeOverrides {
   images?: ThemeImageOverrides;
   decorations?: ThemeDecorationOverrides;
   socialCta?: SocialCta | null;
+  rewardPromo?: RewardPromo | null;
   copy?: ThemeCopyOverrides;
 }
 
@@ -198,6 +212,7 @@ export interface EventTheme {
   images?: ThemeImages;
   decorations?: ThemeDecorations;
   socialCta?: SocialCta | null;
+  rewardPromo?: RewardPromo | null;
   copy?: ThemeCopy;
   params?: ThemeTemplateParams;
 }

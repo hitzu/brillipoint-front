@@ -87,7 +87,6 @@ export const es = {
       stepTagAfterHandle: "en tu publicación",
       stepReward: "Recibe tu sorpresa en tu próximo servicio",
       shareNow: "Compartir ahora",
-      disclaimer: "Válido para tu próxima reservación con Brillipoint",
     },
     rewardPromo: {
       triggerAriaLabel: "Abrir información del regalo",
@@ -143,7 +142,7 @@ export const es = {
     shareTitle: "Recuerdo de {{name}}",
     shareConfirm: {
       titleBeforeHandle: "Comparte tu foto y etiqueta a",
-      handle: "@brillipoint",
+      titleNoPromo: "Comparte tu foto",
       text: "Si nos etiquetas en tus redes, recibes un descuento en tu próximo servicio.",
       button: "Compartir foto",
     },

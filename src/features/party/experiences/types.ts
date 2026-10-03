@@ -4,6 +4,7 @@ import { SessionItem } from "../types/session";
 import { GallerySource } from "../utils/sourceTracking";
 import { EventPageTheme } from "../types/eventPageTheme";
 import { SocialCtaViewModel } from "../theme/buildSocialCtaViewModel";
+import { RewardPromoViewModel } from "../theme/buildRewardPromoViewModel";
 import { ThemeDecorations, ThemeImages } from "../types/themeContract";
 
 export interface SplashProps {
@@ -31,6 +32,8 @@ export interface CarouselProps {
   source?: GallerySource;
   theme?: EventPageTheme;
   socialCta?: SocialCtaViewModel | null;
+  /** `undefined`/`null` hides the gift button and gift modal. */
+  rewardPromo?: RewardPromoViewModel | null;
 }
 
 export interface OverviewProps {

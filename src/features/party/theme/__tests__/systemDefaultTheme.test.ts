@@ -37,6 +37,10 @@ test("systemDefaultEventTheme has no social CTA and no fallback CTA is invented"
   assert.equal(systemDefaultEventTheme.socialCta, null);
 });
 
+test("systemDefaultEventTheme has no reward promo", () => {
+  assert.equal(systemDefaultEventTheme.rewardPromo, null);
+});
+
 test("SYSTEM_DEFAULT_THEME_VERSION matches the bundled json version and the theme's own version", () => {
   assert.equal(typeof SYSTEM_DEFAULT_THEME_VERSION, "string");
   assert.equal(systemDefaultEventTheme.version, SYSTEM_DEFAULT_THEME_VERSION);
