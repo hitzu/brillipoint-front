@@ -21,6 +21,7 @@ import { getEventTypes } from "../../api/services/eventTypesService";
 import { getEventThemes } from "../../api/services/eventThemesService";
 import { buildUpdateEventPayload } from "../../features/events/utils/eventPayload";
 import EventThemeSection from "../../features/events/theme/EventThemeSection";
+import { matchesEventSearch } from "../../features/events/utils/matchesEventSearch";
 import * as yup from "yup";
 
 interface EventFormValues {
@@ -161,7 +162,7 @@ const EventEdit = () => {
     const term = searchTerm.trim().toLowerCase();
     if (term.length < 2) return [];
     return allEvents
-      .filter((e) => e.honoreesNames?.toLowerCase().includes(term))
+      .filter((e) => matchesEventSearch(e, term))
       .slice(0, 50);
   }, [allEvents, searchTerm]);
 
@@ -208,10 +209,10 @@ const EventEdit = () => {
             </Card.Header>
             <Card.Body>
               <Form.Group>
-                <Form.Label>Buscar evento por festejados</Form.Label>
+                <Form.Label>Buscar evento por festejados o key</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Escribí los nombres de los festejados..."
+                  placeholder="Escribí los nombres de los festejados o la key..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -272,7 +273,7 @@ const EventEdit = () => {
                     }}
                   >
                     <small className="text-muted">
-                      No se encontraron eventos con esos festejados
+                      No se encontraron eventos con esos festejados o key
                     </small>
                   </div>
                 )}

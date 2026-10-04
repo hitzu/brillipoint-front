@@ -6,6 +6,7 @@ import { Card, Col, Form, Row } from "react-bootstrap";
 import { EventV2, GetEventTypesResponse } from "../../interfaces";
 import { getEvents } from "../../api/services/eventsService";
 import { getEventTypes } from "../../api/services/eventTypesService";
+import { matchesEventSearch } from "../../features/events/utils/matchesEventSearch";
 
 const EventEditIndex = () => {
   const router = useRouter();
@@ -33,7 +34,7 @@ const EventEditIndex = () => {
     const term = searchTerm.trim().toLowerCase();
     if (term.length < 2) return [];
     return allEvents
-      .filter((e) => e.honoreesNames?.toLowerCase().includes(term))
+      .filter((e) => matchesEventSearch(e, term))
       .slice(0, 50);
   }, [allEvents, searchTerm]);
 
@@ -52,10 +53,10 @@ const EventEditIndex = () => {
             </Card.Header>
             <Card.Body>
               <Form.Group style={{ position: "relative" }}>
-                <Form.Label>Buscar evento por festejados</Form.Label>
+                <Form.Label>Buscar evento por festejados o key</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Escribí los nombres de los festejados..."
+                  placeholder="Escribí los nombres de los festejados o la key..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -115,7 +116,7 @@ const EventEditIndex = () => {
                     }}
                     >
                     <small className="text-muted">
-                      No se encontraron eventos con esos festejados
+                      No se encontraron eventos con esos festejados o key
                     </small>
                   </div>
                 )}
