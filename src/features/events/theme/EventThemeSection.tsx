@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Toast } from "react-bootstrap";
+import { Button, Card, Toast } from "react-bootstrap";
 import { getEventById, updateEventById } from "../../../api/services/eventsService";
 import {
   createThemeAssetUploadUrl,
@@ -336,16 +336,28 @@ const EventThemeSection = ({
         </Toast>
       </div>
 
+      <Card className="mt-3">
+        <Card.Header>
+          <h5 className="mb-0">Tema del evento</h5>
+          <small className="text-muted d-block mt-1">
+            Elementos propios de cada evento: fondo de bienvenida y confeti.
+          </small>
+        </Card.Header>
+        <Card.Body>
+          <ThemeBackgroundBlock
+            previewUrl={currentBackgroundUrl}
+            onFileSelected={handleFileSelected}
+            onInvalidMime={handleInvalidMime}
+            onRemove={handleRemoveBackground}
+            removeDisabled={!currentBackgroundUrl}
+          />
+
+          <ThemeConfettiBlock selectedShapes={selectedShapes} onToggleShape={handleToggleShape} />
+        </Card.Body>
+      </Card>
+
       <EventBrandSection key={eventId} defaultOpen={hasBrandContent(initialRawThemeOverrides)}>
         <ThemeJsonImportBlock onApply={handleImportJson} />
-
-        <ThemeBackgroundBlock
-          previewUrl={currentBackgroundUrl}
-          onFileSelected={handleFileSelected}
-          onInvalidMime={handleInvalidMime}
-          onRemove={handleRemoveBackground}
-          removeDisabled={!currentBackgroundUrl}
-        />
 
         <ThemeSplashIconBlock
           previewUrl={currentSplashUrl}
@@ -356,8 +368,6 @@ const EventThemeSection = ({
           plate={splashPlate}
           onPlateChange={handlePlateChange}
         />
-
-        <ThemeConfettiBlock selectedShapes={selectedShapes} onToggleShape={handleToggleShape} />
 
         <ThemeSocialCtaBlock
           form={socialCta.form}
@@ -388,15 +398,17 @@ const EventThemeSection = ({
           </div>
         )}
 
-        <Button
-          type="button"
-          variant="primary"
-          onClick={handleSave}
-          disabled={saving || socialCta.invalid}
-        >
-          {saving ? "Guardando..." : "Guardar tema"}
-        </Button>
       </EventBrandSection>
+
+      <Button
+        type="button"
+        variant="primary"
+        className="mt-3"
+        onClick={handleSave}
+        disabled={saving || socialCta.invalid}
+      >
+        {saving ? "Guardando..." : "Guardar tema"}
+      </Button>
     </>
   );
 };

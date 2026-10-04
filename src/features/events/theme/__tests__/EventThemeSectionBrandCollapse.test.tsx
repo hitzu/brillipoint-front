@@ -88,4 +88,27 @@ describe("EventThemeSection brand collapse", () => {
 
     expect(screen.getByRole("heading", { name: /Logo y fondo del logo/ })).toBeTruthy();
   });
+
+  it("keeps the welcome background and confetti outside the collapsed brand section", () => {
+    render(<EventThemeSection eventId={7} initialThemeOverrides={null} />);
+
+    expect(toggle().getAttribute("aria-expanded")).toBe("false");
+    const brandPanel = document.getElementById(toggle().getAttribute("aria-controls") as string);
+    const background = screen.getByRole("heading", { name: /Fondo de la pantalla de bienvenida/ });
+    const confetti = screen.getByRole("group", { name: "Formas del confeti" });
+
+    expect(brandPanel?.contains(background)).toBe(false);
+    expect(brandPanel?.contains(confetti)).toBe(false);
+    expect(brandPanel?.contains(screen.getByRole("button", { name: "Guardar tema" }))).toBe(false);
+  });
+
+  it("is collapsed for an event that only has a background and confetti", () => {
+    const perEvent = {
+      images: { background: { path: "bg.png", url: "https://x/bg.png" } },
+      decorations: { confetti: { shapes: ["heart"] } },
+    };
+    render(<EventThemeSection eventId={7} initialThemeOverrides={perEvent as any} />);
+
+    expect(toggle().getAttribute("aria-expanded")).toBe("false");
+  });
 });
