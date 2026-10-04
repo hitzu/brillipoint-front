@@ -168,7 +168,7 @@ export function setSocialCta(
 }
 
 /**
- * Removes the event's own `socialCta` so the brand kit block is inherited
+ * Removes the event's own `socialCta` so the theme's block is inherited
  * again. Deletes the key; never writes `socialCta: null` (rejected by the API).
  */
 export function clearSocialCta(
@@ -176,5 +176,26 @@ export function clearSocialCta(
 ): RawThemeOverrides {
   const result = current ? deepClone(current) : {};
   delete result.socialCta;
+  return result;
+}
+
+/**
+ * Applies an imported `themeOverrides` (see `parseThemeOverridesJson`) on top
+ * of `current`. Every top-level key present in the import replaces the stored
+ * block wholesale (the authoring skill emits validated whole blocks, so mixing
+ * them field by field with stale stored values could produce combinations it
+ * never validated); keys absent from the import are kept. `images` is never
+ * touched: images are uploaded separately and the imported splash plate goes
+ * through the plate editor instead.
+ */
+export function applyImportedThemeOverrides(
+  current: RawThemeOverrides | null | undefined,
+  imported: RawThemeOverrides,
+): RawThemeOverrides {
+  const result = current ? deepClone(current) : {};
+  for (const key of Object.keys(imported)) {
+    if (key === "images") continue;
+    result[key] = deepClone(imported[key]);
+  }
   return result;
 }

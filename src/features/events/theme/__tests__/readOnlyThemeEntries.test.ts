@@ -72,7 +72,7 @@ describe("getReadOnlyThemeEntries", () => {
   it("passes through tokens, copy and unknown keys unchanged", () => {
     const raw = {
       tokens: { primary: "#111" },
-      socialCta: { brandKitKey: "wedding" },
+      socialCta: { headline: { text: { es: "Hola" } } },
       copy: { headline: { text: { es: "Hola" } } },
       decorativeIcon: "flower",
     };

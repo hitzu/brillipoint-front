@@ -2,8 +2,7 @@
    Shared by the new `SocialCta` component (in-scope /fiesta, /mis-fotos,
    /inspiracion) and the legacy `SocialMediaCTA` component, which is still
    used by the deprecated `/party/[token]` route's exclusive components
-   (PersonalizePhotoModal, DedicatePhotoModal) — see odd/tasks/theme-brand-kits.md
-   T4. Class names are kept as-is (including the "wa"-named ones, now used
+   (PersonalizePhotoModal, DedicatePhotoModal). Class names are kept as-is (including the "wa"-named ones, now used
    for any of the 5 primary-action channels) so both components keep
    working from one file. */
 

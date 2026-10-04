@@ -29,7 +29,7 @@ interface ThemeSocialCtaBlockProps {
   locale: SocialCtaLocale;
   onLocaleChange: (locale: SocialCtaLocale) => void;
   onChange: (form: SocialCtaFormState) => void;
-  /** Values were prefilled from the resolved brand kit, not stored on the event. */
+  /** Values were prefilled from the resolved theme (preset or default), not stored on the event. */
   inherited: boolean;
   /** Staff chose "Usar el heredado"; the override is removed on save. */
   cleared: boolean;
@@ -89,12 +89,12 @@ const ThemeSocialCtaBlock = ({
         <div className={styles.editor}>
           {inherited && !cleared && (
             <p className={styles.note}>
-              Heredado del kit de marca; al guardar se volverá propio del evento.
+              Heredado del tema; al guardar se volverá propio del evento.
             </p>
           )}
           {cleared && (
             <p className={styles.note}>
-              Al guardar, el evento usará las redes y el botón del kit de marca.
+              Al guardar, el evento usará las redes y el botón del tema.
             </p>
           )}
           {canUseInherited && !cleared && (

@@ -50,6 +50,8 @@ export function useSocialCtaEditor({
   const [eventTheme, setEventTheme] = useState<EventTheme | null>(null);
   const dirtyRef = useRef(false);
   dirtyRef.current = dirty;
+  // Set once staff imported a socialCta, so a late resolved-theme prefill never overwrites it.
+  const importedRef = useRef(false);
 
   useEffect(() => {
     setForm(socialCtaToForm(storedSocialCtaFrom(initialThemeOverrides)));
@@ -57,6 +59,7 @@ export function useSocialCtaEditor({
     setCleared(false);
     setInherited(false);
     setEventTheme(null);
+    importedRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
@@ -73,7 +76,7 @@ export function useSocialCtaEditor({
         if (isCancelled()) return;
         setEventTheme(resolved ?? null);
         // Never overwrite a stored override or something staff already started editing.
-        if (!prefill || dirtyRef.current || !resolved?.socialCta) return;
+        if (!prefill || dirtyRef.current || importedRef.current || !resolved?.socialCta) return;
         setForm(socialCtaToForm(resolved.socialCta));
         setInherited(true);
       })
@@ -116,8 +119,25 @@ export function useSocialCtaEditor({
     return overrides;
   };
 
+  /**
+   * Loads an imported `socialCta` into the form. It is not marked dirty: the
+   * imported block itself is written on save (lossless, e.g. key-based texts),
+   * and only later edits in the form replace it. No-op without a socialCta.
+   */
+  const loadImported = (imported: RawThemeOverrides) => {
+    const importedSocialCta = storedSocialCtaFrom(imported);
+    if (!importedSocialCta) return;
+    setForm(socialCtaToForm(importedSocialCta));
+    setDirty(false);
+    dirtyRef.current = false;
+    setCleared(false);
+    setInherited(false);
+    importedRef.current = true;
+  };
+
   /** Re-syncs the editor with what was just saved. */
   const resetAfterSave = (saved: RawThemeOverrides) => {
+    importedRef.current = false;
     const savedSocialCta = storedSocialCtaFrom(saved);
     setForm(socialCtaToForm(savedSocialCta));
     setDirty(false);
@@ -139,6 +159,7 @@ export function useSocialCtaEditor({
     onChange,
     onUseInherited,
     applyTo,
+    loadImported,
     resetAfterSave,
   };
 }

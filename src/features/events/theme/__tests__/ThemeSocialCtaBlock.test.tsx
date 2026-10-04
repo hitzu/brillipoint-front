@@ -181,7 +181,7 @@ describe("ThemeSocialCtaBlock", () => {
     const onUseInherited = vi.fn();
     const { rerender } = render(<Harness inherited />);
 
-    expect(screen.getByText(/Heredado del kit de marca/)).toBeTruthy();
+    expect(screen.getByText(/Heredado del tema/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Usar el heredado" })).toBeNull();
 
     rerender(<Harness canUseInherited onUseInherited={onUseInherited} />);

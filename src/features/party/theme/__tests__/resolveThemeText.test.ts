@@ -40,11 +40,11 @@ test("interpolates params into the resolved inline text", () => {
 });
 
 test("resolves the key variant via the injected i18n lookup, merging params (own params win)", () => {
-  const i18n = (key: string) => (key === "cta.headline" ? "Hola {{name}}, de {{brandName}}" : undefined);
+  const i18n = (key: string) => (key === "cta.headline" ? "Hola {{name}}, de {{place}}" : undefined);
   const result = resolveThemeText(
     { key: "cta.headline", params: { name: "Override" } },
     "es",
-    { name: "Ana", brandName: "Acme" },
+    { name: "Ana", place: "Acme" },
     i18n,
   );
   assert.equal(result, "Hola Override, de Acme");

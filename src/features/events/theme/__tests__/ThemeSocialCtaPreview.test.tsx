@@ -73,11 +73,11 @@ describe("ThemeSocialCtaPreview", () => {
 
   it("interpolates the resolved theme params, letting the event honorees override them", () => {
     const form = buildForm((f) => {
-      f.headline = { es: "{{brandName}} celebra a {{honoreesName}}" };
+      f.headline = { es: "Lusso celebra a {{honoreesName}}" };
     });
     const theme = {
       ...EVENT_THEME,
-      params: { brandName: "Lusso", honoreesName: "Kit" },
+      params: { honoreesName: "Kit" },
     } as EventTheme;
 
     const { rerender } = render(

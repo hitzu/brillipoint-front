@@ -14,7 +14,7 @@ export const DEFAULT_LOCALE: Locale = "es";
 /**
  * Injected i18n lookup for the `{ key }` variant of `ThemeText`. There is no
  * i18n system in this codebase today (no next-i18next/react-i18next,
- * no dictionaries) — see odd/tasks/theme-brand-kits.md T3 decision gap.
+ * no dictionaries).
  * Callers inject their own lookup once one exists; until then, omitting it
  * makes any `{ key }` ThemeText resolve to `null` (hidden), same as a
  * missing key.

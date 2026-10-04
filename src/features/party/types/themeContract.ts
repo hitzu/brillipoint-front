@@ -1,9 +1,8 @@
 // Contract for `GET /events/:token/theme` — the backend-resolved, layered
-// theme (SystemDefault -> preset -> brand kit -> per-event overrides).
+// theme (SystemDefault -> preset -> per-event overrides).
 // The frontend never merges layers itself; it only renders what the backend
 // already resolved. Ported from bookandsign-api's
 // `src/events/theme/theme.types.ts` — keep the two files in sync.
-// See odd/tasks/theme-brand-kits.md for the full design.
 
 /** The 9 tokens every resolved theme is guaranteed to have. */
 export interface RequiredThemeTokens {
@@ -110,8 +109,6 @@ export type ThemeText =
 export interface ThemeTemplateParams {
   /** Trimmed `event.honoreesNames`; omitted when empty. */
   honoreesName?: string;
-  /** Name of the brand kit that supplied the resolved socialCta block; omitted when none did. */
-  brandName?: string;
 }
 
 export type SocialCtaChannel =
@@ -154,7 +151,6 @@ export interface SocialCtaSocials {
  * substitutes a fallback CTA of its own.
  */
 export interface SocialCta {
-  brandKitKey?: string;
   headline?: ThemeText;
   subtitle?: ThemeText;
   followText?: ThemeText;
@@ -180,7 +176,7 @@ export type ThemeCopy = Record<string, ThemeText>;
 export type ThemeCopyOverrides = Record<string, ThemeText | null>;
 
 /**
- * Shared partial layer shape for brand kits and per-event overrides
+ * Partial layer shape for per-event overrides
  * (admin editing, T7). Every field is optional; `undefined` means inherit
  * from the previous layer, `null` means explicitly remove (where removal is
  * meaningful).

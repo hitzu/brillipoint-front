@@ -41,7 +41,7 @@ type PhotoViewerLightboxProps = {
   socialCta?: SocialCtaViewModel | null;
   /**
    * `undefined`/`null` hides the tag/discount copy in the share-confirm
-   * step (brand-kit events, or the deprecated `PartyPublicPage`); the share
+   * step (themes with `rewardPromo: null`, or the deprecated `PartyPublicPage`); the share
    * button keeps working with a neutral title.
    */
   rewardPromo?: RewardPromoViewModel | null;

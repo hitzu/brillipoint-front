@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Toast } from "react-bootstrap";
+import { Button, Toast } from "react-bootstrap";
 import { getEventById, updateEventById } from "../../../api/services/eventsService";
 import {
   createThemeAssetUploadUrl,
@@ -9,6 +9,7 @@ import { ThemeAssetMime } from "../../../interfaces";
 import { ThemeOverrides } from "../../party/types/themeContract";
 import { ConfettiShape } from "../../party/theme/confettiShapes";
 import {
+  applyImportedThemeOverrides,
   RawThemeOverrides,
   removeBackgroundImage,
   removeSplashIconImage,
@@ -18,9 +19,13 @@ import {
   setSplashIconPlate,
 } from "./mergeThemeOverrides";
 import { getReadOnlyThemeEntries } from "./readOnlyThemeEntries";
+import { parseThemeOverridesJson } from "./parseThemeOverridesJson";
+import { hasBrandContent } from "./hasBrandContent";
 import { storedSocialCtaFrom, useSocialCtaEditor } from "./hooks/useSocialCtaEditor";
+import EventBrandSection from "./components/EventBrandSection";
 import ThemeBackgroundBlock from "./components/ThemeBackgroundBlock";
 import ThemeConfettiBlock from "./components/ThemeConfettiBlock";
+import ThemeJsonImportBlock from "./components/ThemeJsonImportBlock";
 import ThemeReadOnlyBlock from "./components/ThemeReadOnlyBlock";
 import ThemeSplashIconBlock from "./components/ThemeSplashIconBlock";
 import ThemeSocialCtaBlock from "./components/ThemeSocialCtaBlock";
@@ -75,7 +80,7 @@ const EventThemeSection = ({
     shapesFrom(initialRawThemeOverrides),
   );
   // Confetti is only written when staff touched it, so a background-only save
-  // never overrides confetti inherited from the preset or brand kit.
+  // never overrides confetti inherited from the preset or default theme.
   const [confettiDirty, setConfettiDirty] = useState(false);
   // Same rule for socialCta: written only when edited (dirty) or removed (cleared).
   const socialCta = useSocialCtaEditor({
@@ -83,6 +88,8 @@ const EventThemeSection = ({
     token,
     initialThemeOverrides: initialRawThemeOverrides,
   });
+  // Blocks pasted through "Importar JSON", written over the refetched overrides on save.
+  const [importedOverrides, setImportedOverrides] = useState<RawThemeOverrides | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [showToast, setShowToast] = useState(false);
@@ -101,6 +108,7 @@ const EventThemeSection = ({
     setSplashPlate(plateFrom(initialThemeOverrides as RawThemeOverrides | null | undefined));
     setPlateDirty(false);
     setConfettiDirty(false);
+    setImportedOverrides(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
@@ -171,6 +179,33 @@ const EventThemeSection = ({
     );
   };
 
+  /**
+   * Loads a pasted `themeOverrides` into the editor for preview (never saves).
+   * Images are kept as they are; each editor whose block was imported is
+   * re-synced so the import, not a previous unsaved edit, is what gets saved.
+   */
+  const handleImportJson = (text: string): string | null => {
+    const result = parseThemeOverridesJson(text);
+    if (!result.ok) return result.error;
+    const imported = result.overrides;
+
+    const nextView = applyImportedThemeOverrides(themeOverrides, imported);
+    setThemeOverrides(nextView);
+    setImportedOverrides((prev) => applyImportedThemeOverrides(prev, imported));
+
+    if ("decorations" in imported) {
+      setSelectedShapes(shapesFrom(nextView));
+      setConfettiDirty(false);
+    }
+    const importedPlate = plateFrom(imported);
+    if (importedPlate) {
+      setSplashPlate(importedPlate);
+      setPlateDirty(true);
+    }
+    socialCta.loadImported(imported);
+    return null;
+  };
+
   const handleSave = async () => {
     if (socialCta.invalid) return;
     setSaving(true);
@@ -214,6 +249,10 @@ const EventThemeSection = ({
       const fresh = await getEventById(eventId);
       let merged: RawThemeOverrides = (fresh.themeOverrides as RawThemeOverrides) ?? {};
 
+      if (importedOverrides) {
+        merged = applyImportedThemeOverrides(merged, importedOverrides);
+      }
+
       if (uploadedSlot) {
         merged = setBackgroundImage(merged, uploadedSlot);
       } else if (backgroundRemoved) {
@@ -252,6 +291,7 @@ const EventThemeSection = ({
       setSplashPlate(plateFrom(merged));
       setPlateDirty(false);
       setConfettiDirty(false);
+      setImportedOverrides(null);
       socialCta.resetAfterSave(merged);
       setToastMessage("Tema actualizado exitosamente");
       setToastVariant("success");
@@ -271,34 +311,33 @@ const EventThemeSection = ({
   const readOnlyEntries = getReadOnlyThemeEntries(themeOverrides);
 
   return (
-    <Card className="mt-3">
-      <Card.Header>
-        <h5>Tema del evento</h5>
-      </Card.Header>
-      <Card.Body>
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            zIndex: 9999,
-          }}
+    <>
+      <div
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          zIndex: 9999,
+        }}
+      >
+        <Toast
+          onClose={() => setShowToast(false)}
+          show={showToast}
+          delay={4000}
+          autohide
+          bg={toastVariant}
         >
-          <Toast
-            onClose={() => setShowToast(false)}
-            show={showToast}
-            delay={4000}
-            autohide
-            bg={toastVariant}
-          >
-            <Toast.Header>
-              <strong className="me-auto">
-                {toastVariant === "success" ? "Exito" : "Error"}
-              </strong>
-            </Toast.Header>
-            <Toast.Body className="text-white">{toastMessage}</Toast.Body>
-          </Toast>
-        </div>
+          <Toast.Header>
+            <strong className="me-auto">
+              {toastVariant === "success" ? "Exito" : "Error"}
+            </strong>
+          </Toast.Header>
+          <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+        </Toast>
+      </div>
+
+      <EventBrandSection key={eventId} defaultOpen={hasBrandContent(initialRawThemeOverrides)}>
+        <ThemeJsonImportBlock onApply={handleImportJson} />
 
         <ThemeBackgroundBlock
           previewUrl={currentBackgroundUrl}
@@ -357,8 +396,8 @@ const EventThemeSection = ({
         >
           {saving ? "Guardando..." : "Guardar tema"}
         </Button>
-      </Card.Body>
-    </Card>
+      </EventBrandSection>
+    </>
   );
 };
 

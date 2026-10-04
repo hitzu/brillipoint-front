@@ -68,7 +68,7 @@ const ThemeSplashIconBlock = ({
 
   return (
     <div className="mb-4">
-      <h6>Logo de la pantalla de bienvenida</h6>
+      <h6>Logo y fondo del logo (pantalla de bienvenida)</h6>
       <div className="mb-2">
         {previewUrl ? (
           <img

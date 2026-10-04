@@ -47,7 +47,7 @@ const ThemeSocialCtaPreview = ({
   honoreesNames,
   eventTheme,
 }: ThemeSocialCtaPreviewProps) => {
-  // The event's own honorees win over the resolved params (e.g. `{{brandName}}`).
+  // The event's own honorees win over the resolved `honoreesName` param.
   const honoreesName = honoreesNames?.trim();
   const params = { ...eventTheme?.params, ...(honoreesName ? { honoreesName } : {}) };
   const viewModel = buildSocialCtaViewModel(formToSocialCta(form), locale, params);

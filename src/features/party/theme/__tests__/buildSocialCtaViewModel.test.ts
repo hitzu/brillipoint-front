@@ -28,15 +28,12 @@ test("resolves headline with es->en fallback", () => {
   assert.equal(vm?.headline, "Hello there");
 });
 
-test("interpolates {{honoreesName}} and {{brandName}} params into headline", () => {
+test("interpolates the {{honoreesName}} param into headline", () => {
   const socialCta: SocialCta = {
-    headline: { text: { es: "¡{{honoreesName}} ama a {{brandName}}!" } },
+    headline: { text: { es: "¡Gracias por celebrar con {{honoreesName}}!" } },
   };
-  const vm = buildSocialCtaViewModel(socialCta, "es", {
-    honoreesName: "Ana",
-    brandName: "Acme",
-  });
-  assert.equal(vm?.headline, "¡Ana ama a Acme!");
+  const vm = buildSocialCtaViewModel(socialCta, "es", { honoreesName: "Acme" });
+  assert.equal(vm?.headline, "¡Gracias por celebrar con Acme!");
 });
 
 test("builds an encoded whatsapp href from the primary action", () => {

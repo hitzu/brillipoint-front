@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ThemeOverrides } from "../../../party/types/themeContract";
 import {
+  applyImportedThemeOverrides,
   clearSocialCta,
   mergeThemeOverrides,
   removeBackgroundImage,
@@ -18,7 +19,7 @@ describe("mergeThemeOverrides", () => {
       tokens: { primary: "#111", secondary: "#222" },
       images: { logo: { path: "logo.png", url: "https://x/logo.png" } },
       decorations: { sparkles: { enabled: true } },
-      socialCta: { brandKitKey: "wedding", headline: { text: { es: "Hola" } } },
+      socialCta: { headline: { text: { es: "Hola" } } },
       copy: { headline: { text: { es: "Bienvenidos" } } },
       decorativeIcon: "flower", // unknown key, not in ThemeOverrides type
     };
@@ -67,7 +68,7 @@ describe("mergeThemeOverrides", () => {
   });
 
   it("never sends socialCta: null even if a change tries to null it", () => {
-    const current = { socialCta: { brandKitKey: "wedding" } };
+    const current = { socialCta: { headline: { text: { es: "Hola" } } } };
 
     const result = mergeThemeOverrides(current, { socialCta: null } as any);
 
@@ -190,7 +191,7 @@ describe("setSplashIconImage / removeSplashIconImage", () => {
       splashIcon: { path: "old.png", url: "https://x/old.png" },
     },
     decorations: { confetti: { enabled: true, shapes: ["star"] } },
-    socialCta: { brandKitKey: "wedding" },
+    socialCta: { headline: { text: { es: "Hola" } } },
     decorativeIcon: "flower",
   };
 
@@ -321,5 +322,42 @@ describe("setSocialCta / clearSocialCta", () => {
     expect(result.tokens).toEqual(current.tokens);
     expect(current.socialCta).toBeDefined();
     expect(clearSocialCta(undefined)).toEqual({});
+  });
+});
+
+describe("applyImportedThemeOverrides", () => {
+  const current = {
+    tokens: { primary: "#111111", secondary: "#222222" },
+    images: { background: { path: "bg.png", url: "https://x/bg.png" } },
+    decorations: { sparkles: { enabled: true } },
+    decorativeIcon: "flower",
+  };
+
+  it("replaces imported top-level blocks wholesale and keeps absent keys", () => {
+    const result = applyImportedThemeOverrides(current, {
+      tokens: { primary: "#333333" },
+      socialCta: { headline: { key: "x" } },
+    });
+
+    expect(result.tokens).toEqual({ primary: "#333333" });
+    expect(result.socialCta).toEqual({ headline: { key: "x" } });
+    expect(result.decorations).toEqual(current.decorations);
+    expect(result.decorativeIcon).toBe("flower");
+  });
+
+  it("never touches images and does not mutate its inputs", () => {
+    const imported = { images: { splashIcon: { plate: "#000000" } }, tokens: { primary: "#333333" } };
+    const result = applyImportedThemeOverrides(current, imported);
+
+    expect(result.images).toEqual(current.images);
+    expect(current.tokens.primary).toBe("#111111");
+    (result.tokens as any).primary = "#999999";
+    expect(imported.tokens.primary).toBe("#333333");
+  });
+
+  it("starts from an empty object when there is nothing stored", () => {
+    expect(applyImportedThemeOverrides(null, { tokens: { primary: "#333333" } })).toEqual({
+      tokens: { primary: "#333333" },
+    });
   });
 });

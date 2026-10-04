@@ -404,7 +404,7 @@ describe("EventThemeSection", () => {
       expect((screen.getByRole("switch", { name: "Facebook" }) as HTMLInputElement).checked).toBe(
         false,
       );
-      expect(screen.queryByText(/Heredado del kit de marca/)).toBeNull();
+      expect(screen.queryByText(/Heredado del tema/)).toBeNull();
       expect(screen.queryByText("socialCta")).toBeNull();
     });
 
@@ -426,7 +426,7 @@ describe("EventThemeSection", () => {
         />,
       );
 
-      expect(await screen.findByText(/Heredado del kit de marca/)).toBeTruthy();
+      expect(await screen.findByText(/Heredado del tema/)).toBeTruthy();
       expect(mockedGetEventTheme).toHaveBeenCalledWith("tok", true);
       expect(
         (screen.getByLabelText("Usuario o enlace de Facebook") as HTMLInputElement).value,
@@ -450,7 +450,7 @@ describe("EventThemeSection", () => {
       expect((screen.getByRole("switch", { name: "Instagram" }) as HTMLInputElement).checked).toBe(
         false,
       );
-      expect(screen.queryByText(/Heredado del kit de marca/)).toBeNull();
+      expect(screen.queryByText(/Heredado del tema/)).toBeNull();
       expect(
         (screen.getByRole("button", { name: "Guardar tema" }) as HTMLButtonElement).disabled,
       ).toBe(false);
@@ -470,7 +470,7 @@ describe("EventThemeSection", () => {
           initialThemeOverrides={FRESH_EVENT.themeOverrides as any}
         />,
       );
-      await screen.findByText(/Heredado del kit de marca/);
+      await screen.findByText(/Heredado del tema/);
 
       const payload = await save();
 
@@ -569,7 +569,7 @@ describe("EventThemeSection", () => {
         />,
       );
 
-      await screen.findByText(/Heredado del kit de marca/);
+      await screen.findByText(/Heredado del tema/);
       const surface = screen.getByTestId("social-cta-preview-surface");
       expect(surface.style.getPropertyValue("--ep-page-bg")).toBe("#123456");
       expect(mockedGetEventTheme).toHaveBeenCalledTimes(1);

@@ -4,7 +4,7 @@
  * icon set (`components/ConfettiShapeIcons.tsx`) share the same source of
  * truth for "which shapes exist".
  *
- * Open point (see odd/tasks/theme-brand-kits.md): the backend
+ * Open point: the backend
  * (`bookandsign-api`) does not yet validate `decorations.confetti.shapes`
  * against this same catalog.
  */
