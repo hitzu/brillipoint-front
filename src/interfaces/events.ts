@@ -35,7 +35,13 @@ export interface EventV2 {
   updatedAt: string;
   eventTheme?: EventThemes;
   themeOverrides?: ThemeOverrides | null;
+  galleryStatus: EventGalleryStatus;
+  activePhotoCount: number;
 }
+
+export const EVENT_GALLERY_STATUSES = ["auto", "demo"] as const;
+
+export type EventGalleryStatus = (typeof EVENT_GALLERY_STATUSES)[number];
 
 export interface CreateEventPayload {
   contractId: number;
@@ -57,6 +63,7 @@ export interface UpdateEventPayload {
   delegateName?: string;
   photoCount?: number;
   themeOverrides?: ThemeOverrides | null;
+  galleryStatus?: EventGalleryStatus;
 }
 
 export type EventPhraseResponse = {

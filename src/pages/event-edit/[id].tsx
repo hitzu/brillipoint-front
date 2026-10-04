@@ -2,9 +2,15 @@ import Layout from "@layout/index";
 import { useRouter } from "next/router";
 import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import BreadcrumbItem from "@common/BreadcrumbItem";
-import { Card, Col, Form, Row, Toast, Button } from "react-bootstrap";
+import { Alert, Card, Col, Form, Row, Toast, Button } from "react-bootstrap";
 import { useFormik } from "formik";
-import { EventV2, EventThemes, GetEventTypesResponse } from "../../interfaces";
+import {
+  EventV2,
+  EventThemes,
+  EVENT_GALLERY_STATUSES,
+  EventGalleryStatus,
+  GetEventTypesResponse,
+} from "../../interfaces";
 import {
   getEventById,
   getEvents,
@@ -25,9 +31,15 @@ interface EventFormValues {
   albumPhrase: string;
   delegateName: string;
   photoCount: string;
+  galleryStatus: EventGalleryStatus;
 }
 
 const PHOTO_COUNT_OPTIONS = ["1", "2", "3", "4", "5"];
+
+const GALLERY_STATUS_LABELS: Record<EventGalleryStatus, string> = {
+  auto: "Automático (vence a los 30 días)",
+  demo: "Demo de ventas (visible aunque esté vencida)",
+};
 
 const validationSchema = yup.object().shape({
   key: yup.string().required("La clave del evento es requerida"),
@@ -39,6 +51,10 @@ const validationSchema = yup.object().shape({
   albumPhrase: yup.string().optional(),
   delegateName: yup.string().optional(),
   photoCount: yup.number().integer().min(1).max(5).optional(),
+  galleryStatus: yup
+    .mixed<EventGalleryStatus>()
+    .oneOf([...EVENT_GALLERY_STATUSES])
+    .required("El estado de la galería es requerido"),
 });
 
 const EventEdit = () => {
@@ -67,6 +83,7 @@ const EventEdit = () => {
       albumPhrase: "",
       delegateName: "",
       photoCount: "2",
+      galleryStatus: "auto",
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -102,6 +119,7 @@ const EventEdit = () => {
             delegateName: event.delegateName || "",
             photoCount:
               event.photoCount != null ? String(event.photoCount) : "2",
+            galleryStatus: event.galleryStatus ?? "auto",
           });
           setContractLabel(`#${event.contractId}`);
           getContractById(event.contractId)
@@ -416,6 +434,39 @@ const EventEdit = () => {
                       <Form.Control.Feedback type="invalid">
                         {formik.errors.delegateName}
                       </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={12}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Estado de la galería</Form.Label>
+                      <Form.Select
+                        name="galleryStatus"
+                        value={formik.values.galleryStatus}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur("galleryStatus")}
+                        isInvalid={
+                          formik.touched.galleryStatus &&
+                          !!formik.errors.galleryStatus
+                        }
+                      >
+                        {EVENT_GALLERY_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {GALLERY_STATUS_LABELS[status]}
+                          </option>
+                        ))}
+                      </Form.Select>
+                      <Form.Control.Feedback type="invalid">
+                        {formik.errors.galleryStatus}
+                      </Form.Control.Feedback>
+                      <Form.Text className="text-muted">
+                        Fotos activas: {loadedEvent?.activePhotoCount ?? 0}
+                      </Form.Text>
+                      {loadedEvent && loadedEvent.activePhotoCount === 0 && (
+                        <Alert variant="warning" className="mt-2 mb-0 py-2">
+                          Este evento no tiene fotos activas, así que el modo
+                          demo no mostrará nada.
+                        </Alert>
+                      )}
                     </Form.Group>
                   </Col>
                 </Row>

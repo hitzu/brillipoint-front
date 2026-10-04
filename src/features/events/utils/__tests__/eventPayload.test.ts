@@ -86,6 +86,7 @@ describe("buildUpdateEventPayload", () => {
       albumPhrase: "Nuestro para siempre",
       delegateName: "Maria",
       photoCount: "3",
+      galleryStatus: "demo",
     });
 
     expect(payload).toEqual({
@@ -96,7 +97,23 @@ describe("buildUpdateEventPayload", () => {
       albumPhrase: "Nuestro para siempre",
       delegateName: "Maria",
       photoCount: 3,
+      galleryStatus: "demo",
     });
+  });
+
+  it("always sends galleryStatus so it can be reset to auto", () => {
+    const payload = buildUpdateEventPayload({
+      key: "20",
+      eventType: "3",
+      eventThemeId: "",
+      honoreesNames: "Ana y Luis",
+      albumPhrase: "",
+      delegateName: "",
+      photoCount: "",
+      galleryStatus: "auto",
+    });
+
+    expect(payload.galleryStatus).toBe("auto");
   });
 
   it("never includes deprecated fields", () => {
@@ -108,6 +125,7 @@ describe("buildUpdateEventPayload", () => {
       albumPhrase: "Nuestro para siempre",
       delegateName: "",
       photoCount: "",
+      galleryStatus: "auto",
     });
 
     DEPRECATED_KEYS.forEach((deprecatedKey) => {

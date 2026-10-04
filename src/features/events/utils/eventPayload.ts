@@ -1,4 +1,8 @@
-import { CreateEventPayload, UpdateEventPayload } from "../../../interfaces";
+import {
+  CreateEventPayload,
+  EventGalleryStatus,
+  UpdateEventPayload,
+} from "../../../interfaces";
 
 export interface CreateEventFormValues {
   contractId: string;
@@ -19,6 +23,7 @@ export interface UpdateEventFormValues {
   albumPhrase: string;
   delegateName: string;
   photoCount: string;
+  galleryStatus: EventGalleryStatus;
 }
 
 export const buildCreateEventPayload = (
@@ -44,4 +49,5 @@ export const buildUpdateEventPayload = (
   albumPhrase: values.albumPhrase,
   ...(values.delegateName.trim() ? { delegateName: values.delegateName } : {}),
   ...(values.photoCount ? { photoCount: Number(values.photoCount) } : {}),
+  galleryStatus: values.galleryStatus,
 });
