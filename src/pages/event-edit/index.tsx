@@ -53,10 +53,10 @@ const EventEditIndex = () => {
             </Card.Header>
             <Card.Body>
               <Form.Group style={{ position: "relative" }}>
-                <Form.Label>Buscar evento por festejados o key</Form.Label>
+                <Form.Label>Buscar evento por festejados, key o token</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Escribí los nombres de los festejados o la key..."
+                  placeholder="Escribí los nombres de los festejados, la key o el token..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -116,7 +116,7 @@ const EventEditIndex = () => {
                     }}
                     >
                     <small className="text-muted">
-                      No se encontraron eventos con esos festejados o key
+                      No se encontraron eventos con esos festejados, key o token
                     </small>
                   </div>
                 )}
