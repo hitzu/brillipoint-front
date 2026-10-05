@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Toast } from "react-bootstrap";
+import { Button, Card, Modal, Toast } from "react-bootstrap";
 import { getEventById, updateEventById } from "../../../api/services/eventsService";
 import {
   createThemeAssetUploadUrl,
@@ -91,6 +91,8 @@ const EventThemeSection = ({
   // Blocks pasted through "Importar JSON", written over the refetched overrides on save.
   const [importedOverrides, setImportedOverrides] = useState<RawThemeOverrides | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -308,6 +310,48 @@ const EventThemeSection = ({
     }
   };
 
+  /**
+   * Drops every per-event override (`themeOverrides: null`) so the event
+   * renders its base preset — or the system default when it has none — as-is.
+   * Uploaded images, confetti and socialCta are removed too.
+   */
+  const handleResetToBase = async () => {
+    setResetting(true);
+    try {
+      await updateEventById(eventId, { themeOverrides: null });
+
+      if (backgroundPreviewUrl) URL.revokeObjectURL(backgroundPreviewUrl);
+      if (splashPreviewUrl) URL.revokeObjectURL(splashPreviewUrl);
+      setThemeOverrides(null);
+      setSelectedShapes([]);
+      setBackgroundFile(null);
+      setBackgroundPreviewUrl(null);
+      setBackgroundRemoved(false);
+      setSplashFile(null);
+      setSplashPreviewUrl(null);
+      setSplashRemoved(false);
+      setSplashPlate(null);
+      setPlateDirty(false);
+      setConfettiDirty(false);
+      setImportedOverrides(null);
+      socialCta.resetAfterSave({});
+      setShowResetConfirm(false);
+      setToastMessage("Tema restablecido al tema base");
+      setToastVariant("success");
+      setShowToast(true);
+    } catch (error: any) {
+      console.error("Error resetting event theme:", error);
+      const msg =
+        error?.response?.data?.message || "Error al restablecer el tema del evento";
+      setToastMessage(msg);
+      setToastVariant("danger");
+      setShowToast(true);
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const hasOverrides = Boolean(themeOverrides && Object.keys(themeOverrides).length > 0);
   const readOnlyEntries = getReadOnlyThemeEntries(themeOverrides);
 
   return (
@@ -409,6 +453,39 @@ const EventThemeSection = ({
       >
         {saving ? "Guardando..." : "Guardar tema"}
       </Button>
+
+      <Button
+        type="button"
+        variant="outline-danger"
+        className="mt-3 ms-2"
+        onClick={() => setShowResetConfirm(true)}
+        disabled={saving || resetting || !hasOverrides}
+      >
+        Restablecer al tema base
+      </Button>
+
+      <Modal show={showResetConfirm} onHide={() => setShowResetConfirm(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Restablecer al tema base</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Se eliminarán todas las personalizaciones de este evento: colores, fuentes,
+          imágenes, confeti y redes sociales. El evento usará el tema base seleccionado
+          arriba (o el tema por defecto si no tiene uno). Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowResetConfirm(false)}
+            disabled={resetting}
+          >
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleResetToBase} disabled={resetting}>
+            {resetting ? "Restableciendo..." : "Sí, restablecer"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };
