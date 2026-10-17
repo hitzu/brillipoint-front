@@ -59,7 +59,6 @@ const PENDING = [
   "Isotipo B suelto, en archivo",
   "Lockups PHOTOBOOTH y GLITTER BAR",
   "Recurso gráfico propio (destello, halo, glitter)",
-  "Licencia comercial de Amsterdam One",
   "Pantone o foil para el dorado",
   "Paquetes y precios del Glitter Bar y precios finales del Photobooth",
   "Fotos de portafolio seleccionadas",

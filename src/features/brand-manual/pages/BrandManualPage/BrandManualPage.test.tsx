@@ -65,6 +65,13 @@ describe("BrandManualPage", () => {
     });
   });
 
+  it("no longer lists the Amsterdam One license as pending", () => {
+    render(<BrandManualPage />);
+    expect(screen.queryByText(/licencia comercial de Amsterdam One/i)).toBeNull();
+    fireEvent.click(within(nav()).getByRole("button", { name: "Tipografía" }));
+    expect(screen.queryByText(/licencia comercial de Amsterdam One/i)).toBeNull();
+  });
+
   it("updates the breadcrumb and remembers the open section", () => {
     const { unmount } = render(<BrandManualPage />);
     fireEvent.click(within(nav()).getByRole("button", { name: "Voz" }));

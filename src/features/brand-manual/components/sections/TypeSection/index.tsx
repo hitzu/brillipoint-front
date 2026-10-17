@@ -43,10 +43,6 @@ export function TypeSection(_props: SectionProps) {
           <span className={styles.specimenChars}>abcdefghijklmnñopqrstuvwxyz</span>
         </div>
       </div>
-      <p className={ui.note}>
-        Pendiente: confirmar la licencia comercial de Amsterdam One. Mientras tanto no se publica la fuente: este
-        manual la muestra si la tienes instalada; si no, verás una script de reemplazo.
-      </p>
 
       <div className={styles.tester}>
         <div className={styles.testerHead}>

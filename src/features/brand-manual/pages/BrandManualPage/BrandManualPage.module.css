@@ -1,10 +1,18 @@
-/* Jost (SIL OFL) is self-hosted for this page under its own family name so it
-   never leaks into other screens. Amsterdam One is not shipped (its commercial
-   license is pending): a locally installed copy is used, else Dancing Script. */
+/* The brand fonts are self-hosted for this page under their own family names
+   so they never leak into other screens: Jost (SIL OFL) and Amsterdam One
+   (Lettersiro, web license confirmed by Brillipoint on 2026-10-16). */
 @font-face {
   font-family: "BP Jost";
   src: url("../../../../assets/fonts/brillipoint/Jost-VariableFont_wght.ttf") format("truetype");
   font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BP Amsterdam One";
+  src: url("../../../../assets/fonts/brillipoint/AmsterdamOne.ttf") format("truetype");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -27,7 +35,7 @@
   --glow-neon: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 24px rgba(255, 255, 255, 0.45);
   --glow-gold: 0 0 18px rgba(217, 181, 110, 0.45);
   --font-sans: "BP Jost", Jost, Futura, "Century Gothic", system-ui, sans-serif;
-  --font-script: "Amsterdam One", "Amsterdam One Slant", "Dancing Script", cursive;
+  --font-script: "BP Amsterdam One", "Amsterdam One", cursive;
 
   display: grid;
   grid-template-columns: 216px minmax(0, 1fr);
