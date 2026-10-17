@@ -1,0 +1,138 @@
+.picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 24px;
+  align-items: start;
+}
+
+.canvas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 340px;
+  padding: 48px 24px 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: background-color 0.3s;
+}
+
+.guardBox {
+  position: relative;
+  max-width: 100%;
+  border: 1px dashed transparent;
+  transition: border-color 0.2s;
+}
+
+.guardBox img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.guardBox em {
+  position: absolute;
+  left: -1px;
+  bottom: calc(100% + 6px);
+  font-style: normal;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+  color: var(--guard);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.guardBox[data-guard="on"] {
+  border-color: var(--guard);
+}
+
+.guardBox[data-guard="on"] em {
+  opacity: 1;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--ink-muted);
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: left;
+}
+
+.option b {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.option span {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-muted);
+}
+
+.option[aria-checked="true"] {
+  border-color: var(--ink);
+  background: var(--surface-200);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.backgrounds {
+  display: flex;
+  gap: 10px;
+}
+
+.swatchButton {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--ink-muted);
+  border-radius: var(--radius-pill);
+}
+
+.swatchButton[aria-checked="true"] {
+  box-shadow: 0 0 0 2px var(--surface-100), 0 0 0 4px var(--ink);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.switch input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--gold-700);
+}
+
+@media (max-width: 980px) {
+  .picker {
+    grid-template-columns: 1fr;
+  }
+}

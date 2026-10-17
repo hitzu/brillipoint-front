@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
 import logoNeon from "@assets/images/logo-experience-white.png";
 import { BrandSection } from "../../components/sections/BrandSection";
+import { ColorSection } from "../../components/sections/ColorSection";
+import { LogoSection } from "../../components/sections/LogoSection";
 import type { SectionProps } from "../../components/sections/types";
 import { Spark } from "../../components/ui/Spark";
 import { SECTIONS } from "../../constants/sections";
@@ -14,6 +16,8 @@ import { LineToggle } from "./ui/LineToggle";
 
 const SECTION_COMPONENTS: Partial<Record<SectionId, ComponentType<SectionProps>>> = {
   marca: BrandSection,
+  logo: LogoSection,
+  color: ColorSection,
 };
 
 /**

@@ -19,7 +19,7 @@ Branch: `fear/desing-system` · Delivery: ask-on-risk (forecast ~2,000 authored 
 | T1 | S2, S3 | inline | done | `f5f3c97`; RED 4/4 then GREEN, `MenuData.test.ts` + `ExpoNavigation.test.tsx` 6/6 |
 | T2 | S4, S5 (pure logic: tokens, color math, verdicts, voice checker) | inline | done | `7b9b761`; RED (missing modules) then GREEN 29/29 |
 | T3 | S1, S4, S6, S5 (shell, shared UI, La marca) | inline | done | RED (missing page) then GREEN 33/33; `tsc` 0 errors |
-| T4 | S5 (Logotipo, Color) | inline | pending | |
+| T4 | S5 (Logotipo, Color) | inline | done | RED (missing sections) then GREEN 40/40; `tsc` 0 errors |
 | T5 | S5 (Tipografía, Piezas) | inline | pending | |
 | T6 | S5 (Aplicaciones, Voz, Prohibiciones, Antes de imprimir) | inline | pending | |
 
