@@ -3,6 +3,8 @@ import logoNeon from "@assets/images/logo-experience-white.png";
 import { BrandSection } from "../../components/sections/BrandSection";
 import { ColorSection } from "../../components/sections/ColorSection";
 import { LogoSection } from "../../components/sections/LogoSection";
+import { PiecesSection } from "../../components/sections/PiecesSection";
+import { TypeSection } from "../../components/sections/TypeSection";
 import type { SectionProps } from "../../components/sections/types";
 import { Spark } from "../../components/ui/Spark";
 import { SECTIONS } from "../../constants/sections";
@@ -18,6 +20,8 @@ const SECTION_COMPONENTS: Partial<Record<SectionId, ComponentType<SectionProps>>
   marca: BrandSection,
   logo: LogoSection,
   color: ColorSection,
+  tipo: TypeSection,
+  piezas: PiecesSection,
 };
 
 /**

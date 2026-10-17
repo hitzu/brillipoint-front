@@ -20,7 +20,7 @@ Branch: `fear/desing-system` · Delivery: ask-on-risk (forecast ~2,000 authored 
 | T2 | S4, S5 (pure logic: tokens, color math, verdicts, voice checker) | inline | done | `7b9b761`; RED (missing modules) then GREEN 29/29 |
 | T3 | S1, S4, S6, S5 (shell, shared UI, La marca) | inline | done | RED (missing page) then GREEN 33/33; `tsc` 0 errors |
 | T4 | S5 (Logotipo, Color) | inline | done | RED (missing sections) then GREEN 40/40; `tsc` 0 errors |
-| T5 | S5 (Tipografía, Piezas) | inline | pending | |
+| T5 | S5 (Tipografía, Piezas) | inline | done | RED (missing sections) then GREEN 46/46; `tsc` 0 errors |
 | T6 | S5 (Aplicaciones, Voz, Prohibiciones, Antes de imprimir) | inline | pending | |
 
 Route evidence: no Writer trigger (units are sequential and share the shell), so the parent writes inline.
