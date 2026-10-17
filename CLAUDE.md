@@ -13,7 +13,7 @@ Uses the **Pages Router** (`src/pages/`). The router is intentionally "closed" â
 **Whitelisted routes:**
 
 - Public: `/login`, `/reserva/[token]`, `/sales`
-- Private: `/` (redirects to `/contracts`), `/contracts`, `/contracts/new`, `/contracts/[sku]`, `/products`, `/packages`, `/terms`, `/promotions`, `/providers` (with `new`/`[id]` sub-routes)
+- Private: `/` (redirects to `/contracts`), `/contracts`, `/contracts/new`, `/contracts/[sku]`, `/products`, `/packages`, `/terms`, `/promotions`, `/providers` (with `new`/`[id]` sub-routes), `/brand-manual`
 
 Legacy URL prefixes (`/pages/*`, `/application/*`) are maintained via redirects in `next.config.js` for backwards compatibility.
 

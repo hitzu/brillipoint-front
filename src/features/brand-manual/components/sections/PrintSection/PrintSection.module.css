@@ -1,0 +1,56 @@
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-200);
+  overflow: hidden;
+}
+
+.progressBar i {
+  display: block;
+  height: 100%;
+  background: var(--gold-500);
+  transition: width 0.25s;
+}
+
+.progress b {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+
+.checks label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.checks input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--gold-700);
+}
+
+.checks input:checked + span {
+  color: var(--ink-muted);
+}

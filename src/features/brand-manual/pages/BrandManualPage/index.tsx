@@ -1,10 +1,14 @@
 import type { ComponentType } from "react";
 import logoNeon from "@assets/images/logo-experience-white.png";
+import { ApplicationsSection } from "../../components/sections/ApplicationsSection";
 import { BrandSection } from "../../components/sections/BrandSection";
 import { ColorSection } from "../../components/sections/ColorSection";
 import { LogoSection } from "../../components/sections/LogoSection";
 import { PiecesSection } from "../../components/sections/PiecesSection";
+import { PrintSection } from "../../components/sections/PrintSection";
+import { RulesSection } from "../../components/sections/RulesSection";
 import { TypeSection } from "../../components/sections/TypeSection";
+import { VoiceSection } from "../../components/sections/VoiceSection";
 import type { SectionProps } from "../../components/sections/types";
 import { Spark } from "../../components/ui/Spark";
 import { SECTIONS } from "../../constants/sections";
@@ -16,12 +20,16 @@ import { useBrandManualPage } from "./hooks/useBrandManualPage";
 import { useBrandManualPageEffects } from "./hooks/useBrandManualPageEffects";
 import { LineToggle } from "./ui/LineToggle";
 
-const SECTION_COMPONENTS: Partial<Record<SectionId, ComponentType<SectionProps>>> = {
+const SECTION_COMPONENTS: Record<SectionId, ComponentType<SectionProps>> = {
   marca: BrandSection,
   logo: LogoSection,
   color: ColorSection,
   tipo: TypeSection,
   piezas: PiecesSection,
+  apps: ApplicationsSection,
+  voz: VoiceSection,
+  no: RulesSection,
+  print: PrintSection,
 };
 
 /**
@@ -71,7 +79,7 @@ export function BrandManualPage() {
         </header>
         <div className={styles.scroll} ref={page.scrollRef}>
           <section key={page.section} className={styles.section} aria-label={page.activeLabel}>
-            {Section && <Section line={page.line} onLineChange={page.setLine} notify={page.notify} />}
+            <Section line={page.line} onLineChange={page.setLine} notify={page.notify} />
           </section>
         </div>
       </main>

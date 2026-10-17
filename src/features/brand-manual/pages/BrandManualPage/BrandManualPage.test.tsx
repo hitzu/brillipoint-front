@@ -46,6 +46,25 @@ describe("BrandManualPage", () => {
     expect(screen.getByRole("button", { name: /GLITTER BAR · NOCHE/ }).getAttribute("aria-pressed")).toBe("true");
   });
 
+  it("renders every section from the sidebar", () => {
+    render(<BrandManualPage />);
+    const titles: Record<string, string> = {
+      "La marca": "Brillo nocturno, cálido y elegante.",
+      Logotipo: "La B no se toca",
+      Color: "Un solo brillo",
+      Tipografía: "Dos familias, nunca más",
+      Piezas: "Las piezas que se repiten",
+      Aplicaciones: "De la pantalla al llavero",
+      Voz: "Hablamos de tú",
+      Prohibiciones: "Lo que nunca hacemos",
+      "Antes de imprimir": "Checklist de imprenta",
+    };
+    Object.entries(titles).forEach(([label, title]) => {
+      fireEvent.click(within(nav()).getByRole("button", { name: label }));
+      expect(screen.getByRole("heading", { level: 2, name: title })).toBeTruthy();
+    });
+  });
+
   it("updates the breadcrumb and remembers the open section", () => {
     const { unmount } = render(<BrandManualPage />);
     fireEvent.click(within(nav()).getByRole("button", { name: "Voz" }));
