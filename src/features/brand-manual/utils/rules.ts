@@ -130,6 +130,9 @@ const VOICE_RULES: Array<[RegExp, string]> = [
   [/\bdescuentos?\b|\d+\s?%/gi, "Somos premium: sin porcentajes ni “antes / ahora”."],
 ];
 
+// Built with the constructor because the tsconfig target (es5) rejects the `u` flag in literals.
+const EMOJI = new RegExp("\\p{Extended_Pictographic}", "gu");
+
 /** Uppercase words that are names, not shouting. */
 const CAPS_ALLOWED = ["PHOTOBOOTH", "GLITTER", "BAR", "BRILLIPOINT", "EXPERIENCE", "XV", "QR"];
 
@@ -157,7 +160,7 @@ export function reviewCopy(text: string): CopyReview {
     const matches = text.match(pattern);
     if (matches) flags.push({ match: unique(matches).join(" · "), fix });
   });
-  const emojis = text.match(/\p{Extended_Pictographic}/gu);
+  const emojis = text.match(EMOJI);
   if (emojis) flags.push({ match: unique(emojis).join(" "), fix: "Sin emojis: hablamos con calma y calidez." });
   const shouted = unique(
     (text.match(/[A-Za-zÁÉÍÓÚÑÜáéíóúñü]+/g) ?? []).filter(
