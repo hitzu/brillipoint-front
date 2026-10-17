@@ -19,17 +19,17 @@
 const menuItems = [
   {
     type: "HASHMENU",
-    id: 0,
+    id: 1,
     label: "Agenda",
     icon: "ph-duotone ph-calendar-blank",
     dataPage: null,
     link: "#",
     submenu: [
       {
-        id: "slots",
+        id: "agenda",
         label: "Agenda",
         link: "/agenda",
-        dataPage: "contracts-list",
+        dataPage: "agenda",
       },
     ],
   },
@@ -42,7 +42,7 @@ const menuItems = [
     link: "#",
     submenu: [
       {
-        id: "slots",
+        id: "contracts-list",
         label: "Listado de Contratos",
         link: "/contracts",
         dataPage: "contracts-list",
@@ -57,7 +57,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 2,
+    id: 3,
     label: "Productos",
     icon: "ph-duotone ph-shopping-cart",
     dataPage: null,
@@ -85,7 +85,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 3,
+    id: 4,
     label: "Paquetes",
     icon: "ph-duotone ph-package",
     dataPage: null,
@@ -113,7 +113,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 4,
+    id: 5,
     label: "Terminos y condiciones",
     icon: "ph-duotone ph-file-text",
     dataPage: null,
@@ -141,7 +141,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 5,
+    id: 6,
     label: "Promociones",
     icon: "ph-duotone ph-percent",
     dataPage: null,
@@ -157,7 +157,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 6,
+    id: 7,
     label: "Proveedores",
     icon: "ph-duotone ph-truck",
     dataPage: null,
@@ -185,7 +185,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 7,
+    id: 8,
     label: "Eventos",
     icon: "ph-duotone ph-confetti",
     dataPage: null,
@@ -213,7 +213,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 8,
+    id: 9,
     label: "Fotos",
     icon: "ph-duotone ph-images",
     dataPage: null,
@@ -229,7 +229,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 9,
+    id: 10,
     label: "Extras",
     icon: "ph-duotone ph-gift",
     dataPage: null,
@@ -251,7 +251,7 @@ const menuItems = [
   },
   {
     type: "HASHMENU",
-    id: 10,
+    id: 11,
     label: "Expos",
     icon: "ph-duotone ph-calendar-blank",
     dataPage: null,
@@ -274,6 +274,22 @@ const menuItems = [
         label: "Expo Glitter Bar",
         link: "/expo?brandId=1&hideIcons=1&hidePhotos=1",
         dataPage: "expo",
+      },
+    ],
+  },
+  {
+    type: "HASHMENU",
+    id: 12,
+    label: "Marca",
+    icon: "ph-duotone ph-palette",
+    dataPage: null,
+    link: "#",
+    submenu: [
+      {
+        id: "brand-manual",
+        label: "Manual de marca",
+        link: "/brand-manual",
+        dataPage: "brand-manual",
       },
     ],
   },
