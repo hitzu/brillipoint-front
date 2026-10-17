@@ -130,7 +130,8 @@
   align-items: center;
   justify-content: center;
   gap: clamp(10px, 2vw, 18px);
-  width: min(100%, 980px);
+  width: fit-content;
+  max-width: 100%;
   margin: 0 auto 20px;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.86);

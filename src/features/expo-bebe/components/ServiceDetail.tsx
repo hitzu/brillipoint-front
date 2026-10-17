@@ -92,7 +92,7 @@ export function ServiceDetail({
       className={`${styles.detailOverlay} ${isOpen ? styles.detailOverlayOpen : ""}`}
       role="dialog"
       aria-modal="true"
-      aria-label={`${modeLabel} Expo Bebé`}
+      aria-label={`${modeLabel} Expo`}
     >
       {service && (
         <>

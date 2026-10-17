@@ -4,7 +4,7 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.brand}>Brillipoint</div>
-      <div className={styles.brandSub}>EXPO · TU BEBÉ</div>
+      <div className={styles.brandSub}>EXPO</div>
     </header>
   );
 }

@@ -15,18 +15,26 @@ import type {
   ServiceItem,
   TabKey,
 } from "../types";
-import { getBrandId, getBrandKeyById, parseExpoBebeBrand } from "../utils/brand";
+import {
+  getBrandId,
+  getBrandKeyById,
+  parseExpoBebeBrand,
+} from "../utils/brand";
 import { getBrandById } from "../../../api/services/brandService";
 
 export function ExpoBebePage() {
   const router = useRouter();
+  const hideIcons = [router.query.hideIcons].flat()[0] === "1";
+  const hidePhotos = [router.query.hidePhotos].flat()[0] === "1";
   const [tab, setTab] = useState<ContentTabKey>("cal");
   const [catalogMode, setCatalogMode] = useState<CatalogMode | null>(null);
   const [detailIndex, setDetailIndex] = useState(0);
   const [services, setServices] = useState<ServiceItem[]>(SERVICES);
   const [extras, setExtras] = useState<ServiceItem[]>(EXTRAS);
 
-  const [minAmountHoldSlot, setMinAmountHoldSlot] = useState<number | null>(null);
+  const [minAmountHoldSlot, setMinAmountHoldSlot] = useState<number | null>(
+    null
+  );
   const [brandName, setBrandName] = useState<string | null>(null);
   const [slotSeed, setSlotSeed] = useState<string | null>(null);
   const [blockSeed, setBlockSeed] = useState<BookingBlockId | null>(null);
@@ -49,8 +57,13 @@ export function ExpoBebePage() {
       : catalogMode === "servicios"
         ? services
         : [];
-  const activeMenu: TabKey =
-    catalogMode === "extras" ? "ext" : catalogMode === "servicios" ? "srv" : tab;
+  const activeMenu: TabKey = hidePhotos
+    ? tab
+    : catalogMode === "extras"
+      ? "ext"
+      : catalogMode === "servicios"
+        ? "srv"
+        : tab;
 
   useEffect(() => {
     let cancelled = false;
@@ -142,7 +155,12 @@ export function ExpoBebePage() {
     <div className={styles.page}>
       <div className={styles.scroll}>
         <div className={styles.content}>
-          <Tabs value={activeMenu} onChange={handleMenuChange} />
+          <Tabs
+            value={activeMenu}
+            onChange={handleMenuChange}
+            hideIcons={hideIcons}
+            hidePhotos={hidePhotos}
+          />
 
           {tab === "cal" && (
             <CalendarView
@@ -174,7 +192,7 @@ export function ExpoBebePage() {
       </div>
 
       <ServiceDetail
-        isOpen={!!catalogMode}
+        isOpen={!!catalogMode && !hidePhotos}
         items={catalogItems}
         currentIndex={detailIndex}
         modeLabel={catalogMode === "extras" ? "Extras" : "Servicios"}
