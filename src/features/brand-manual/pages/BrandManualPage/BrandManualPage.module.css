@@ -37,12 +37,12 @@
   --font-sans: "BP Jost", Jost, Futura, "Century Gothic", system-ui, sans-serif;
   --font-script: "BP Amsterdam One", "Amsterdam One", cursive;
 
+  /* Full screen: the route renders without the admin layout. */
   display: grid;
   grid-template-columns: 216px minmax(0, 1fr);
-  height: calc(100vh - 140px);
-  min-height: 640px;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-  border-radius: var(--radius-lg);
   background: var(--surface-000);
   color: var(--ink);
   font-family: var(--font-sans);

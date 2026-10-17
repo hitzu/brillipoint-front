@@ -11,6 +11,7 @@ Branch: `fear/desing-system` · Delivery: ask-on-risk (forecast ~2,000 authored 
 - **S4** — Photobooth / Glitter Bar toggle switches the whole manual between the light and dark token sets (`tokens.json`).
 - **S5** — The 9 sections keep the manual's content and interactions: La marca; Logotipo (version, background and size picker with a can/can't verdict, protection-area toggle); Color (swatches with HEX/RGB/CMYK and click-to-copy, the 60/30/10 bar, the "¿Encaja?" contrast checker with brand rules); Tipografía (specimens, "Pruébala" tester, type scale in px and pt); Piezas (buttons, chips, price seal, package card, spark-count slider); Aplicaciones (post, story, printed photo, keychain, card, signage mockups); Voz (copy checker that flags barato, promo, oferta, desde, ¡¡, emojis and CAPS); Prohibiciones; Antes de imprimir (checklist).
 - **S6** — Assets: reuse `logo-experience-white.png` / `logo-experience-black.png` (byte-identical to the artifact's logo 3 and logo 4); add the two script signatures. Jost (OFL) and Amsterdam One are self-hosted for this page only ("BP Jost", "BP Amsterdam One"). User confirmed the web license (L8): "Sí, tenemos licencia web de Amsterdam One: súbela al repo y agrégala al manual." The manual no longer lists the license as pending.
+- **S7** — "manual de marca deberia de ser una pagina sin layer (osea pantalla completa) para poderlo revisar bien :D". `/brand-manual` renders without the admin layout and fills the viewport, but keeps the session guard (`withAuth`) the admin layout provided.
 
 ## Tasks
 
@@ -22,6 +23,7 @@ Branch: `fear/desing-system` · Delivery: ask-on-risk (forecast ~2,000 authored 
 | T4 | S5 (Logotipo, Color) | inline | done | `1b1ebd5`; RED (missing sections) then GREEN 40/40; `tsc` 0 errors |
 | T5 | S5 (Tipografía, Piezas) | inline | done | `e68d63f`; RED (missing sections) then GREEN 46/46; `tsc` 0 errors |
 | T6 | S5 (Aplicaciones, Voz, Prohibiciones, Antes de imprimir) | inline | done | `145fdc0`; RED (page test failed at Aplicaciones) then GREEN 53/53; full suite 591/592 (1 baseline failure, L5); `tsc` 0 errors; dev-server GET 200 (L6) |
+| T7 | S7 | inline | done | RED (route still in admin layout) then GREEN 59/59 (brand-manual + menu); `tsc` 0 errors; dev-server GET 200 without admin chrome |
 
 Route evidence: no Writer trigger (units are sequential and share the shell), so the parent writes inline.
 
@@ -35,4 +37,5 @@ Route evidence: no Writer trigger (units are sequential and share the shell), so
 - **L6 (2026-10-16, evidence)**: No `next build` because the user's `next dev -p 4000` was running (a build would overwrite `.next`). Instead, GET `/brand-manual` on that server returned 200 with the SSR markup, and the page chunk carries the "BP Jost" `@font-face` resolved to `Jost-VariableFont_wght.3d252ad3.ttf`. ESLint is not configured in the repo (`next lint` opens its setup wizard).
 - **L7 (2026-10-16, open decision)**: Amsterdam One stays unshipped until the user confirms the commercial/web license (S6). If confirmed, add the TTF next to Jost and a second `@font-face` in `BrandManualPage.module.css`.
 - **L8 (2026-10-16, user, verbatim)**: "Sí, tenemos licencia web de Amsterdam One: súbela al repo y agrégala al manual." Resolves L7: `src/assets/fonts/brillipoint/AmsterdamOne.ttf` + "BP Amsterdam One" `@font-face`; pending-license copy removed from La marca and Tipografía.
+- **L9 (2026-10-17, user, verbatim)**: "manual de marca deberia de ser una pagina sin layer (osea pantalla completa) para poderlo revisar bien :D". Route now uses `withAuth(NonLayout)`; `.app` is `100dvh` with no outer radius. The route test mocks `authGuard.js` because Vite does not parse JSX in `.js` files.
 - **Next step**: user reviews `/brand-manual` in the browser; decide the chain strategy before opening a PR. Separate follow-up: `_document.tsx` still requests Amsterdam One from Google Fonts (never loads), so Expo pages keep falling back.
