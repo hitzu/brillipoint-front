@@ -19,6 +19,13 @@ export interface Contract {
   token: string;
 }
 
+/** A product delivered under a contract line, frozen when the contract was created. */
+export interface DeliverableItem {
+  productId: number;
+  name: string;
+  quantity: number;
+}
+
 export interface ContractPackages {
   id: number;
   contractId: number;
@@ -30,6 +37,7 @@ export interface ContractPackages {
   finalPriceSnapshot: number;
   package: Package;
   promotion: Promotion | null;
+  deliverables?: DeliverableItem[];
 }
 
 export interface ContractExtra {
@@ -44,6 +52,8 @@ export interface ContractExtra {
   finalPriceSnapshot: number;
   extra: Extra;
   promotion: Promotion | null;
+  isGift?: boolean;
+  deliverables?: DeliverableItem[];
 }
 
 /** @deprecated Contracts now expose `bookings`; kept only for legacy views. */
@@ -104,6 +114,7 @@ export interface GenerateContractExtra {
   extraId: number;
   quantity: number;
   packageClientRef?: string;
+  isGift?: boolean;
 }
 
 export interface GenerateContractPayload {
