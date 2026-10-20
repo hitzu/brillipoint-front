@@ -15,6 +15,8 @@ export type ExtraLineItem = {
   extra: Extra;
   quantity: number;
   packageClientRef: string | null;
+  /** Staff courtesy: delivered at no cost. The API keeps its catalog price. */
+  isGift?: boolean;
 };
 
 export interface ServiceIncludeItem {

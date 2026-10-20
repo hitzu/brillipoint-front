@@ -18,11 +18,13 @@ export function ExtrasSection({ vm }: { vm: ContractFormVM }) {
     handleAgregarExtra,
     setExtraItemQuantity,
     removeExtraItem,
+    setExtraItemGift,
   } = vm;
 
   // Position (0-indexed) the next extra would take within its target package's tier sequence.
+  // Gifts take no tier slot, matching how the API assigns tiers.
   const nextPositionForTarget = extraItems.filter(
-    (it) => it.packageClientRef === selectedExtraPackageClientRef,
+    (it) => !it.isGift && it.packageClientRef === selectedExtraPackageClientRef,
   ).length;
   const nextDiscount = selectedExtraPackageClientRef
     ? getTierDiscount(selectedExtraPackageClientRef, nextPositionForTarget)
@@ -94,13 +96,13 @@ export function ExtrasSection({ vm }: { vm: ContractFormVM }) {
       ) : (
         <div className={styles.cfProductList}>
           {extraItems.map((it, i) => {
-            const key = it.packageClientRef ?? "";
-            const positionIndex = seenByPackage[key] ?? 0;
-            seenByPackage[key] = positionIndex + 1;
-            const discount = getTierDiscount(
-              it.packageClientRef,
-              positionIndex,
-            );
+            let discount = 0;
+            if (!it.isGift) {
+              const key = it.packageClientRef ?? "";
+              const positionIndex = seenByPackage[key] ?? 0;
+              seenByPackage[key] = positionIndex + 1;
+              discount = getTierDiscount(it.packageClientRef, positionIndex);
+            }
 
             return (
               <div key={it.extra.id} className={styles.cfProductItem}>
@@ -111,7 +113,13 @@ export function ExtrasSection({ vm }: { vm: ContractFormVM }) {
                 <div>
                   <div className={styles.cfProductName}>{it.extra.name}</div>
                   <div className={styles.cfProductPrice}>
-                    ${(it.extra.price * it.quantity).toLocaleString("es-MX")}
+                    {it.isGift ? (
+                      <span style={{ fontWeight: 600, color: "#1a7f37" }}>
+                        Regalo · $0
+                      </span>
+                    ) : (
+                      `$${(it.extra.price * it.quantity).toLocaleString("es-MX")}`
+                    )}
                     {it.quantity > 1 && (
                       <span style={{ fontWeight: 400, opacity: 0.7 }}>
                         {" "}
@@ -125,6 +133,27 @@ export function ExtrasSection({ vm }: { vm: ContractFormVM }) {
                       </span>
                     )}
                   </div>
+                  <label
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      marginTop: 4,
+                      fontSize: 12,
+                      cursor: isLocked ? "default" : "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      aria-label={`Regalo: ${it.extra.name}`}
+                      checked={!!it.isGift}
+                      onChange={(e) =>
+                        setExtraItemGift(it.extra.id, e.target.checked)
+                      }
+                      disabled={isLocked}
+                    />
+                    Regalo
+                  </label>
                 </div>
               </div>
               {!isLocked && (

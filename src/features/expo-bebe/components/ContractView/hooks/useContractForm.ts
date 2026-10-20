@@ -293,6 +293,8 @@ export function useContractForm({
   const extrasDiscountTotal = useMemo(() => {
     const seenByPackage: Record<string, number> = {};
     return extraItems.reduce((s, it) => {
+      // A gift is fully discounted and, like in the API, takes no tier slot.
+      if (it.isGift) return s + it.extra.price * it.quantity;
       const key = it.packageClientRef ?? "";
       const positionIndex = seenByPackage[key] ?? 0;
       seenByPackage[key] = positionIndex + 1;
@@ -377,6 +379,10 @@ export function useContractForm({
     );
   const removeExtraItem = (id: number) =>
     setExtraItems((prev) => prev.filter((it) => it.extra.id !== id));
+  const setExtraItemGift = (id: number, isGift: boolean) =>
+    setExtraItems((prev) =>
+      prev.map((it) => (it.extra.id === id ? { ...it, isGift } : it)),
+    );
 
   const setItemQuantity = (id: number, quantity: number) =>
     setItems((prev) =>
@@ -477,6 +483,7 @@ export function useContractForm({
           extraId: it.extra.id,
           quantity: it.quantity,
           packageClientRef: it.packageClientRef ?? undefined,
+          ...(it.isGift && { isGift: true }),
         })),
       };
 
@@ -635,6 +642,7 @@ export function useContractForm({
     handleAgregarExtra,
     setExtraItemQuantity,
     removeExtraItem,
+    setExtraItemGift,
     handleSubmit,
     resetForm,
   };
