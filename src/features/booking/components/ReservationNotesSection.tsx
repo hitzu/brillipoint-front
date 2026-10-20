@@ -3,6 +3,8 @@ import styles from "@assets/css/contract-public.module.css";
 import { Note } from "../../../interfaces";
 
 export const ReservationNotesSection = ({ notes }: { notes: Note[] }) => {
+  if (!notes?.length) return null;
+
   return (
     <Row className={`mb-4 ${styles["center-information-content"]}`}>
       <Col xs={12} md={10}>
