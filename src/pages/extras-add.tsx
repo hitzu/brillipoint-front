@@ -8,6 +8,11 @@ import { getBrands } from "../api/services/brandService";
 import * as yup from "yup";
 import { translatePackageStatus } from "../Common/translations";
 import { createExtra } from "../api/services/extrasService";
+import { ExtraProductsFields } from "../features/extras/components/ExtraProductsFields";
+import {
+  ProductOption,
+  toExtraProductsPayload,
+} from "../features/extras/utils/extraProducts";
 
 interface ExtraFormValues {
   name: string;
@@ -41,6 +46,8 @@ const ExtrasAdd = () => {
   const [toastVariant, setToastVariant] = useState<"success" | "danger">(
     "success"
   );
+  const [includes, setIncludes] = useState<readonly ProductOption[]>([]);
+  const [replaces, setReplaces] = useState<readonly ProductOption[]>([]);
 
   const formik = useFormik<ExtraFormValues>({
     initialValues: {
@@ -58,6 +65,7 @@ const ExtrasAdd = () => {
         price: parseFloat(values.price),
         status: values.status,
         brandId: values.brandId as number,
+        products: toExtraProductsPayload(includes, replaces),
       };
       try {
         await createExtra(payload);
@@ -66,6 +74,8 @@ const ExtrasAdd = () => {
         setShowToast(true);
         setTimeout(() => {
           formik.resetForm();
+          setIncludes([]);
+          setReplaces([]);
         }, 500);
       } catch (error: any) {
         console.error("Error creating extra:", error);
@@ -87,6 +97,12 @@ const ExtrasAdd = () => {
     };
     fetchBrands();
   }, []);
+
+  // Products are brand-scoped, so a brand change invalidates the selection.
+  useEffect(() => {
+    setIncludes([]);
+    setReplaces([]);
+  }, [formik.values.brandId]);
 
   return (
     <React.Fragment>
@@ -224,6 +240,14 @@ const ExtrasAdd = () => {
                     {formik.errors.status}
                   </Form.Control.Feedback>
                 </Form.Group>
+
+                <ExtraProductsFields
+                  brandId={formik.values.brandId || null}
+                  includes={includes}
+                  replaces={replaces}
+                  onIncludesChange={setIncludes}
+                  onReplacesChange={setReplaces}
+                />
 
                 <Button type="submit" variant="primary" className="btn-page w-100">
                   Crear extra

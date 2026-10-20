@@ -13,6 +13,12 @@ import {
   getExtraById,
   updateExtraById,
 } from "../../api/services/extrasService";
+import { ExtraProductsFields } from "../../features/extras/components/ExtraProductsFields";
+import {
+  ProductOption,
+  fromExtraProducts,
+  toExtraProductsPayload,
+} from "../../features/extras/utils/extraProducts";
 
 interface ExtraFormValues {
   name: string;
@@ -48,6 +54,8 @@ const ExtrasEdit = () => {
   const [toastVariant, setToastVariant] = useState<"success" | "danger">(
     "success"
   );
+  const [includes, setIncludes] = useState<readonly ProductOption[]>([]);
+  const [replaces, setReplaces] = useState<readonly ProductOption[]>([]);
 
   const formik = useFormik<ExtraFormValues>({
     initialValues: {
@@ -65,6 +73,7 @@ const ExtrasEdit = () => {
         price: parseFloat(values.price),
         status: values.status,
         brandId: values.brandId as number,
+        products: toExtraProductsPayload(includes, replaces),
       };
       try {
         await updateExtraById(Number(id), payload);
@@ -104,6 +113,9 @@ const ExtrasEdit = () => {
             status: extra.status,
             brandId: extra.brand.id,
           });
+          const selection = fromExtraProducts(extra.products ?? []);
+          setIncludes(selection.includes);
+          setReplaces(selection.replaces);
         } catch (error) {
           console.error("Error fetching extra:", error);
           setToastMessage("Error al cargar el extra");
@@ -250,6 +262,14 @@ const ExtrasEdit = () => {
                     {formik.errors.status}
                   </Form.Control.Feedback>
                 </Form.Group>
+
+                <ExtraProductsFields
+                  brandId={formik.values.brandId || null}
+                  includes={includes}
+                  replaces={replaces}
+                  onIncludesChange={setIncludes}
+                  onReplacesChange={setReplaces}
+                />
 
                 <Row className="g-2">
                   <Col xs={12} sm={10}>
