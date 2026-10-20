@@ -40,10 +40,13 @@ export const ReservationServicesSection = ({
             ) : (
               <ul className={styles.list}>
                 {items.map((it) => {
-                  const products =
-                    it.package?.packageProducts
-                      ?.map((pp) => pp.product?.name)
-                      .filter(Boolean) ?? [];
+                  // Deliverables are frozen at contracting time; the catalog is
+                  // only a fallback for contracts created before that existed.
+                  const products = it.deliverables?.length
+                    ? it.deliverables.map((item) => item.name)
+                    : (it.package?.packageProducts
+                        ?.map((pp) => pp.product?.name)
+                        .filter(Boolean) ?? []);
                   const pkg = it.package;
                   const qty = it.quantity ?? 1;
 

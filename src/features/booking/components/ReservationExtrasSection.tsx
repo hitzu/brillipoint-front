@@ -27,7 +27,10 @@ export const ReservationExtrasSection = ({
             <ul className={styles.list}>
               {items.map((it) => {
                 const qty = it.quantity ?? 1;
-                const hasDiscount = (it.discountPercentageSnapshot ?? 0) > 0;
+                const isGift = !!it.isGift;
+                const hasDiscount =
+                  !isGift && (it.discountPercentageSnapshot ?? 0) > 0;
+                const deliverables = it.deliverables ?? [];
                 // Snapshots store the unit price but the final price is already
                 // the line total, so the struck-through price must be scaled too.
                 const baseLineTotal = (it.basePriceSnapshot ?? 0) * qty;
@@ -47,6 +50,7 @@ export const ReservationExtrasSection = ({
                             {it.discountPercentageSnapshot}% off
                           </div>
                         )}
+                        {isGift && <div className={styles.itemName}>Regalo</div>}
                       </div>
 
                       <div style={{ flexShrink: 0, textAlign: "right" }}>
@@ -63,6 +67,19 @@ export const ReservationExtrasSection = ({
                         </div>
                       </div>
                     </div>
+
+                    {deliverables.length > 0 ? (
+                      <div className={styles.detailsBlock}>
+                        <ul className={styles.detailsList}>
+                          {deliverables.map((item) => (
+                            <li key={`${it.id}-${item.productId}`}>
+                              {item.name}
+                              {item.quantity > 1 ? ` ×${item.quantity}` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
                   </li>
                 );
               })}
