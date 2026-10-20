@@ -129,9 +129,9 @@ export function ExtrasSection({
             </thead>
             <tbody>
               {extraCart.map((item) => {
-                const linkedPackage = cart.find(
-                  (line) => line.clientRef === item.packageClientRef,
-                );
+                const linkedPackage =
+                  cart.find((line) => line.clientRef === item.packageClientRef) ??
+                  (cart.length === 1 ? cart[0] : undefined);
                 return (
                   <tr key={item.extra.id}>
                     <td>{item.extra.name}</td>

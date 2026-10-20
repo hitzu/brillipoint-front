@@ -267,6 +267,11 @@ export function useCreateContractForm() {
 
       const sku = `${normalizeSkuText(cart[0].pkg.name).toLowerCase()}${formatSkuDate(eventDate)}${normalizeSkuText(trimmedName)}`;
 
+      // With a single package there is no target picker, so unlinked extras
+      // belong to it: that is what lets their promotion tiers and product
+      // removals apply.
+      const soleClientRef = cart.length === 1 ? cart[0].clientRef : undefined;
+
       const payload: GenerateContractPayload = {
         userId: Number(selectedUserId),
         brandId: Number(selectedBrandId),
@@ -282,7 +287,7 @@ export function useCreateContractForm() {
         extras: extraCart.map((item) => ({
           extraId: item.extra.id,
           quantity: item.quantity,
-          packageClientRef: item.packageClientRef ?? undefined,
+          packageClientRef: item.packageClientRef ?? soleClientRef,
           ...(item.isGift && { isGift: true }),
         })),
       };

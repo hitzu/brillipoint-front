@@ -598,6 +598,27 @@ describe("useCreateContractForm — extras", () => {
     ]);
   });
 
+  it("links unlinked extras to the only package in the cart on submit", async () => {
+    const { result } = renderHook(() => useCreateContractForm());
+    await fillValidForm(result);
+    await waitFor(() => expect(result.current.extrasCatalog.length).toBe(1));
+    act(() => result.current.addExtraToCart(drinkExtra.id));
+    await waitFor(() => expect(result.current.extraCart.length).toBe(1));
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    const contractPayload = api.generateContract.mock.calls[0][0];
+    expect(contractPayload.extras).toEqual([
+      {
+        extraId: drinkExtra.id,
+        quantity: 1,
+        packageClientRef: result.current.cart[0].clientRef,
+      },
+    ]);
+  });
+
   it("leaves a gifted extra out of the subtotal", async () => {
     const { result } = renderHook(() => useCreateContractForm());
     act(() => result.current.setSelectedBrandId(1));
@@ -626,7 +647,12 @@ describe("useCreateContractForm — extras", () => {
 
     const contractPayload = api.generateContract.mock.calls[0][0];
     expect(contractPayload.extras).toEqual([
-      { extraId: drinkExtra.id, quantity: 1, isGift: true },
+      {
+        extraId: drinkExtra.id,
+        quantity: 1,
+        packageClientRef: "pkg-1",
+        isGift: true,
+      },
     ]);
   });
 });
