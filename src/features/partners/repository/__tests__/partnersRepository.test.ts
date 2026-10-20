@@ -28,7 +28,7 @@ describe("resolvePartnerLandingRoute", () => {
 
     expect(result.state).toBe("ready");
     if (result.state !== "ready") return;
-    expect(result.content.heroLead).toContain("coordinada por Partner Demo");
+    expect(result.content.heroLead).toContain(basePartner.organizerName);
     expect(result.content.heroLead).not.toContain("{organizerName}");
   });
 
