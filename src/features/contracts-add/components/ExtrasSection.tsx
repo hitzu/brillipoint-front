@@ -13,6 +13,7 @@ export interface ExtrasSectionProps {
   onAdd: (extraId: number, packageClientRef: string | null) => void;
   onRemove: (extraId: number) => void;
   onQuantityChange: (extraId: number, quantity: number) => void;
+  onGiftChange?: (extraId: number, isGift: boolean) => void;
   disabled?: boolean;
 }
 
@@ -26,6 +27,7 @@ export function ExtrasSection({
   onAdd,
   onRemove,
   onQuantityChange,
+  onGiftChange,
   disabled,
 }: ExtrasSectionProps) {
   const [selectedExtraId, setSelectedExtraId] = useState<number | "">("");
@@ -120,6 +122,7 @@ export function ExtrasSection({
                 <th>Vinculado a</th>
                 <th>Precio</th>
                 <th>Cantidad</th>
+                <th>Regalo</th>
                 <th>Total</th>
                 <th />
               </tr>
@@ -171,7 +174,21 @@ export function ExtrasSection({
                         </Button>
                       </div>
                     </td>
-                    <td>${fmtPrice(item.extra.price * item.quantity)}</td>
+                    <td>
+                      <Form.Check
+                        type="checkbox"
+                        id={`extra-gift-${item.extra.id}`}
+                        aria-label={`Regalo: ${item.extra.name}`}
+                        checked={!!item.isGift}
+                        onChange={(event) =>
+                          onGiftChange?.(item.extra.id, event.target.checked)
+                        }
+                        disabled={disabled || !onGiftChange}
+                      />
+                    </td>
+                    <td aria-label={`Total de ${item.extra.name}`}>
+                      ${fmtPrice(item.isGift ? 0 : item.extra.price * item.quantity)}
+                    </td>
                     <td>
                       <Button
                         type="button"

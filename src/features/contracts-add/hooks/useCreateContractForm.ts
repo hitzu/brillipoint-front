@@ -132,7 +132,8 @@ export function useCreateContractForm() {
     0,
   );
   const extrasSubtotal = extraCart.reduce(
-    (sum, item) => sum + item.extra.price * item.quantity,
+    (sum, item) =>
+      item.isGift ? sum : sum + item.extra.price * item.quantity,
     0,
   );
   const subtotal = packagesSubtotal + extrasSubtotal;
@@ -206,6 +207,11 @@ export function useCreateContractForm() {
       ),
     );
 
+  const setExtraCartItemGift = (extraId: number, isGift: boolean) =>
+    setExtraCart((prev) =>
+      prev.map((it) => (it.extra.id === extraId ? { ...it, isGift } : it)),
+    );
+
   const resetForm = () => {
     setContract(null);
     setBookingWarning(null);
@@ -277,6 +283,7 @@ export function useCreateContractForm() {
           extraId: item.extra.id,
           quantity: item.quantity,
           packageClientRef: item.packageClientRef ?? undefined,
+          ...(item.isGift && { isGift: true }),
         })),
       };
 
@@ -369,6 +376,7 @@ export function useCreateContractForm() {
     addExtraToCart,
     removeExtraFromCart,
     setExtraCartItemQuantity,
+    setExtraCartItemGift,
     eventDate,
     setEventDate,
     startTime,

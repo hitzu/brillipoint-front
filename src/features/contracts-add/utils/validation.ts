@@ -19,6 +19,8 @@ export interface ExtraCartItem {
   quantity: number;
   /** Cart line's `clientRef` this extra is tied to, or null when unlinked. */
   packageClientRef: string | null;
+  /** Staff courtesy: delivered at no cost. The API keeps its catalog price. */
+  isGift?: boolean;
 }
 
 export interface ValidateCreateContractFormInput {

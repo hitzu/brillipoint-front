@@ -597,6 +597,38 @@ describe("useCreateContractForm — extras", () => {
       { extraId: drinkExtra.id, quantity: 1, packageClientRef },
     ]);
   });
+
+  it("leaves a gifted extra out of the subtotal", async () => {
+    const { result } = renderHook(() => useCreateContractForm());
+    act(() => result.current.setSelectedBrandId(1));
+    await waitFor(() => expect(result.current.packages.length).toBe(1));
+    act(() => result.current.addPackageToCart(photoboothPkg.id));
+    await waitFor(() => expect(result.current.extrasCatalog.length).toBe(1));
+    act(() => result.current.addExtraToCart(drinkExtra.id));
+    await waitFor(() => expect(result.current.extraCart.length).toBe(1));
+
+    act(() => result.current.setExtraCartItemGift(drinkExtra.id, true));
+
+    expect(result.current.subtotal).toBe(photoboothPkg.basePrice);
+  });
+
+  it("flags a gifted extra in the submit payload", async () => {
+    const { result } = renderHook(() => useCreateContractForm());
+    await fillValidForm(result);
+    await waitFor(() => expect(result.current.extrasCatalog.length).toBe(1));
+    act(() => result.current.addExtraToCart(drinkExtra.id));
+    await waitFor(() => expect(result.current.extraCart.length).toBe(1));
+    act(() => result.current.setExtraCartItemGift(drinkExtra.id, true));
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    const contractPayload = api.generateContract.mock.calls[0][0];
+    expect(contractPayload.extras).toEqual([
+      { extraId: drinkExtra.id, quantity: 1, isGift: true },
+    ]);
+  });
 });
 
 describe("useCreateContractForm — success state", () => {

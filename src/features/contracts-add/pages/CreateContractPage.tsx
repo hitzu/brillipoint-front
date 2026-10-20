@@ -102,6 +102,7 @@ export function CreateContractPage() {
               onAdd={vm.addExtraToCart}
               onRemove={vm.removeExtraFromCart}
               onQuantityChange={vm.setExtraCartItemQuantity}
+              onGiftChange={vm.setExtraCartItemGift}
               disabled={vm.isSubmitting}
             />
             <PaymentSection

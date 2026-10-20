@@ -119,4 +119,47 @@ describe("ExtrasSection", () => {
     );
     expect(onQuantityChange).toHaveBeenCalledWith(5, 3);
   });
+
+  it("marks an extra line as a gift", () => {
+    const onGiftChange = vi.fn();
+    render(
+      <ExtrasSection
+        extras={[drinkExtra]}
+        cart={[{ pkg: photobooth, quantity: 1, clientRef: "pkg-1" }]}
+        extraCart={[
+          { extra: drinkExtra, quantity: 1, packageClientRef: null, isGift: false },
+        ]}
+        brandSelected
+        onAdd={vi.fn()}
+        onRemove={vi.fn()}
+        onQuantityChange={vi.fn()}
+        onGiftChange={onGiftChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText("Regalo: Barra de bebidas"));
+
+    expect(onGiftChange).toHaveBeenCalledWith(5, true);
+  });
+
+  it("shows a gifted extra line at no cost", () => {
+    render(
+      <ExtrasSection
+        extras={[drinkExtra]}
+        cart={[{ pkg: photobooth, quantity: 1, clientRef: "pkg-1" }]}
+        extraCart={[
+          { extra: drinkExtra, quantity: 1, packageClientRef: null, isGift: true },
+        ]}
+        brandSelected
+        onAdd={vi.fn()}
+        onRemove={vi.fn()}
+        onQuantityChange={vi.fn()}
+        onGiftChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText("Total de Barra de bebidas").textContent).toBe(
+      "$0",
+    );
+  });
 });
