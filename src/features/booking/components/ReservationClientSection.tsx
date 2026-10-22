@@ -12,7 +12,17 @@ export const ReservationClientSection = ({
     <Row className={`mb-4 ${styles["center-information-content"]}`}>
       <Col xs={12} md={10}>
         <section className={styles.card}>
-          <h2 className={styles.sectionTitle}>Datos del cliente</h2>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Datos del cliente</h2>
+            {contract?.token && (
+              <div className={styles.folio}>
+                <span className={styles.folioLabel}>Folio</span>
+                <span className={styles.folioValue}>
+                  {contract.token.slice(0, 4).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
           <div className={styles.sectionBody}>
             <Container fluid className={styles.noPad}>
               <Row className={styles.gutterMd}>

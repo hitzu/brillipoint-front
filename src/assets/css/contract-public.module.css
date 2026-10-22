@@ -279,6 +279,39 @@
   margin-top: 0.9rem;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.folio {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--bp-brown-4);
+  border-radius: 999px;
+  background: var(--bp-bg-alt);
+}
+
+.folioLabel {
+  color: var(--bp-brown-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.folioValue {
+  color: var(--bp-brown-1);
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .groupSeparatorCard {
   border-radius: var(--bp-radius-card);
   padding: 0.9rem 1rem;
