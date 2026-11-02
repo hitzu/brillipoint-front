@@ -122,6 +122,43 @@ const IconCamera = () => (
   </svg>
 );
 
+const IconGlasses = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    width="100%"
+    height="100%"
+  >
+    <circle cx="6.5" cy="12" r="4.5" />
+    <circle cx="17.5" cy="12" r="4.5" />
+    <path d="M11 12h2M2 10 1 8m21 2 1-2" />
+  </svg>
+);
+
+const IconLightning = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="100%" height="100%">
+    <path d="M13 1 4 13h6l-1 10 11-14h-6l2-8z" />
+  </svg>
+);
+
+const IconHallows = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinejoin="round"
+    width="100%"
+    height="100%"
+  >
+    <path d="M12 2 2 21h20L12 2Zm0 0v19" />
+    <circle cx="12" cy="15" r="6" />
+  </svg>
+);
+
 export const CONFETTI_SHAPE_ICON: Record<ConfettiShape, () => JSX.Element> = {
   rect: IconRect,
   circle: IconCircle,
@@ -134,4 +171,7 @@ export const CONFETTI_SHAPE_ICON: Record<ConfettiShape, () => JSX.Element> = {
   bow: IconBow,
   butterfly: IconButterfly,
   camera: IconCamera,
+  glasses: IconGlasses,
+  lightning: IconLightning,
+  hallows: IconHallows,
 };

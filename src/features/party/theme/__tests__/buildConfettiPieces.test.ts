@@ -154,6 +154,9 @@ test("detailed catalog shapes remain recognizable at 20–30px", () => {
     "bow",
     "butterfly",
     "camera",
+    "glasses",
+    "lightning",
+    "hallows",
   ]) {
     for (const random of [0, 0.5, 0.999]) {
       const [piece] = buildConfettiPieces(

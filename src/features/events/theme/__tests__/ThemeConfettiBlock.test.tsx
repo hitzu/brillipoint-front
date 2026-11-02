@@ -88,6 +88,20 @@ describe("ThemeConfettiBlock", () => {
 });
 
 describe("detailed confetti presentation", () => {
+  it("offers the magic figures with previews and selectable values", () => {
+    const toggle = vi.fn();
+    render(<ThemeConfettiBlock selectedShapes={[]} onToggleShape={toggle} />);
+    for (const [name, value] of [
+      ["Lentes", "glasses"],
+      ["Rayo", "lightning"],
+      ["Reliquias de la Muerte", "hallows"],
+    ]) {
+      const input = screen.getByRole("checkbox", { name });
+      expect(input.closest("label")?.querySelector("svg")).not.toBeNull();
+      fireEvent.click(input);
+      expect(toggle).toHaveBeenLastCalledWith(value);
+    }
+  });
   it("renders every new figure with a Spanish label and an SVG preview", () => {
     render(<ThemeConfettiBlock selectedShapes={[]} onToggleShape={vi.fn()} />);
     for (const name of ["Diamante", "Moño", "Mariposa", "Cámara"]) {
@@ -107,7 +121,9 @@ describe("detailed confetti presentation", () => {
       "utf8"
     );
     expect(css).toMatch(/animation: confettiFall linear infinite both/);
-    expect(css).toMatch(/animation: confettiSway ease-in-out infinite alternate both/);
+    expect(css).toMatch(
+      /animation: confettiSway ease-in-out infinite alternate both/
+    );
     expect(css).toContain("var(--confetti-sway)");
     expect(splash).toContain("className={styles.confettiSway}");
     expect(css).toMatch(

@@ -20,6 +20,9 @@ export const CONFETTI_SHAPES = [
   "bow",
   "butterfly",
   "camera",
+  "glasses",
+  "lightning",
+  "hallows",
 ] as const;
 
 export type ConfettiShape = (typeof CONFETTI_SHAPES)[number];

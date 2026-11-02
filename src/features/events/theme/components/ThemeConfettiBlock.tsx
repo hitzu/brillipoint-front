@@ -18,6 +18,9 @@ const SHAPE_LABELS: Record<ConfettiShape, string> = {
   bow: "Moño",
   butterfly: "Mariposa",
   camera: "Cámara",
+  glasses: "Lentes",
+  lightning: "Rayo",
+  hallows: "Reliquias de la Muerte",
 };
 
 interface ThemeConfettiBlockProps {
