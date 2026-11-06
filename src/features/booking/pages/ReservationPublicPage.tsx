@@ -24,6 +24,7 @@ import { ReservationServicesSection } from "../components/ReservationServicesSec
 import { ReservationExtrasSection } from "../components/ReservationExtrasSection";
 import { ReservationFinanceSection } from "../components/ReservationFinanceSection";
 import { ReservationNotesSection } from "../components/ReservationNotesSection";
+import { ReservationPreviewNotice } from "../components/ReservationPreviewNotice";
 import { PreparationSection } from "../components/PreparationSection";
 import { parseLocalDate } from "@common/dates";
 import {
@@ -330,7 +331,10 @@ const ReservationPublicPage = ({ token }: Props) => {
       </section>
     </div>
   ) : (
-    <>{activeSection?.render()}</>
+    <>
+      <ReservationPreviewNotice paidAmount={data.paidAmount ?? 0} />
+      {activeSection?.render()}
+    </>
   );
 
   return (

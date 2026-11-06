@@ -738,6 +738,17 @@
   line-height: 1.55;
 }
 
+.previewNotice {
+  border-color: var(--bp-brown-2);
+  border-style: dashed;
+}
+
+.previewNoticeText {
+  margin: 0;
+  color: var(--bp-brown-2);
+  line-height: 1.55;
+}
+
 .btnRetry {
   margin-top: 1rem;
   width: 100%;
