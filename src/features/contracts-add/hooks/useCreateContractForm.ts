@@ -59,6 +59,7 @@ export function useCreateContractForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [bookingWarning, setBookingWarning] = useState<string | null>(null);
+  const [noDepositConfirmPending, setNoDepositConfirmPending] = useState(false);
 
   // Load vendors
   useEffect(() => {
@@ -216,6 +217,7 @@ export function useCreateContractForm() {
     setContract(null);
     setBookingWarning(null);
     setErrorMsg(null);
+    setNoDepositConfirmPending(false);
     setSelectedUserId("");
     setSelectedBrandId("");
     setClientName("");
@@ -236,11 +238,8 @@ export function useCreateContractForm() {
   const setClientPhone = (value: string) =>
     setRawClientPhone(sanitizePhoneInput(value));
 
-  const handleSubmit = async () => {
-    if (isSubmitting) return;
-    setErrorMsg(null);
-
-    const validationError = validateCreateContractForm({
+  const validateForm = () =>
+    validateCreateContractForm({
       selectedUserId,
       selectedBrandId,
       clientName,
@@ -254,11 +253,36 @@ export function useCreateContractForm() {
       depositNum,
       subtotal,
     });
+
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setErrorMsg(null);
+
+    const validationError = validateForm();
     if (validationError) {
       setErrorMsg(validationError);
       return;
     }
 
+    // Without a deposit the contract is only a preview until the first
+    // payment lands, so the seller has to acknowledge that before creating it.
+    if (depositNum === 0) {
+      setNoDepositConfirmPending(true);
+      return;
+    }
+
+    await submitContract();
+  };
+
+  const confirmSubmitWithoutDeposit = async () => {
+    setNoDepositConfirmPending(false);
+    await submitContract();
+  };
+
+  const cancelSubmitWithoutDeposit = () => setNoDepositConfirmPending(false);
+
+  const submitContract = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const trimmedName = clientName.trim();
@@ -294,15 +318,20 @@ export function useCreateContractForm() {
 
       const newContract = await generateContract(payload);
 
-      const promises: Promise<Payment | Note>[] = [
-        createPayment({
-          contractId: newContract.id,
-          amount: depositNum,
-          method: paymentMethod,
-          note: "Depósito inicial",
-          receivedAt: new Date().toISOString(),
-        }),
-      ];
+      // The payments API only accepts positive amounts, so a zero deposit
+      // must not send a payment at all.
+      const promises: Promise<Payment | Note>[] = [];
+      if (depositNum > 0) {
+        promises.push(
+          createPayment({
+            contractId: newContract.id,
+            amount: depositNum,
+            method: paymentMethod,
+            note: "Depósito inicial",
+            receivedAt: new Date().toISOString(),
+          }),
+        );
+      }
       const trimmedNote = publicNote.trim();
       if (trimmedNote) {
         promises.push(
@@ -411,7 +440,10 @@ export function useCreateContractForm() {
     isSubmitting,
     errorMsg,
     bookingWarning,
+    noDepositConfirmPending,
     handleSubmit,
+    confirmSubmitWithoutDeposit,
+    cancelSubmitWithoutDeposit,
     resetForm,
   };
 }

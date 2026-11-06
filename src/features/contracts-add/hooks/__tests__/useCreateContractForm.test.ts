@@ -369,6 +369,65 @@ describe("useCreateContractForm — submit flow", () => {
     expect(api.createBooking).not.toHaveBeenCalled();
   });
 
+  it("asks for confirmation instead of submitting when there is no deposit", async () => {
+    const { result } = renderHook(() => useCreateContractForm());
+    await fillValidForm(result);
+    act(() => result.current.setDepositAmount("0"));
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(result.current.noDepositConfirmPending).toBe(true);
+    expect(api.generateContract).not.toHaveBeenCalled();
+  });
+
+  it("creates the contract and booking without a payment once a no-deposit submit is confirmed", async () => {
+    const { result } = renderHook(() => useCreateContractForm());
+    await fillValidForm(result);
+    act(() => result.current.setDepositAmount("0"));
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    await act(async () => {
+      await result.current.confirmSubmitWithoutDeposit();
+    });
+
+    expect(result.current.noDepositConfirmPending).toBe(false);
+    expect(api.generateContract).toHaveBeenCalledTimes(1);
+    expect(api.createPayment).not.toHaveBeenCalled();
+    expect(api.createBooking).toHaveBeenCalledTimes(1);
+    expect(result.current.errorMsg).toBeNull();
+    expect(result.current.contract).toMatchObject({ id: 88 });
+  });
+
+  it("cancels a pending no-deposit submit without creating anything", async () => {
+    const { result } = renderHook(() => useCreateContractForm());
+    await fillValidForm(result);
+    act(() => result.current.setDepositAmount("0"));
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    act(() => result.current.cancelSubmitWithoutDeposit());
+
+    expect(result.current.noDepositConfirmPending).toBe(false);
+    expect(api.generateContract).not.toHaveBeenCalled();
+  });
+
+  it("does not ask for confirmation when the form is invalid and has no deposit", async () => {
+    const { result } = renderHook(() => useCreateContractForm());
+    act(() => result.current.setDepositAmount("0"));
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(result.current.noDepositConfirmPending).toBe(false);
+    expect(result.current.errorMsg).toBeTruthy();
+  });
+
   it("reports an error and never calls createBooking when the payment fails", async () => {
     api.createPayment.mockRejectedValue(new Error("boom"));
     const { result } = renderHook(() => useCreateContractForm());

@@ -53,7 +53,10 @@ const { push, hookState } = vi.hoisted(() => ({
     isSubmitting: false,
     errorMsg: null as string | null,
     bookingWarning: null as string | null,
+    noDepositConfirmPending: false,
     handleSubmit: vi.fn(),
+    confirmSubmitWithoutDeposit: vi.fn(),
+    cancelSubmitWithoutDeposit: vi.fn(),
     resetForm: vi.fn(),
   },
 }));
@@ -78,6 +81,35 @@ describe("CreateContractPage", () => {
     hookState.errorMsg = null;
     hookState.bookingWarning = null;
     hookState.isSubmitting = false;
+    hookState.noDepositConfirmPending = false;
+    hookState.confirmSubmitWithoutDeposit.mockReset();
+    hookState.cancelSubmitWithoutDeposit.mockReset();
+  });
+
+  it("does not show the no-deposit confirmation by default", () => {
+    render(<CreateContractPage />);
+    expect(screen.queryByText(/contrato no estará activo/i)).toBeNull();
+  });
+
+  it("asks to confirm a contract without deposit and confirms through the hook", async () => {
+    hookState.noDepositConfirmPending = true;
+    render(<CreateContractPage />);
+
+    expect(screen.getByText(/contrato no estará activo/i)).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Crear sin anticipo" }),
+      );
+    });
+    expect(hookState.confirmSubmitWithoutDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancels the no-deposit confirmation through the hook", () => {
+    hookState.noDepositConfirmPending = true;
+    render(<CreateContractPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    expect(hookState.cancelSubmitWithoutDeposit).toHaveBeenCalledTimes(1);
   });
 
   it("renders every section", () => {

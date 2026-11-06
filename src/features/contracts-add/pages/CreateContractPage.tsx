@@ -9,6 +9,7 @@ import { ExtrasSection } from "../components/ExtrasSection";
 import { PaymentSection } from "../components/PaymentSection";
 import { NotesSection } from "../components/NotesSection";
 import { SuccessSection } from "../components/SuccessSection";
+import { NoDepositConfirmModal } from "../components/NoDepositConfirmModal";
 import { useCreateContractForm } from "../hooks/useCreateContractForm";
 
 /**
@@ -140,6 +141,12 @@ export function CreateContractPage() {
               </Button>
             </div>
           </Form>
+          <NoDepositConfirmModal
+            show={vm.noDepositConfirmPending}
+            onConfirm={() => void vm.confirmSubmitWithoutDeposit()}
+            onCancel={vm.cancelSubmitWithoutDeposit}
+            disabled={vm.isSubmitting}
+          />
         </Col>
       </Row>
     </>
