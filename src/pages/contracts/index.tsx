@@ -143,6 +143,21 @@ const ContractsListPage = () => {
         accessorKey: "clientPhone",
       },
       {
+        header: "Traslado",
+        enableColumnFilter: false,
+        accessorKey: "transportStatus",
+        cell: (cellProps: any) => {
+          const status = cellProps.row.original.transportStatus;
+          if (status === "pending_quote") {
+            return <span className="badge bg-light-warning">Por cotizar</span>;
+          }
+          if (status === "quoted") {
+            return <span className="badge bg-light-info">Cotizado</span>;
+          }
+          return <span className="badge bg-light-success">Incluido</span>;
+        },
+      },
+      {
         header: "token",
         enableColumnFilter: false,
         accessorKey: "token",

@@ -4,6 +4,8 @@ import { Payment } from "./payments";
 import { Promotion } from "./promotions";
 import { Slot } from "./slots";
 
+export type ContractTransportStatus = "included" | "pending_quote" | "quoted";
+
 export interface Contract {
   id: number;
   createdAt: string;
@@ -14,6 +16,8 @@ export interface Contract {
   subtotal: number;
   discountTotal: number;
   total: number;
+  transportStatus?: ContractTransportStatus;
+  transportAmount?: number | null;
   sku: string;
   totalAmount: number;
   token: string;
@@ -83,6 +87,8 @@ export interface GetContractByIdResponse {
   extras: ContractExtra[];
   payments: Payment[];
   paidAmount: number;
+  /** Server-computed: total + quoted transport - payments (never below 0). */
+  balanceDue?: number;
   /** @deprecated API sends `[]`; use `bookings`. */
   contractSlots?: ContractSlot[];
   bookings: ContractBooking[];
@@ -97,6 +103,8 @@ export interface ContractCompleteResponse {
   extras: ContractExtra[];
   payments: Payment[];
   paidAmount: number;
+  /** Server-computed: total + quoted transport - payments (never below 0). */
+  balanceDue?: number;
   /** @deprecated API sends `[]`; use `bookings`. */
   contractSlots?: ContractSlot[];
   bookings: ContractBooking[];

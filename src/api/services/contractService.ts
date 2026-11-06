@@ -1,5 +1,6 @@
 import {
   Contract,
+  ContractTransportStatus,
   ContractCompleteResponse,
   GenerateContractPayload,
   GetContractByIdResponse,
@@ -115,6 +116,28 @@ export const generateContract = async (
     return response.data;
   } catch (error) {
     console.error("Error generating contract:", error);
+    throw error;
+  }
+};
+
+export interface UpdateContractTransportPayload {
+  status: ContractTransportStatus;
+  /** Required (> 0) when status is "quoted"; must be omitted otherwise. */
+  amount?: number;
+}
+
+export const updateContractTransport = async (
+  id: number,
+  payload: UpdateContractTransportPayload
+): Promise<GetContractByIdResponse> => {
+  try {
+    const response = await axiosInstanceWithToken.patch<GetContractByIdResponse>(
+      `/contracts/${id}/transport`,
+      payload
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating contract transport:", error);
     throw error;
   }
 };

@@ -789,6 +789,33 @@
   white-space: nowrap;
 }
 
+.financePaid {
+  color: var(--bp-sage);
+  font-weight: 600;
+}
+
+.balanceValue {
+  color: var(--bp-brown-1);
+  font-family: var(--bp-font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: right;
+}
+
+.paymentsAccordion {
+  color: var(--bp-brown-2);
+  font-size: 0.95rem;
+  border-top: 1px solid var(--bp-brown-4);
+  padding-top: 0.75rem;
+}
+
+.paymentsAccordion > summary {
+  cursor: pointer;
+  color: var(--bp-brown-3);
+  font-weight: 500;
+}
+
 .financeValuePaymentPending {
   color: var(--bp-terra);
 }

@@ -3,6 +3,7 @@ import { Modal, Toast } from "react-bootstrap";
 import { usePayments } from "./usePayments";
 import { PaymentsList } from "./PaymentsList";
 import { PaymentForm } from "./PaymentForm";
+import { TransportSection } from "./TransportSection";
 
 interface PaymentsModalProps {
   show: boolean;
@@ -22,14 +23,25 @@ export function PaymentsModal({
   handleClose,
   contractId,
 }: PaymentsModalProps) {
-  const { payments, loading, toast, hideToast, fetchPayments, addPayment } =
-    usePayments();
+  const {
+    payments,
+    loading,
+    toast,
+    hideToast,
+    fetchPayments,
+    addPayment,
+    transport,
+    savingTransport,
+    fetchTransport,
+    saveTransport,
+  } = usePayments();
 
   useEffect(() => {
     if (show && contractId) {
       fetchPayments(contractId);
+      fetchTransport(contractId);
     }
-  }, [show, contractId, fetchPayments]);
+  }, [show, contractId, fetchPayments, fetchTransport]);
 
   return (
     <>
@@ -62,6 +74,29 @@ export function PaymentsModal({
         <Modal.Body>
           <h6 className="mb-3">Pagos registrados</h6>
           <PaymentsList payments={payments} loading={loading} />
+
+          <hr className="my-4" />
+
+          <TransportSection
+            status={transport.status}
+            amount={transport.amount}
+            saving={savingTransport}
+            onSave={(status, amount) =>
+              saveTransport(contractId, status, amount)
+            }
+          />
+          {transport.balanceDue != null && (
+            <p className="mt-3 mb-0">
+              Saldo a pagar el día del evento:{" "}
+              <strong>
+                {new Intl.NumberFormat("es-MX", {
+                  style: "currency",
+                  currency: "MXN",
+                  maximumFractionDigits: 0,
+                }).format(transport.balanceDue)}
+              </strong>
+            </p>
+          )}
 
           <hr className="my-4" />
 

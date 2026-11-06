@@ -26,7 +26,6 @@ import { ReservationFinanceSection } from "../components/ReservationFinanceSecti
 import { ReservationNotesSection } from "../components/ReservationNotesSection";
 import { PreparationSection } from "../components/PreparationSection";
 import { parseLocalDate } from "@common/dates";
-import { brandIncludesTransportFee } from "@shared/constants/brands";
 import {
   getEventDate,
   ReservationDateRow,
@@ -156,15 +155,6 @@ const ReservationPublicPage = ({ token }: Props) => {
     return packagesForPrep.some((p) => p.brandId === 2);
   }, [packagesForPrep]);
 
-  // Transport is quoted on top of the balance only when something in the
-  // contract is delivered off-site. Derived from what was actually sold, not
-  // from the URL hint, since this is a money statement.
-  const showTransportNote = useMemo(() => {
-    const contracted = data?.packages ?? [];
-    if (contracted.length === 0) return true;
-    return contracted.some((p) => brandIncludesTransportFee(p.package?.brandId));
-  }, [data?.packages]);
-
   const packageTerms = useMemo((): GetTermsResponse[] => {
     const dedup = new Map<number, GetTermsResponse>();
     for (const term of fetchedPackageTerms) {
@@ -207,7 +197,7 @@ const ReservationPublicPage = ({ token }: Props) => {
                   contract={data.contract}
                   payments={data.payments ?? []}
                   paidAmount={data.paidAmount ?? 0}
-                  showTransportNote={showTransportNote}
+                  balanceDue={data.balanceDue}
                 />
                 <ReservationNotesSection notes={notes} />
               </>
