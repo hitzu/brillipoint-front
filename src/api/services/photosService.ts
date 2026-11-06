@@ -22,7 +22,7 @@ const normalizePublicEvent = (
 
 export const getEventPhotos = async (
   token: string,
-  limit = 100
+  limit = 500
 ): Promise<EventPhotosPage> => {
   const normalizedToken = encodeURIComponent(token);
   const response = await axiosInstanceWithToken.get<
