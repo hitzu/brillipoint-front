@@ -56,6 +56,8 @@ export interface GallerySessionItem {
   sessionToken: string;
   coverPhoto: string;
   photoCount: number;
+  /** Optional API field; the gallery cover is always a photo, so the overview ignores it. */
+  videos?: SessionVideo[];
   time?: string;
 }
 

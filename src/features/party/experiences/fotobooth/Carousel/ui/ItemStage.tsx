@@ -84,6 +84,25 @@ const ItemStage = ({
                           {t("carousel.retry")}
                         </button>
                       </div>
+                    ) : shouldLoad && item.type === "video" ? (
+                      <video
+                        key={srcWithRetry}
+                        src={srcWithRetry}
+                        poster={item.posterSrc}
+                        aria-label={item.alt}
+                        className={`${styles.photoImg} ${
+                          currentState.status === "loaded"
+                            ? styles.photoImgVisible
+                            : styles.photoImgHidden
+                        }`}
+                        muted
+                        loop
+                        autoPlay
+                        playsInline
+                        preload="metadata"
+                        onLoadedData={() => onItemLoad(itemIndex)}
+                        onError={() => onItemError(itemIndex)}
+                      />
                     ) : shouldLoad ? (
                       <img
                         key={srcWithRetry}
@@ -100,7 +119,7 @@ const ItemStage = ({
                       />
                     ) : null}
 
-                    {isActive && currentState.status === "loaded" ? (
+                    {isActive && currentState.status === "loaded" && item.type !== "video" ? (
                       <EffectOverlay effect={activeEffect} />
                     ) : null}
                   </div>
