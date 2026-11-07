@@ -102,3 +102,95 @@ test("localizeSessionItems: rewrites alt text for a new locale, with a fallback 
   assert.equal(localizeSessionItems(items, "en", null)[0].alt, "Photo 1 from your event");
   assert.equal(localizeSessionItems(items, "en", "Ana")[0].alt, "Photo 1 from Ana");
 });
+
+const withVideos = (
+  photos: SessionResponse["photos"],
+  videos: NonNullable<SessionResponse["videos"]>,
+): SessionResponse => ({ ...baseSession(photos), videos });
+
+test("buildSessionItems: appends the session video after every photo", () => {
+  const items = buildSessionItems(
+    withVideos(
+      [
+        { url: "https://cdn.test/a.jpg", position: 0 },
+        { url: "https://cdn.test/b.jpg", position: 1 },
+      ],
+      [{ url: "https://cdn.test/v.mp4", posterUrl: "https://cdn.test/v.jpg", durationMs: 3000 }],
+    ),
+  );
+
+  assert.deepEqual(
+    items.map((item) => item.type),
+    ["photo", "photo", "video"],
+  );
+});
+
+test("buildSessionItems: video item carries the clip, its poster and the original url", () => {
+  const [video] = buildSessionItems(
+    withVideos([], [{ url: "https://cdn.test/v.mp4", posterUrl: "https://cdn.test/v.jpg", durationMs: null }]),
+  );
+
+  assert.deepEqual(
+    { src: video.src, originalSrc: video.originalSrc, posterSrc: video.posterSrc },
+    { src: "https://cdn.test/v.mp4", originalSrc: "https://cdn.test/v.mp4", posterSrc: "https://cdn.test/v.jpg" },
+  );
+});
+
+test("buildSessionItems: video index continues after the photos", () => {
+  const items = buildSessionItems(
+    withVideos(
+      [{ url: "https://cdn.test/a.jpg", position: 0 }],
+      [{ url: "https://cdn.test/v.mp4", posterUrl: "https://cdn.test/v.jpg", durationMs: 3000 }],
+    ),
+  );
+
+  assert.equal(items[1].index, 1);
+});
+
+test("buildSessionItems: without videos the output has photo items only", () => {
+  const items = buildSessionItems(baseSession([{ url: "https://cdn.test/a.jpg", position: 0 }]));
+
+  assert.deepEqual(
+    items.map((item) => item.type),
+    ["photo"],
+  );
+});
+
+test("buildSessionItems: an empty videos array adds nothing", () => {
+  const items = buildSessionItems(withVideos([{ url: "https://cdn.test/a.jpg", position: 0 }], []));
+
+  assert.equal(items.length, 1);
+});
+
+test("getPhotoItems: leaves the video out", () => {
+  const items = buildSessionItems(
+    withVideos(
+      [{ url: "https://cdn.test/a.jpg", position: 0 }],
+      [{ url: "https://cdn.test/v.mp4", posterUrl: "https://cdn.test/v.jpg", durationMs: 3000 }],
+    ),
+  );
+
+  assert.deepEqual(
+    getPhotoItems(items).map((item) => item.type),
+    ["photo"],
+  );
+});
+
+test("buildSessionItems: video alt follows the locale", () => {
+  const session = withVideos([], [
+    { url: "https://cdn.test/v.mp4", posterUrl: "https://cdn.test/v.jpg", durationMs: 3000 },
+  ]);
+
+  assert.deepEqual(
+    [buildSessionItems(session)[0].alt, buildSessionItems(session, "en")[0].alt],
+    ["Video de Ana", "Video from Ana"],
+  );
+});
+
+test("localizeSessionItems: relabels a video with the video alt, not the photo alt", () => {
+  const items = buildSessionItems(
+    withVideos([], [{ url: "https://cdn.test/v.mp4", posterUrl: "https://cdn.test/v.jpg", durationMs: 3000 }]),
+  );
+
+  assert.equal(localizeSessionItems(items, "en", "Ana")[0].alt, "Video from Ana");
+});

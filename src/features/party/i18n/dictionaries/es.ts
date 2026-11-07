@@ -19,6 +19,7 @@ export const es = {
     pageTitleWithNames: "Mis Fotos - {{names}}",
     fallbackEventName: "tu evento",
     photoAlt: "Foto {{number}} de {{eventName}}",
+    videoAlt: "Video de {{eventName}}",
     loading: "Cargando tus fotos...",
     splash: {
       preparing: "Preparando la experiencia",
