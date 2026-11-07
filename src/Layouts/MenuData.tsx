@@ -153,6 +153,12 @@ const menuItems = [
         link: "/promotions-list",
         dataPage: "promotions-list",
       },
+      {
+        id: "promotions-add",
+        label: "Agregar Promoción",
+        link: "/promotions-add",
+        dataPage: "promotions-add",
+      },
     ],
   },
   {
