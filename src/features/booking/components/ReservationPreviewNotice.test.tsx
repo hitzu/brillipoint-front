@@ -9,9 +9,6 @@ describe("ReservationPreviewNotice", () => {
 
     const notice = screen.getByRole("status");
     expect(notice.textContent).toContain("Vista previa");
-    expect(notice.textContent).toContain(
-      "Este contrato será válido hasta que realices tu primer pago",
-    );
   });
 
   it("renders nothing once there is a payment", () => {

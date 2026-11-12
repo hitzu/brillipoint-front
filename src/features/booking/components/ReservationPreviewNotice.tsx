@@ -29,9 +29,15 @@ export function ReservationPreviewNotice({
           </div>
           <div className={styles.sectionBody}>
             <p className={styles.previewNoticeText}>
-              Este contrato será válido hasta que realices tu primer pago.
-              Mientras tanto no existe ningún compromiso entre las partes. En
-              cuanto registremos tu anticipo, tu reserva quedará activa.
+              Este contrato se encuentra en vista previa y tu fecha aún no está
+              reservada. Tu reserva quedará activa una vez que recibamos y
+              registremos tu primer pago.
+            </p>
+            <p>
+              Los precios especiales, descuentos y obsequios incluidos en esta
+              propuesta serán válidos únicamente si realizas tu apartado antes
+              del 17 de noviembre de 2026. Después de esta fecha la propuesta
+              caducará.
             </p>
           </div>
         </section>
