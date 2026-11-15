@@ -26,6 +26,8 @@ import { ReservationFinanceSection } from "../components/ReservationFinanceSecti
 import { ReservationNotesSection } from "../components/ReservationNotesSection";
 import { ReservationPreviewNotice } from "../components/ReservationPreviewNotice";
 import { PreparationSection } from "../components/PreparationSection";
+import { TattooDesignsSection } from "../components/TattooDesignsSection";
+import { getTattooEventDate, hasGlitterBarPackage } from "../utils/tattooDesigns";
 import { parseLocalDate } from "@common/dates";
 import {
   getEventDate,
@@ -62,7 +64,12 @@ const ReservationPublicPage = ({ token }: Props) => {
   >([]);
   const [notes, setNotes] = useState<Note[]>([]);
 
-  type SectionId = "resume" | "prep_bride" | "prep_social" | "terms";
+  type SectionId =
+    | "resume"
+    | "prep_bride"
+    | "prep_social"
+    | "tattoos"
+    | "terms";
 
   const [activeSectionId, setActiveSectionId] = useState<SectionId>("resume");
 
@@ -156,6 +163,10 @@ const ReservationPublicPage = ({ token }: Props) => {
     return packagesForPrep.some((p) => p.brandId === 2);
   }, [packagesForPrep]);
 
+  const hasGlitterBar = useMemo(() => {
+    return hasGlitterBarPackage(packagesForPrep);
+  }, [packagesForPrep]);
+
   const packageTerms = useMemo((): GetTermsResponse[] => {
     const dedup = new Map<number, GetTermsResponse>();
     for (const term of fetchedPackageTerms) {
@@ -234,6 +245,22 @@ const ReservationPublicPage = ({ token }: Props) => {
                   phone={data?.contract?.clientPhone ?? ""}
                   mode="public"
                   view="social"
+                />
+              </Col>
+            </Row>
+          ),
+        },
+        {
+          id: "tattoos",
+          label: "Tatuajes",
+          enabled: hasGlitterBar,
+          render: () => (
+            <Row className={`mb-4 ${styles["center-information-content"]}`}>
+              <Col xs={12} md={10}>
+                <TattooDesignsSection
+                  contractToken={data?.contract?.token ?? token}
+                  phone={data?.contract?.clientPhone ?? ""}
+                  eventDate={getTattooEventDate(data?.bookings)}
                 />
               </Col>
             </Row>

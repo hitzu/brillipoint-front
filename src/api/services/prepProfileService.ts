@@ -113,3 +113,24 @@ export const patchPublicPrepProfileAnswer = async (params: {
   }
 };
 
+
+export const setPublicPrepProfileTattooDesigns = async (params: {
+  contractToken: string;
+  phone: string;
+  assets: Array<{ path: string; mime: string }>;
+}): Promise<PrepProfilePublicResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append("phone", params.phone);
+
+    const url = `/contracts/public/${encodeURIComponent(params.contractToken)}/prep-profile/tattoo-designs?${queryParams.toString()}`;
+    const response = await axiosInstanceWithoutToken.put<PrepProfilePublicResponse>(
+      url,
+      { assets: params.assets },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error setting public tattoo designs:", error);
+    throw error;
+  }
+};
