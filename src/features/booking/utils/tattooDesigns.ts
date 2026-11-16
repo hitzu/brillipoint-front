@@ -2,14 +2,26 @@
 // the authority; these helpers only decide what to show.
 export const TATTOO_DESIGNS_QUESTION_ID = "tattoo_designs";
 export const TATTOO_DESIGNS_MAX = 5;
-export const GLITTER_BAR_BRAND_ID = 1;
+// Products that enable the section when a contracted package delivers them:
+// "Tatuajes personalizados" of Glitter bar (131) and Photobooth (122).
+// Hardcoded for now (to move to the database); keep in sync with
+// TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS in bookandsign-api.
+export const TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS: readonly number[] = [131, 122];
 // The API closes when the event is 7 days away or closer, so the last day the
 // client can still change designs is 8 days before the event.
 const LAST_OPEN_DAYS_BEFORE_EVENT = 8;
 
-export const hasGlitterBarPackage = (
-  packages: ReadonlyArray<{ brandId: number }>,
-): boolean => packages.some((p) => p.brandId === GLITTER_BAR_BRAND_ID);
+/** `deliverables` is the API's frozen product snapshot of each contract line. */
+export const hasTattooDesignsProduct = (
+  packages: ReadonlyArray<{
+    deliverables?: ReadonlyArray<{ productId: number }>;
+  }>,
+): boolean =>
+  packages.some((p) =>
+    (p.deliverables ?? []).some((d) =>
+      TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS.includes(d.productId),
+    ),
+  );
 
 /** Date (YYYY-MM-DD) of the booking whose purpose is `event`, if any. */
 export const getTattooEventDate = (

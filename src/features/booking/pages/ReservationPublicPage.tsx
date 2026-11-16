@@ -27,7 +27,7 @@ import { ReservationNotesSection } from "../components/ReservationNotesSection";
 import { ReservationPreviewNotice } from "../components/ReservationPreviewNotice";
 import { PreparationSection } from "../components/PreparationSection";
 import { TattooDesignsSection } from "../components/TattooDesignsSection";
-import { getTattooEventDate, hasGlitterBarPackage } from "../utils/tattooDesigns";
+import { getTattooEventDate, hasTattooDesignsProduct } from "../utils/tattooDesigns";
 import { parseLocalDate } from "@common/dates";
 import {
   getEventDate,
@@ -163,9 +163,9 @@ const ReservationPublicPage = ({ token }: Props) => {
     return packagesForPrep.some((p) => p.brandId === 2);
   }, [packagesForPrep]);
 
-  const hasGlitterBar = useMemo(() => {
-    return hasGlitterBarPackage(packagesForPrep);
-  }, [packagesForPrep]);
+  const hasTattooDesigns = useMemo(() => {
+    return hasTattooDesignsProduct(data?.packages ?? []);
+  }, [data?.packages]);
 
   const packageTerms = useMemo((): GetTermsResponse[] => {
     const dedup = new Map<number, GetTermsResponse>();
@@ -253,7 +253,7 @@ const ReservationPublicPage = ({ token }: Props) => {
         {
           id: "tattoos",
           label: "Tatuajes",
-          enabled: hasGlitterBar,
+          enabled: hasTattooDesigns,
           render: () => (
             <Row className={`mb-4 ${styles["center-information-content"]}`}>
               <Col xs={12} md={10}>
