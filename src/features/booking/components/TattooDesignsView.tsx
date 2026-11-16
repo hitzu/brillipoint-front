@@ -16,7 +16,7 @@ type Props = {
   onRemove: (path: string) => void;
 };
 
-const mutedText = { color: "rgba(255,255,255,0.72)", fontSize: 13 } as const;
+const mutedText = { color: "var(--bp-brown-2)", fontSize: 13 } as const;
 
 export function TattooDesignsView({
   designs,
@@ -35,7 +35,7 @@ export function TattooDesignsView({
       <div style={{ display: "grid", gap: "0.75rem" }}>
         <div
           style={{
-            color: "rgba(255,255,255,0.96)",
+            color: "var(--bp-brown-1)",
             fontWeight: 900,
             fontSize: 16,
           }}
@@ -86,8 +86,8 @@ export function TattooDesignsView({
                         aspectRatio: "1 / 1",
                         objectFit: "cover",
                         borderRadius: 12,
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid var(--bp-brown-4)",
+                        background: "transparent",
                         display: "block",
                       }}
                     />
@@ -110,14 +110,16 @@ export function TattooDesignsView({
         ) : null}
 
         {canEdit && !isFull ? (
-          <FormDropzone
-            embedded
-            showPreviews={false}
-            multiple
-            disabled={isBusy}
-            description="Toca para seleccionar tus diseños"
-            onFilesSelected={onAddFiles}
-          />
+          <div className={styles.tattooDropzone}>
+            <FormDropzone
+              embedded
+              showPreviews={false}
+              multiple
+              disabled={isBusy}
+              description="Toca para seleccionar tus diseños"
+              onFilesSelected={onAddFiles}
+            />
+          </div>
         ) : null}
 
         {canEdit && isFull ? (
@@ -132,7 +134,7 @@ export function TattooDesignsView({
         {errorMessage ? (
           <div
             role="alert"
-            style={{ color: "rgba(248, 113, 113, 0.95)", fontWeight: 800 }}
+            style={{ color: "#b3261e", fontWeight: 800 }}
           >
             {errorMessage}
           </div>

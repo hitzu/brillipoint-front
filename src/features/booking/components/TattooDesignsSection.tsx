@@ -226,14 +226,14 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
         <div style={{ display: "grid", gap: "0.75rem" }}>
           <div
             style={{
-              color: "rgba(255,255,255,0.96)",
+              color: "var(--bp-brown-1)",
               fontWeight: 900,
               fontSize: 16,
             }}
           >
             Confirma tu número de celular
           </div>
-          <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>
+          <div style={{ color: "var(--bp-brown-2)", fontSize: 13 }}>
             Para subir tus diseños de tatuajes, necesitamos validar tu número.
           </div>
           <input
@@ -250,14 +250,14 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
             }}
           />
           {maskedPhoneHint ? (
-            <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>
+            <div style={{ color: "var(--bp-brown-2)", fontSize: 13 }}>
               Número registrado en el contrato: {maskedPhoneHint}
             </div>
           ) : null}
           {authError ? (
             <div
               role="alert"
-              style={{ color: "rgba(248, 113, 113, 0.95)", fontWeight: 800 }}
+              style={{ color: "#b3261e", fontWeight: 800 }}
             >
               {authError}
             </div>

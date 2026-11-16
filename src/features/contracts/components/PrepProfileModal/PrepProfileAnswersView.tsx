@@ -115,15 +115,16 @@ export function PrepProfileAnswersView({ answers }: Props) {
   }
 
   return (
-    <div style={{ display: "grid", gap: "1rem" }}>
+    <div style={{ display: "grid", gap: "1rem", alignContent: "start" }}>
       {tattooDesigns.length > 0 ? (
-        <section aria-labelledby="tattoo-designs-title">
+        // A div, not a <section>: the admin template adds global padding to <section>.
+        <div role="region" aria-labelledby="tattoo-designs-title">
           <h6 id="tattoo-designs-title">Diseños de tatuajes</h6>
           <small className="text-muted d-block mb-2">
             {`${tattooDesigns.length} de ${TATTOO_DESIGNS_MAX} diseños`}
           </small>
           <AssetThumbnails assets={tattooDesigns} alt="Diseño" />
-        </section>
+        </div>
       ) : null}
 
       {answered.map((question) => (
