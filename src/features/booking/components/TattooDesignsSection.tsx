@@ -8,11 +8,15 @@ import {
   setPublicPrepProfileTattooDesigns,
   uploadPrepProfileFileToSignedUrl,
 } from "../../../api/services/prepProfileService";
+import { getTattooCatalog } from "../../../api/services/tattooCatalogService";
 import { usePublicContractPhoneGate } from "../hooks/usePublicContractPhoneGate";
 import {
   getTattooClosingDay,
+  TATTOO_CATALOG_QUESTION_ID,
   TATTOO_DESIGNS_MAX,
   TATTOO_DESIGNS_QUESTION_ID,
+  TattooCatalogChoice,
+  TattooCatalogItem,
 } from "../utils/tattooDesigns";
 import { TattooDesignsView } from "./TattooDesignsView";
 
@@ -39,8 +43,15 @@ const toDesigns = (profile: PrepProfilePublicResponse): PrepAssetMetadata[] => {
   return Array.isArray(value) ? (value as PrepAssetMetadata[]) : [];
 };
 
+const toChosen = (profile: PrepProfilePublicResponse): TattooCatalogChoice[] => {
+  const value = profile.answers?.[TATTOO_CATALOG_QUESTION_ID];
+  return Array.isArray(value) ? (value as TattooCatalogChoice[]) : [];
+};
+
 export function TattooDesignsSection({ contractToken, phone, eventDate }: Props) {
   const [designs, setDesigns] = useState<PrepAssetMetadata[]>([]);
+  const [chosen, setChosen] = useState<TattooCatalogChoice[]>([]);
+  const [catalog, setCatalog] = useState<TattooCatalogItem[]>([]);
   const [locked, setLocked] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
@@ -63,6 +74,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
     storageKey,
     onReset: () => {
       setDesigns([]);
+      setChosen([]);
       setLocked(false);
       setErrorMessage(null);
     },
@@ -70,6 +82,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
 
   const applyProfile = useCallback((profile: PrepProfilePublicResponse) => {
     setDesigns(toDesigns(profile));
+    setChosen(toChosen(profile));
     setLocked(profile.locked?.[TATTOO_DESIGNS_QUESTION_ID] === true);
   }, []);
 
@@ -104,6 +117,25 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
     setAuthError,
   ]);
 
+  // The catalog is public, but it is only shown after the phone gate. If it
+  // cannot be loaded the client can still upload their own designs.
+  useEffect(() => {
+    if (!verifiedPhone) return;
+    let cancelled = false;
+    const loadCatalog = async () => {
+      try {
+        const items = await getTattooCatalog();
+        if (!cancelled) setCatalog(items);
+      } catch {
+        if (!cancelled) setCatalog([]);
+      }
+    };
+    void loadCatalog();
+    return () => {
+      cancelled = true;
+    };
+  }, [verifiedPhone]);
+
   const authorizePhone = async () => {
     if (!contractToken) return;
     const normalized = normalizePhone(phoneInput);
@@ -129,11 +161,15 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
     }
   };
 
-  const saveDesigns = async (next: Array<{ path: string; mime: string }>) => {
+  const saveDesigns = async (
+    next: Array<{ path: string; mime: string }>,
+    catalogDesignIds?: number[],
+  ) => {
     const profile = await setPublicPrepProfileTattooDesigns({
       contractToken: contractToken as string,
       phone: verifiedPhone as string,
       assets: next,
+      ...(catalogDesignIds === undefined ? {} : { catalogDesignIds }),
     });
     applyProfile(profile);
   };
@@ -154,7 +190,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       setErrorMessage("Solo puedes subir imágenes.");
       return;
     }
-    if (designs.length + files.length > TATTOO_DESIGNS_MAX) {
+    if (designs.length + chosen.length + files.length > TATTOO_DESIGNS_MAX) {
       setErrorMessage(`Solo puedes tener hasta ${TATTOO_DESIGNS_MAX} diseños.`);
       return;
     }
@@ -183,6 +219,29 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
         ...designs.map((d) => ({ path: d.path, mime: d.mime })),
         ...uploaded,
       ]);
+    } catch (error) {
+      failWith(error);
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const toggleCatalogDesign = async (carouselId: number) => {
+    setErrorMessage(null);
+    const isChosen = chosen.some((c) => c.carouselId === carouselId);
+    if (!isChosen && designs.length + chosen.length >= TATTOO_DESIGNS_MAX) {
+      setErrorMessage(`Solo puedes tener hasta ${TATTOO_DESIGNS_MAX} diseños.`);
+      return;
+    }
+    const nextIds = isChosen
+      ? chosen.filter((c) => c.carouselId !== carouselId).map((c) => c.carouselId)
+      : [...chosen.map((c) => c.carouselId), carouselId];
+    setIsBusy(true);
+    try {
+      await saveDesigns(
+        designs.map((d) => ({ path: d.path, mime: d.mime })),
+        nextIds,
+      );
     } catch (error) {
       failWith(error);
     } finally {
@@ -282,8 +341,11 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       closingDayLabel={eventDate ? formatDay(getTattooClosingDay(eventDate)) : null}
       isBusy={isBusy}
       errorMessage={errorMessage}
+      catalog={catalog}
+      chosen={chosen}
       onAddFiles={(files) => void addFiles(files)}
       onRemove={(path) => void removeDesign(path)}
+      onToggleCatalog={(id) => void toggleCatalogDesign(id)}
     />
   );
 }

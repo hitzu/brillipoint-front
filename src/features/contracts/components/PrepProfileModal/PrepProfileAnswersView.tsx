@@ -4,8 +4,10 @@ import {
   PrepProfileQuestionDefinition,
 } from "../../../booking/components/questions";
 import {
+  TATTOO_CATALOG_QUESTION_ID,
   TATTOO_DESIGNS_MAX,
   TATTOO_DESIGNS_QUESTION_ID,
+  TattooCatalogChoice,
 } from "../../../booking/utils/tattooDesigns";
 import { PrepProfileAnswers } from "../../../../interfaces";
 
@@ -23,6 +25,45 @@ const isAssetLike = (v: unknown): v is AssetLike =>
 
 const isImage = (asset: AssetLike): boolean =>
   asset.mime.toLowerCase().startsWith("image/");
+
+const isCatalogChoice = (v: unknown): v is TattooCatalogChoice =>
+  isPlainObject(v) &&
+  typeof v.carouselId === "number" &&
+  typeof v.title === "string" &&
+  typeof v.imageUrl === "string";
+
+function CatalogChoices({ choices }: { choices: TattooCatalogChoice[] }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+      {choices.map((choice) => (
+        <div
+          key={choice.carouselId}
+          style={{ display: "grid", gap: 4, width: 96, textAlign: "center" }}
+        >
+          <a
+            href={choice.imageUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Abrir imagen"
+          >
+            <img
+              src={choice.imageUrl}
+              alt={choice.title}
+              style={{
+                width: 96,
+                height: 96,
+                objectFit: "cover",
+                borderRadius: 8,
+                border: "1px solid #dee2e6",
+              }}
+            />
+          </a>
+          <small>{choice.title}</small>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function AssetThumbnails({ assets, alt }: { assets: AssetLike[]; alt: string }) {
   return (
@@ -99,6 +140,11 @@ export function PrepProfileAnswersView({ answers }: Props) {
     ? (answers[TATTOO_DESIGNS_QUESTION_ID] as unknown[]).filter(isAssetLike)
     : [];
 
+  const catalogChoices = Array.isArray(answers[TATTOO_CATALOG_QUESTION_ID])
+    ? (answers[TATTOO_CATALOG_QUESTION_ID] as unknown[]).filter(isCatalogChoice)
+    : [];
+  const tattooTotal = tattooDesigns.length + catalogChoices.length;
+
   const answered = PREP_PROFILE_QUESTIONS.filter(
     (q) => q.id in answers && answers[q.id] != null,
   );
@@ -107,10 +153,11 @@ export function PrepProfileAnswersView({ answers }: Props) {
     (key) =>
       !knownIds.has(key) &&
       key !== TATTOO_DESIGNS_QUESTION_ID &&
+      key !== TATTOO_CATALOG_QUESTION_ID &&
       answers[key] != null,
   );
 
-  if (answered.length === 0 && unknownKeys.length === 0 && tattooDesigns.length === 0) {
+  if (answered.length === 0 && unknownKeys.length === 0 && tattooTotal === 0) {
     return <p className="mb-0">Sin respuestas todavía.</p>;
   }
 
@@ -121,9 +168,16 @@ export function PrepProfileAnswersView({ answers }: Props) {
         <div role="region" aria-labelledby="tattoo-designs-title">
           <h6 id="tattoo-designs-title">Diseños de tatuajes</h6>
           <small className="text-muted d-block mb-2">
-            {`${tattooDesigns.length} de ${TATTOO_DESIGNS_MAX} diseños`}
+            {`${tattooTotal} de ${TATTOO_DESIGNS_MAX} diseños`}
           </small>
           <AssetThumbnails assets={tattooDesigns} alt="Diseño" />
+        </div>
+      ) : null}
+
+      {catalogChoices.length > 0 ? (
+        <div role="region" aria-labelledby="tattoo-catalog-title">
+          <h6 id="tattoo-catalog-title">Diseños elegidos del catálogo</h6>
+          <CatalogChoices choices={catalogChoices} />
         </div>
       ) : null}
 

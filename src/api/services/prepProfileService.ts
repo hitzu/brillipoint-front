@@ -121,6 +121,8 @@ export const setPublicPrepProfileTattooDesigns = async (params: {
   contractToken: string;
   phone: string;
   assets: Array<{ path: string; mime: string }>;
+  /** Catalog designs (carousel ids) to choose; omitted keeps the current choice. */
+  catalogDesignIds?: number[];
 }): Promise<PrepProfilePublicResponse> => {
   try {
     const queryParams = new URLSearchParams();
@@ -129,7 +131,7 @@ export const setPublicPrepProfileTattooDesigns = async (params: {
     const url = `/contracts/public/${encodeURIComponent(params.contractToken)}/prep-profile/tattoo-designs?${queryParams.toString()}`;
     const response = await axiosInstanceWithoutToken.put<PrepProfilePublicResponse>(
       url,
-      { assets: params.assets },
+      { assets: params.assets, catalogDesignIds: params.catalogDesignIds },
     );
     return response.data;
   } catch (error) {

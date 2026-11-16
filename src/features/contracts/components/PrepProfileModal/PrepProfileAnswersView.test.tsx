@@ -72,4 +72,64 @@ describe("PrepProfileAnswersView", () => {
 
     expect(screen.getByText("Escote corazón")).toBeTruthy();
   });
+
+  it("shows the designs chosen from the catalog with image and name", () => {
+    render(
+      <PrepProfileAnswersView
+        answers={{
+          tattoo_catalog_designs: [
+            {
+              carouselId: 3,
+              title: "Mariposa",
+              imageUrl: "https://cdn.example/mariposa.png",
+            },
+            {
+              carouselId: 4,
+              title: "Estrella",
+              imageUrl: "https://cdn.example/estrella.png",
+            },
+          ],
+        }}
+      />,
+    );
+
+    const section = screen.getByRole("region", {
+      name: "Diseños elegidos del catálogo",
+    });
+    expect(within(section).getAllByRole("img")).toHaveLength(2);
+    expect(within(section).getByText("Mariposa")).toBeTruthy();
+    expect(within(section).getByText("Estrella")).toBeTruthy();
+    expect(
+      within(section).getAllByRole("img")[0].closest("a")?.getAttribute("href"),
+    ).toBe("https://cdn.example/mariposa.png");
+  });
+
+  it("counts uploaded and chosen designs together in the tattoo section", () => {
+    render(
+      <PrepProfileAnswersView
+        answers={{
+          tattoo_designs: [asset(1), asset(2)],
+          tattoo_catalog_designs: [
+            { carouselId: 3, title: "Mariposa", imageUrl: "https://cdn.example/m.png" },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("3 de 5 diseños")).toBeTruthy();
+  });
+
+  it("does not print the raw catalog answer as an unknown field", () => {
+    render(
+      <PrepProfileAnswersView
+        answers={{
+          tattoo_catalog_designs: [
+            { carouselId: 3, title: "Mariposa", imageUrl: "https://cdn.example/m.png" },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.queryByText("tattoo_catalog_designs")).toBeNull();
+  });
 });
