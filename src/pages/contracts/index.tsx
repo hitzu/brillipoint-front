@@ -14,6 +14,7 @@ import DeleteModal from "@common/DeleteModal";
 import FinalizeModal from "@common/FinalizeModal";
 import {
   CreateNoteModal,
+  PrepProfileModal,
   PaymentsModal,
   ScheduleBookingModal,
 } from "../../features/contracts";
@@ -36,6 +37,9 @@ const ContractsListPage = () => {
   const [paymentsContractId, setPaymentsContractId] = useState<number>(0);
   const [showNoteModal, setShowNoteModal] = useState<boolean>(false);
   const [noteContractId, setNoteContractId] = useState<number>(0);
+  const [showPrepProfileModal, setShowPrepProfileModal] =
+    useState<boolean>(false);
+  const [prepProfileContractId, setPrepProfileContractId] = useState<number>(0);
   const [includeFinalized, setIncludeFinalized] = useState<boolean>(false);
   const [scheduleContract, setScheduleContract] =
     useState<ContractOption | null>(null);
@@ -119,6 +123,16 @@ const ContractsListPage = () => {
     setNoteContractId(id);
     setShowNoteModal(true);
   }, []);
+
+  const handlePrepProfile = useCallback((id: number) => {
+    setPrepProfileContractId(id);
+    setShowPrepProfileModal(true);
+  }, []);
+
+  const handlePrepProfileClose = () => {
+    setShowPrepProfileModal(false);
+    setPrepProfileContractId(0);
+  };
 
   const handleNoteClose = () => {
     setShowNoteModal(false);
@@ -240,6 +254,20 @@ const ContractsListPage = () => {
                 <li
                   className="list-inline-item align-bottom"
                   data-bs-toggle="tooltip"
+                  title="Respuestas"
+                >
+                  <Link
+                    href="#!"
+                    className="avtar avtar-xs btn-link-secondary"
+                    onClick={() => handlePrepProfile(cellProps.row.original.id)}
+                    aria-label="Ver respuestas del cliente"
+                  >
+                    <i className="ti ti-clipboard-list f-18"></i>
+                  </Link>
+                </li>
+                <li
+                  className="list-inline-item align-bottom"
+                  data-bs-toggle="tooltip"
                   title="Delete"
                 >
                   <Link
@@ -262,6 +290,7 @@ const ContractsListPage = () => {
       handleFinalize,
       handlePayments,
       handleCreateNote,
+      handlePrepProfile,
       handleSchedule,
     ],
   );
@@ -287,6 +316,11 @@ const ContractsListPage = () => {
         show={showNoteModal}
         handleClose={handleNoteClose}
         contractId={noteContractId}
+      />
+      <PrepProfileModal
+        show={showPrepProfileModal}
+        handleClose={handlePrepProfileClose}
+        contractId={prepProfileContractId}
       />
       <ScheduleBookingModal
         show={scheduleContract !== null}
