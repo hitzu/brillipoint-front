@@ -30,6 +30,7 @@ type Props = {
 const mutedText = { color: "var(--bp-brown-2)", fontSize: 13 } as const;
 
 const thumbStyle = {
+  boxSizing: "border-box",
   width: "100%",
   aspectRatio: "1 / 1",
   objectFit: "cover",
@@ -48,6 +49,15 @@ const chipStyle = {
 } as const;
 
 const removeButtonStyle = { minHeight: 44 } as const;
+
+// Explicit single column: an implicit `auto` track lets the empty slot's
+// aspect-ratio box grow wider than its grid cell.
+const slotCellStyle = {
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr)",
+  gap: "0.4rem",
+  minWidth: 0,
+} as const;
 
 function StepTitle({ n, children }: { n: number; children: React.ReactNode }) {
   return (
@@ -142,6 +152,12 @@ export function TattooDesignsView({
   const remaining = Math.max(TATTOO_UPLOADS_MAX - designs.length, 0);
   const chosenIds = new Set(chosen.map((c) => c.carouselId));
   const canEdit = !locked;
+  // In edit mode the catalog tiles already show what is chosen; the list below
+  // only carries choices whose catalog row is gone (and everything when read-only).
+  const catalogIds = new Set(catalog.map((item) => item.id));
+  const listedChoices = canEdit
+    ? chosen.filter((c) => !catalogIds.has(c.carouselId))
+    : chosen;
 
   const filled: Slot[] = designs.map((d, i) => ({
     kind: "upload",
@@ -240,10 +256,11 @@ export function TattooDesignsView({
                   return (
                     <div
                       key={slot.key}
-                      style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}
+                      style={slotCellStyle}
                     >
                       <div
                         style={{
+                          boxSizing: "border-box",
                           aspectRatio: "1 / 1",
                           borderRadius: 12,
                           border: "2px dashed var(--bp-brown-4)",
@@ -264,7 +281,7 @@ export function TattooDesignsView({
                 return (
                   <div
                     key={slot.key}
-                    style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}
+                    style={slotCellStyle}
                   >
                     {slot.src ? (
                       <a
@@ -411,7 +428,7 @@ export function TattooDesignsView({
               </div>
             ) : null}
 
-            {chosen.length > 0 ? (
+            {listedChoices.length > 0 ? (
               <div
                 style={{
                   display: "grid",
@@ -419,10 +436,10 @@ export function TattooDesignsView({
                   gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))",
                 }}
               >
-                {chosen.map((design) => (
+                {listedChoices.map((design) => (
                   <div
                     key={`catalog-${design.carouselId}`}
-                    style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}
+                    style={slotCellStyle}
                   >
                     <a
                       href={design.imageUrl}
