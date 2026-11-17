@@ -7,7 +7,10 @@ import {
   PrepProfileUploadUrlResponse,
 } from "../../interfaces";
 
-import { axiosInstanceWithoutToken } from "../config/axiosConfig";
+import {
+  axiosInstanceWithToken,
+  axiosInstanceWithoutToken,
+} from "../config/axiosConfig";
 
 export const getPublicPrepProfile = async (params: {
   contractToken: string;
@@ -113,3 +116,41 @@ export const patchPublicPrepProfileAnswer = async (params: {
   }
 };
 
+
+export const setPublicPrepProfileTattooDesigns = async (params: {
+  contractToken: string;
+  phone: string;
+  assets: Array<{ path: string; mime: string }>;
+  /** Catalog designs (carousel ids) to choose; omitted keeps the current choice. */
+  catalogDesignIds?: number[];
+}): Promise<PrepProfilePublicResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append("phone", params.phone);
+
+    const url = `/contracts/public/${encodeURIComponent(params.contractToken)}/prep-profile/tattoo-designs?${queryParams.toString()}`;
+    const response = await axiosInstanceWithoutToken.put<PrepProfilePublicResponse>(
+      url,
+      { assets: params.assets, catalogDesignIds: params.catalogDesignIds },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error setting public tattoo designs:", error);
+    throw error;
+  }
+};
+
+/** Staff read (authenticated): answers with signed asset urls, no client phone. */
+export const getStaffPrepProfile = async (
+  contractId: number,
+): Promise<PrepProfilePublicResponse> => {
+  try {
+    const response = await axiosInstanceWithToken.get<PrepProfilePublicResponse>(
+      `/contracts/${contractId}/prep-profile`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching staff prep profile:", error);
+    throw error;
+  }
+};

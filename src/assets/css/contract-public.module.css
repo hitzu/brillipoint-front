@@ -266,6 +266,13 @@
   box-shadow: var(--bp-card-shadow);
 }
 
+/* FormDropzone (embedded) ships dark-theme colors; keep it readable on the light card. */
+.tattooDropzone :global(.dz-message) {
+  color: var(--bp-brown-2) !important;
+  border-color: var(--bp-brown-3) !important;
+  background: transparent !important;
+}
+
 .sectionTitle {
   color: var(--bp-brown-1);
   font-family: var(--bp-font-display);
