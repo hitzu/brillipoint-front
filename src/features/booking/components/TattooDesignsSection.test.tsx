@@ -150,7 +150,7 @@ describe("TattooDesignsSection", () => {
       render(<TattooDesignsSection contractToken="tok" />);
 
       await waitFor(() =>
-        expect(screen.getByText("¿Sin tiempo? Elige de nuestro catálogo")).toBeTruthy(),
+        expect(screen.getByText("Elige templates de nuestro catálogo")).toBeTruthy(),
       );
       expect(
         screen.getByRole("button", { name: "Elegir Diseño catálogo 2" }),
@@ -171,7 +171,7 @@ describe("TattooDesignsSection", () => {
       );
 
       await waitFor(() =>
-        expect(screen.getByText("2 de 10")).toBeTruthy(),
+        expect(screen.getAllByText("1 de 10", { selector: "span" })).toHaveLength(2),
       );
       expect(service.setPublicPrepProfileTattooDesigns).toHaveBeenCalledWith({
         contractToken: "tok",
@@ -229,7 +229,7 @@ describe("TattooDesignsSection", () => {
         expect(screen.getByRole("status")).toBeTruthy(),
       );
       expect(
-        screen.queryByText("¿Sin tiempo? Elige de nuestro catálogo"),
+        screen.queryByText("Elige templates de nuestro catálogo"),
       ).toBeNull();
     });
 
@@ -242,7 +242,7 @@ describe("TattooDesignsSection", () => {
       await waitFor(() =>
         expect(screen.getByText("1 de 10")).toBeTruthy(),
       );
-      expect(screen.queryByText("¿Sin tiempo? Elige de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Elige templates de nuestro catálogo")).toBeNull();
     });
   });
 });

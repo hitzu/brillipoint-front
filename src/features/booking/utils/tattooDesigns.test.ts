@@ -4,12 +4,14 @@ import {
   getTattooEventDate,
   hasTattooDesignsInContract,
   isTattooDesignsName,
-  TATTOO_DESIGNS_MAX,
+  TATTOO_CATALOG_MAX,
+  TATTOO_UPLOADS_MAX,
 } from "./tattooDesigns";
 
 describe("tattooDesigns", () => {
-  it("allows up to 10 designs", () => {
-    expect(TATTOO_DESIGNS_MAX).toBe(10);
+  it("allows up to 10 uploads and 10 catalog choices, independently", () => {
+    expect(TATTOO_UPLOADS_MAX).toBe(10);
+    expect(TATTOO_CATALOG_MAX).toBe(10);
   });
 
   describe("isTattooDesignsName", () => {

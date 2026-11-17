@@ -3,7 +3,8 @@ import styles from "@assets/css/contract-public.module.css";
 import FormDropzone from "@shared/forms/file-upload/FormDropzone";
 import { PrepAssetMetadata } from "../../../interfaces";
 import {
-  TATTOO_DESIGNS_MAX,
+  TATTOO_CATALOG_MAX,
+  TATTOO_UPLOADS_MAX,
   TattooCatalogChoice,
   TattooCatalogItem,
 } from "../utils/tattooDesigns";
@@ -85,8 +86,44 @@ function StepTitle({ n, children }: { n: number; children: React.ReactNode }) {
 
 type Slot =
   | { kind: "upload"; key: string; src?: string; name: string; path: string }
-  | { kind: "catalog"; key: string; src: string; name: string; id: number }
   | { kind: "empty"; key: string; n: number };
+
+
+function SectionHeading({
+  children,
+  count,
+  max,
+}: {
+  children: React.ReactNode;
+  count: number;
+  max: number;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 8,
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          color: "var(--bp-brown-1)",
+          fontWeight: 900,
+          fontSize: 16,
+        }}
+      >
+        {children}
+      </h3>
+      <span aria-live="polite" style={{ ...mutedText, fontWeight: 900, fontSize: 15 }}>
+        {`${count} de ${max}`}
+      </span>
+    </div>
+  );
+}
 
 export function TattooDesignsView({
   designs,
@@ -100,32 +137,23 @@ export function TattooDesignsView({
   onRemove,
   onToggleCatalog,
 }: Props) {
-  const total = designs.length + chosen.length;
-  const isFull = total >= TATTOO_DESIGNS_MAX;
-  const remaining = Math.max(TATTOO_DESIGNS_MAX - total, 0);
+  const uploadsFull = designs.length >= TATTOO_UPLOADS_MAX;
+  const catalogFull = chosen.length >= TATTOO_CATALOG_MAX;
+  const remaining = Math.max(TATTOO_UPLOADS_MAX - designs.length, 0);
   const chosenIds = new Set(chosen.map((c) => c.carouselId));
   const canEdit = !locked;
 
-  const filled: Slot[] = [
-    ...designs.map((d, i): Slot => ({
-      kind: "upload",
-      key: d.path,
-      src: d.url,
-      name: `Diseño ${i + 1}`,
-      path: d.path,
-    })),
-    ...chosen.map((c): Slot => ({
-      kind: "catalog",
-      key: `catalog-${c.carouselId}`,
-      src: c.imageUrl,
-      name: c.title,
-      id: c.carouselId,
-    })),
-  ];
-  // While editing the client always sees the 5 places; read-only shows only
-  // what was saved.
+  const filled: Slot[] = designs.map((d, i) => ({
+    kind: "upload",
+    key: d.path,
+    src: d.url,
+    name: `Diseño ${i + 1}`,
+    path: d.path,
+  }));
+  // While editing the client always sees every upload place; read-only shows
+  // only what was saved. Chosen templates never take an upload place.
   const slots: Slot[] = canEdit
-    ? Array.from({ length: TATTOO_DESIGNS_MAX }, (_, i) =>
+    ? Array.from({ length: TATTOO_UPLOADS_MAX }, (_, i) =>
         filled[i] ?? { kind: "empty", key: `empty-${i}`, n: i + 1 },
       )
     : filled;
@@ -145,16 +173,17 @@ export function TattooDesignsView({
             Diseños de tatuajes
           </h2>
           <div style={mutedText}>
-            Puedes <strong>subir hasta {TATTOO_DESIGNS_MAX} imágenes</strong> de
-            los diseños que quieres. Si no te da el tiempo, puedes{" "}
-            <strong>elegir de nuestro catálogo</strong> más abajo.
+            Puedes <strong>subir hasta {TATTOO_UPLOADS_MAX} fotos o diseños</strong>{" "}
+            tuyos y <strong>elegir hasta {TATTOO_CATALOG_MAX} templates</strong>{" "}
+            de nuestro catálogo. Nuestro equipo decide con qué foto trabaja cada
+            template.
             {closingDayLabel && canEdit
-              ? ` Puedes subir, cambiar o quitar diseños hasta el ${closingDayLabel}.`
+              ? ` Puedes cambiar tus elecciones hasta el ${closingDayLabel}.`
               : ""}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             <span style={chipStyle}>
-              Subidas + catálogo = máximo {TATTOO_DESIGNS_MAX}
+              {TATTOO_UPLOADS_MAX} fotos o diseños + {TATTOO_CATALOG_MAX} templates
             </span>
             <span style={chipStyle}>
               Nuestro equipo necesita una semana para trabajarlos
@@ -171,11 +200,11 @@ export function TattooDesignsView({
 
         {canEdit ? (
           <div style={{ display: "grid", gap: "0.6rem" }}>
-            <StepTitle n={1}>Sube tus diseños</StepTitle>
-            {isFull ? (
+            <StepTitle n={1}>Sube tus fotos o diseños</StepTitle>
+            {uploadsFull ? (
               <div style={{ ...mutedText, fontWeight: 700 }}>
-                Ya tienes tus {TATTOO_DESIGNS_MAX} diseños. Quita uno de abajo
-                para agregar otro.
+                Ya tienes tus {TATTOO_UPLOADS_MAX} fotos y diseños. Quita uno de
+                abajo para agregar otro.
               </div>
             ) : (
               <div className={styles.tattooDropzone}>
@@ -195,32 +224,9 @@ export function TattooDesignsView({
         ) : null}
 
         <div style={{ display: "grid", gap: "0.6rem" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 8,
-            }}
-          >
-            <h3
-              style={{
-                margin: 0,
-                color: "var(--bp-brown-1)",
-                fontWeight: 900,
-                fontSize: 16,
-              }}
-            >
-              Tus diseños
-            </h3>
-            <span
-              aria-live="polite"
-              style={{ ...mutedText, fontWeight: 900, fontSize: 15 }}
-            >
-              {`${total} de ${TATTOO_DESIGNS_MAX}`}
-            </span>
-          </div>
+          <SectionHeading count={designs.length} max={TATTOO_UPLOADS_MAX}>
+            Tus fotos y diseños
+          </SectionHeading>
           {slots.length > 0 ? (
             <div
               style={{
@@ -255,42 +261,21 @@ export function TattooDesignsView({
                     </div>
                   );
                 }
-                const origin = slot.kind === "catalog" ? "Catálogo" : "Subido";
-                const image = slot.src ? (
-                  <img src={slot.src} alt={slot.name} style={thumbStyle} />
-                ) : null;
                 return (
                   <div
                     key={slot.key}
                     style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}
                   >
-                    <div style={{ position: "relative" }}>
-                      {slot.src ? (
-                        <a
-                          href={slot.src}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="Abrir imagen"
-                        >
-                          {image}
-                        </a>
-                      ) : null}
-                      <span
-                        style={{
-                          position: "absolute",
-                          left: 6,
-                          top: 6,
-                          fontSize: 11,
-                          fontWeight: 800,
-                          background: "var(--bp-card)",
-                          color: "var(--bp-brown-1)",
-                          borderRadius: 999,
-                          padding: "3px 8px",
-                        }}
+                    {slot.src ? (
+                      <a
+                        href={slot.src}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Abrir imagen"
                       >
-                        {origin}
-                      </span>
-                    </div>
+                        <img src={slot.src} alt={slot.name} style={thumbStyle} />
+                      </a>
+                    ) : null}
                     <span
                       style={{
                         ...mutedText,
@@ -309,11 +294,7 @@ export function TattooDesignsView({
                         style={removeButtonStyle}
                         disabled={isBusy}
                         aria-label={`Quitar de mis diseños: ${slot.name}`}
-                        onClick={() =>
-                          slot.kind === "catalog"
-                            ? onToggleCatalog(slot.id)
-                            : onRemove(slot.path)
-                        }
+                        onClick={() => onRemove(slot.path)}
                       >
                         Quitar
                       </button>
@@ -325,7 +306,7 @@ export function TattooDesignsView({
           ) : null}
         </div>
 
-        {canEdit && catalog.length > 0 ? (
+        {chosen.length > 0 || (canEdit && catalog.length > 0) ? (
           <div
             style={{
               display: "grid",
@@ -334,70 +315,142 @@ export function TattooDesignsView({
               paddingTop: "1.25rem",
             }}
           >
-            <div style={{ display: "grid", gap: 4 }}>
-              <StepTitle n={2}>¿Sin tiempo? Elige de nuestro catálogo</StepTitle>
+            {canEdit && catalog.length > 0 ? (
+              <StepTitle n={2}>Elige templates de nuestro catálogo</StepTitle>
+            ) : null}
+            <SectionHeading count={chosen.length} max={TATTOO_CATALOG_MAX}>
+              Tus templates
+            </SectionHeading>
+            {canEdit && catalog.length > 0 ? (
               <div style={mutedText}>
-                Toca un diseño para agregarlo a tus {TATTOO_DESIGNS_MAX} lugares.
-                Toca otra vez para quitarlo.
+                Toca un template para elegirlo; queda marcado con una palomita.
+                Toca otra vez para quitarlo. No ocupa lugar de tus fotos.
               </div>
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gap: "0.75rem",
-                gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-              }}
-            >
-              {catalog.map((item) => {
-                const selected = chosenIds.has(item.id);
-                const blocked = !selected && isFull;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    aria-pressed={selected}
-                    aria-label={`${selected ? "Quitar" : "Elegir"} ${item.title}`}
-                    disabled={isBusy || blocked}
-                    onClick={() => onToggleCatalog(item.id)}
-                    style={{
-                      display: "grid",
-                      gap: "0.3rem",
-                      padding: 8,
-                      background: "transparent",
-                      textAlign: "center",
-                      borderRadius: 14,
-                      border: selected
-                        ? "3px solid var(--bp-brown-1)"
-                        : "1px solid var(--bp-brown-4)",
-                      opacity: blocked ? 0.5 : 1,
-                      cursor: blocked ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    <img
-                      src={item.imageUrl}
-                      alt=""
+            ) : null}
+
+            {canEdit && catalog.length > 0 ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "0.75rem",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+                }}
+              >
+                {catalog.map((item) => {
+                  const selected = chosenIds.has(item.id);
+                  const blocked = !selected && catalogFull;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      aria-pressed={selected}
+                      aria-label={`${selected ? "Quitar" : "Elegir"} ${item.title}`}
+                      disabled={isBusy || blocked}
+                      onClick={() => onToggleCatalog(item.id)}
                       style={{
-                        width: "100%",
-                        aspectRatio: "1 / 1",
-                        objectFit: "cover",
-                        borderRadius: 10,
-                        display: "block",
+                        display: "grid",
+                        gap: "0.3rem",
+                        padding: 8,
+                        background: "transparent",
+                        textAlign: "center",
+                        borderRadius: 14,
+                        border: selected
+                          ? "3px solid var(--bp-brown-1)"
+                          : "1px solid var(--bp-brown-4)",
+                        opacity: blocked ? 0.5 : 1,
+                        cursor: blocked ? "not-allowed" : "pointer",
                       }}
-                    />
-                    <span style={{ ...mutedText, fontWeight: 800 }}>
-                      {item.title}
+                    >
+                      <span style={{ position: "relative", display: "block" }}>
+                        <img
+                          src={item.imageUrl}
+                          alt=""
+                          style={{
+                            width: "100%",
+                            aspectRatio: "1 / 1",
+                            objectFit: "cover",
+                            borderRadius: 10,
+                            display: "block",
+                          }}
+                        />
+                        {selected ? (
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              position: "absolute",
+                              right: 6,
+                              top: 6,
+                              width: 28,
+                              height: 28,
+                              borderRadius: 999,
+                              background: "#3F6B4F",
+                              color: "#fff",
+                              fontWeight: 900,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            ✓
+                          </span>
+                        ) : null}
+                      </span>
+                      <span style={{ ...mutedText, fontWeight: 800 }}>
+                        {item.title}
+                      </span>
+                      <span style={{ ...mutedText, fontSize: 12 }}>
+                        {selected
+                          ? "Seleccionado"
+                          : blocked
+                            ? "Sin lugares libres"
+                            : "Toca para elegir"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {chosen.length > 0 ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "0.75rem",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))",
+                }}
+              >
+                {chosen.map((design) => (
+                  <div
+                    key={`catalog-${design.carouselId}`}
+                    style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}
+                  >
+                    <a
+                      href={design.imageUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Abrir imagen"
+                    >
+                      <img src={design.imageUrl} alt={design.title} style={thumbStyle} />
+                    </a>
+                    <span style={{ ...mutedText, fontWeight: 700 }}>
+                      {design.title}
                     </span>
-                    <span style={{ ...mutedText, fontSize: 12 }}>
-                      {selected
-                        ? "✓ Seleccionado"
-                        : blocked
-                          ? "Sin lugares libres"
-                          : "Toca para elegir"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                    {canEdit ? (
+                      <button
+                        type="button"
+                        className={styles.btnSecondary}
+                        style={removeButtonStyle}
+                        disabled={isBusy}
+                        aria-label={`Quitar de mis templates: ${design.title}`}
+                        onClick={() => onToggleCatalog(design.carouselId)}
+                      >
+                        Quitar
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
 

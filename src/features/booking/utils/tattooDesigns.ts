@@ -2,7 +2,10 @@
 // the authority; these helpers only decide what to show.
 export const TATTOO_DESIGNS_QUESTION_ID = "tattoo_designs";
 // Chosen catalog designs and uploaded designs share the same maximum.
-export const TATTOO_DESIGNS_MAX = 10;
+/** Uploaded photos and final designs (mixed). */
+export const TATTOO_UPLOADS_MAX = 10;
+/** Catalog templates and final designs the client chooses. Independent of the uploads cap. */
+export const TATTOO_CATALOG_MAX = 10;
 export const TATTOO_CATALOG_QUESTION_ID = "tattoo_catalog_designs";
 // The catalog is a page/section of the API `carousels` table (global).
 export const TATTOO_CATALOG_PAGE = "reservation";

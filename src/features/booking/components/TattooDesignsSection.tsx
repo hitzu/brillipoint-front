@@ -13,7 +13,8 @@ import { usePublicContractPhoneGate } from "../hooks/usePublicContractPhoneGate"
 import {
   getTattooClosingDay,
   TATTOO_CATALOG_QUESTION_ID,
-  TATTOO_DESIGNS_MAX,
+  TATTOO_CATALOG_MAX,
+  TATTOO_UPLOADS_MAX,
   TATTOO_DESIGNS_QUESTION_ID,
   TattooCatalogChoice,
   TattooCatalogItem,
@@ -190,8 +191,10 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       setErrorMessage("Solo puedes subir imágenes.");
       return;
     }
-    if (designs.length + chosen.length + files.length > TATTOO_DESIGNS_MAX) {
-      setErrorMessage(`Solo puedes tener hasta ${TATTOO_DESIGNS_MAX} diseños.`);
+    if (designs.length + files.length > TATTOO_UPLOADS_MAX) {
+      setErrorMessage(
+        `Solo puedes subir hasta ${TATTOO_UPLOADS_MAX} fotos y diseños.`,
+      );
       return;
     }
     setIsBusy(true);
@@ -229,8 +232,10 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   const toggleCatalogDesign = async (carouselId: number) => {
     setErrorMessage(null);
     const isChosen = chosen.some((c) => c.carouselId === carouselId);
-    if (!isChosen && designs.length + chosen.length >= TATTOO_DESIGNS_MAX) {
-      setErrorMessage(`Solo puedes tener hasta ${TATTOO_DESIGNS_MAX} diseños.`);
+    if (!isChosen && chosen.length >= TATTOO_CATALOG_MAX) {
+      setErrorMessage(
+        `Solo puedes elegir hasta ${TATTOO_CATALOG_MAX} templates del catálogo.`,
+      );
       return;
     }
     const nextIds = isChosen

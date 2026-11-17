@@ -55,41 +55,45 @@ describe("TattooDesignsView", () => {
 
     expect(screen.getByText("10 de 10")).toBeTruthy();
     expect(screen.queryByText(/te quedan/)).toBeNull();
-    expect(screen.getByText(/Ya tienes tus 10 diseños/)).toBeTruthy();
+    expect(screen.getByText(/Ya tienes tus 10 fotos y diseños/)).toBeTruthy();
   });
 
-  it("always shows 10 places: filled ones with their origin, the rest free", () => {
+  it("always shows 10 upload places and chosen templates never take one", () => {
     render(
-      <TattooDesignsView {...baseProps} designs={[design(1)]} chosen={[choice(1)]} />,
+      <TattooDesignsView {...baseProps} designs={[design(1)]} chosen={[choice(1), choice(2)]} />,
     );
 
-    expect(screen.getByText("Subido")).toBeTruthy();
-    expect(screen.getByText("Catálogo")).toBeTruthy();
-    expect(screen.getAllByText("Lugar libre")).toHaveLength(8);
+    expect(screen.getAllByText("Lugar libre")).toHaveLength(9);
+    expect(screen.getByText("1 de 10", { selector: "span" })).toBeTruthy();
+    expect(screen.getByText("2 de 10", { selector: "span" })).toBeTruthy();
   });
 
   it("orders the steps: upload first, catalog second", () => {
     render(<TattooDesignsView {...baseProps} catalog={[catalogItem(1)]} />);
 
-    const upload = screen.getByText("Sube tus diseños");
-    const catalogTitle = screen.getByText("¿Sin tiempo? Elige de nuestro catálogo");
+    const upload = screen.getByText("Sube tus fotos o diseños");
+    const catalogTitle = screen.getByText("Elige templates de nuestro catálogo");
     expect(
       upload.compareDocumentPosition(catalogTitle) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
 
-  it("shows the selected state on chosen catalog cards and blocks the rest when full", () => {
+  it("marks chosen templates with a check and blocks the rest once 10 are chosen", () => {
+    const items = Array.from({ length: 11 }, (_, i) => catalogItem(i + 1));
     render(
       <TattooDesignsView
         {...baseProps}
-        designs={[1, 2, 3, 4, 5, 6, 7, 8].map(design)}
-        catalog={[catalogItem(1), catalogItem(2), catalogItem(3)]}
-        chosen={[choice(1), choice(2)]}
+        catalog={items}
+        chosen={items.slice(0, 10).map((it) => choice(it.id))}
       />,
     );
 
-    expect(screen.getAllByText("✓ Seleccionado")).toHaveLength(2);
+    expect(screen.getAllByText("Seleccionado")).toHaveLength(10);
+    expect(screen.getAllByText("✓")).toHaveLength(10);
     expect(screen.getByText("Sin lugares libres")).toBeTruthy();
+    expect(
+      (screen.getByRole("button", { name: "Elegir Diseño catálogo 11" }) as HTMLButtonElement).disabled,
+    ).toBe(true);
   });
 
   it("calls onRemove with the asset path", () => {
@@ -137,7 +141,7 @@ describe("TattooDesignsView", () => {
         />,
       );
 
-      expect(screen.getByText("¿Sin tiempo? Elige de nuestro catálogo")).toBeTruthy();
+      expect(screen.getByText("Elige templates de nuestro catálogo")).toBeTruthy();
       fireEvent.click(
         screen.getByRole("button", { name: "Elegir Diseño catálogo 2" }),
       );
@@ -165,7 +169,7 @@ describe("TattooDesignsView", () => {
       expect(onToggleCatalog).toHaveBeenCalledWith(1);
     });
 
-    it("counts chosen plus uploaded designs against the maximum of 10", () => {
+    it("counts uploads and chosen templates separately", () => {
       render(
         <TattooDesignsView
           {...baseProps}
@@ -175,28 +179,34 @@ describe("TattooDesignsView", () => {
         />,
       );
 
-      expect(screen.getByText("3 de 10")).toBeTruthy();
+      expect(screen.getByText("1 de 10", { selector: "span" })).toBeTruthy();
+      expect(screen.getByText("2 de 10", { selector: "span" })).toBeTruthy();
     });
 
-    it("disables unchosen catalog designs and hides the uploader once the total is 10", () => {
-      render(
+    it("keeps uploading possible when the catalog choice is full, and the reverse", () => {
+      const items = Array.from({ length: 11 }, (_, i) => catalogItem(i + 1));
+      const { rerender } = render(
         <TattooDesignsView
           {...baseProps}
-          designs={[1, 2, 3, 4, 5, 6, 7, 8].map(design)}
-          catalog={[catalogItem(1), catalogItem(2), catalogItem(3)]}
-          chosen={[choice(1), choice(2)]}
+          designs={[design(1)]}
+          catalog={items}
+          chosen={items.slice(0, 10).map((it) => choice(it.id))}
         />,
       );
+      expect(screen.getByText(/te quedan 9 lugares/)).toBeTruthy();
 
-      const free = screen.getByRole("button", {
-        name: "Elegir Diseño catálogo 3",
-      }) as HTMLButtonElement;
-      expect(free.disabled).toBe(true);
+      rerender(
+        <TattooDesignsView
+          {...baseProps}
+          designs={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(design)}
+          catalog={items}
+          chosen={[choice(1)]}
+        />,
+      );
       expect(screen.queryByText(/te quedan/)).toBeNull();
-      const chosenButton = screen.getByRole("button", {
-        name: "Quitar Diseño catálogo 1",
-      }) as HTMLButtonElement;
-      expect(chosenButton.disabled).toBe(false);
+      expect(
+        (screen.getByRole("button", { name: "Elegir Diseño catálogo 2" }) as HTMLButtonElement).disabled,
+      ).toBe(false);
     });
 
     it("still shows a chosen design whose catalog row is gone, and lets the client remove it", () => {
@@ -212,7 +222,7 @@ describe("TattooDesignsView", () => {
 
       expect(screen.getByText("1 de 10")).toBeTruthy();
       fireEvent.click(
-        screen.getByRole("button", { name: "Quitar de mis diseños: Diseño catálogo 9" }),
+        screen.getByRole("button", { name: "Quitar de mis templates: Diseño catálogo 9" }),
       );
 
       expect(onToggleCatalog).toHaveBeenCalledWith(9);
@@ -221,7 +231,7 @@ describe("TattooDesignsView", () => {
     it("hides the gallery when the catalog is empty", () => {
       render(<TattooDesignsView {...baseProps} catalog={[]} />);
 
-      expect(screen.queryByText("¿Sin tiempo? Elige de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Elige templates de nuestro catálogo")).toBeNull();
     });
 
     it("is read-only once the window closed: chosen designs stay visible, nothing can change", () => {
@@ -235,7 +245,7 @@ describe("TattooDesignsView", () => {
       );
 
       expect(screen.getByText("Diseño catálogo 1")).toBeTruthy();
-      expect(screen.queryByText("¿Sin tiempo? Elige de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Elige templates de nuestro catálogo")).toBeNull();
       expect(screen.queryByRole("button", { name: /Quitar|Elegir/ })).toBeNull();
     });
   });
