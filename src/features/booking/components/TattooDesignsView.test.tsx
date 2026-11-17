@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TattooDesignsView } from "./TattooDesignsView";
 
@@ -151,15 +151,26 @@ describe("TattooDesignsView", () => {
     ).toBeTruthy();
   });
 
-  it("shows the photo examples next to the uploader, and hides them when read-only", () => {
+  it("opens the photo examples in a modal from a button, and hides the button when read-only", () => {
     const examples = [catalogItem(1), catalogItem(2)];
     const { rerender } = render(<TattooDesignsView {...baseProps} examples={examples} />);
 
-    expect(screen.getByText(/Ejemplos de buenas fotos/)).toBeTruthy();
-    expect(screen.getByAltText("Diseño catálogo 1")).toBeTruthy();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Ver ejemplos de buenas fotos" }));
 
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Ejemplos de buenas fotos")).toBeTruthy();
+    expect(within(dialog).getAllByRole("img")).toHaveLength(2);
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cerrar" }));
     rerender(<TattooDesignsView {...baseProps} examples={examples} locked />);
-    expect(screen.queryByText(/Ejemplos de buenas fotos/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Ver ejemplos de buenas fotos" })).toBeNull();
+  });
+
+  it("has no examples button when there are no examples", () => {
+    render(<TattooDesignsView {...baseProps} />);
+
+    expect(screen.queryByRole("button", { name: "Ver ejemplos de buenas fotos" })).toBeNull();
   });
 
   describe("catalog gallery", () => {

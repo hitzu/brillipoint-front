@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { Modal } from "react-bootstrap";
 import styles from "@assets/css/contract-public.module.css";
 import FormDropzone from "@shared/forms/file-upload/FormDropzone";
 import { PrepAssetMetadata } from "../../../interfaces";
@@ -188,6 +189,7 @@ export function TattooDesignsView({
   onRemove,
   onToggleCatalog,
 }: Props) {
+  const [showExamples, setShowExamples] = useState(false);
   const uploadsFull = designs.length >= TATTOO_UPLOADS_MAX;
   const catalogFull = chosen.length >= TATTOO_CATALOG_MAX;
   const remaining = Math.max(TATTOO_UPLOADS_MAX - designs.length, 0);
@@ -364,31 +366,14 @@ export function TattooDesignsView({
               template.
             </div>
             {examples.length > 0 ? (
-              <div style={{ display: "grid", gap: "0.5rem" }}>
-                <span style={{ ...mutedText, fontWeight: 800 }}>
-                  Ejemplos de buenas fotos (selfies, rostro de cerca…)
-                </span>
-                <div
-                  style={{
-                    display: "grid",
-                    gap: "0.5rem",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))",
-                  }}
-                >
-                  {examples.map((example) => (
-                    <figure key={example.id} style={{ margin: 0, display: "grid", gap: 4 }}>
-                      <img
-                        src={example.imageUrl}
-                        alt={example.title}
-                        style={thumbStyle}
-                      />
-                      <figcaption style={{ ...mutedText, fontSize: 12 }}>
-                        {example.title}
-                      </figcaption>
-                    </figure>
-                  ))}
-                </div>
-              </div>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                style={{ minHeight: 44 }}
+                onClick={() => setShowExamples(true)}
+              >
+                Ver ejemplos de buenas fotos
+              </button>
             ) : null}
             {uploadsFull ? (
               <div style={{ ...mutedText, fontWeight: 700 }}>
@@ -586,6 +571,42 @@ export function TattooDesignsView({
           </div>
         ) : null}
       </div>
+      <Modal
+        show={showExamples}
+        onHide={() => setShowExamples(false)}
+        centered
+        scrollable
+        size="lg"
+        aria-labelledby="tattoo-examples-title"
+      >
+        <Modal.Header closeButton closeLabel="Cerrar">
+          <Modal.Title id="tattoo-examples-title" as="h2" style={{ fontSize: 18 }}>
+            Ejemplos de buenas fotos
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p style={mutedText}>
+            Mientras más clara y de frente sea tu foto (selfies, rostro de
+            cerca…), mejor podremos adaptarla a los templates.
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gap: "0.75rem",
+              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            }}
+          >
+            {examples.map((example) => (
+              <figure key={example.id} style={{ margin: 0, display: "grid", gap: 4 }}>
+                <img src={example.imageUrl} alt={example.title} style={thumbStyle} />
+                <figcaption style={{ ...mutedText, fontWeight: 700 }}>
+                  {example.title}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </Modal.Body>
+      </Modal>
     </section>
   );
 }
