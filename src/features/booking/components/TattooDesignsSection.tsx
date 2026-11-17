@@ -280,32 +280,43 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
     const maskedPhoneHint = digits
       ? `${"*".repeat(Math.max(digits.length - 4, 0))}${digits.slice(-4)}`
       : null;
+    const canContinue = normalizePhone(phoneInput).length >= 10;
     return (
       <section className={styles.card} style={{ marginBottom: "1rem" }}>
         <div style={{ display: "grid", gap: "0.75rem" }}>
-          <div
+          <h2
             style={{
+              margin: 0,
               color: "var(--bp-brown-1)",
               fontWeight: 900,
-              fontSize: 16,
+              fontSize: 18,
             }}
           >
             Confirma tu número de celular
-          </div>
+          </h2>
           <div style={{ color: "var(--bp-brown-2)", fontSize: 13 }}>
-            Para subir tus diseños de tatuajes, necesitamos validar tu número.
+            Esta sección está protegida. Escribe el celular que registramos
+            cuando levantamos tu contrato para subir o elegir tus diseños de
+            tatuajes.
           </div>
+          <label
+            htmlFor="tattoo-phone"
+            style={{ color: "var(--bp-brown-1)", fontWeight: 800, fontSize: 14 }}
+          >
+            Celular del contrato (10 dígitos)
+          </label>
           <input
+            id="tattoo-phone"
             className="form-control"
             type="tel"
             inputMode="numeric"
+            autoComplete="tel-national"
             placeholder="Ej: 2222232323"
-            aria-label="Número de celular"
             value={phoneInput}
             disabled={isAuthorizing}
             onChange={(e) => setPhoneInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") void authorizePhone();
+              if (e.key === "Enter" && canContinue) void authorizePhone();
             }}
           />
           {maskedPhoneHint ? (
@@ -325,10 +336,13 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
             type="button"
             className={styles.btnPrimary}
             onClick={() => void authorizePhone()}
-            disabled={isAuthorizing}
+            disabled={isAuthorizing || !canContinue}
           >
             {isAuthorizing ? "Validando..." : "Continuar"}
           </button>
+          <div style={{ color: "var(--bp-brown-2)", fontSize: 13 }}>
+            ¿Ya no tienes ese número? Escríbenos por WhatsApp y lo actualizamos.
+          </div>
         </div>
       </section>
     );

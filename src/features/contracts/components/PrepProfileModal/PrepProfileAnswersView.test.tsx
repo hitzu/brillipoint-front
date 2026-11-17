@@ -60,7 +60,7 @@ describe("PrepProfileAnswersView", () => {
 
     const section = screen.getByRole("region", { name: "Diseños de tatuajes" });
     expect(within(section).getAllByRole("img")).toHaveLength(3);
-    expect(within(section).getByText("3 de 5 diseños")).toBeTruthy();
+    expect(within(section).getByText("3 de 10 diseños")).toBeTruthy();
   });
 
   it("renders nested object answers (dress, accessories)", () => {
@@ -116,7 +116,7 @@ describe("PrepProfileAnswersView", () => {
       />,
     );
 
-    expect(screen.getByText("3 de 5 diseños")).toBeTruthy();
+    expect(screen.getByText("3 de 10 diseños")).toBeTruthy();
   });
 
   it("does not print the raw catalog answer as an unknown field", () => {

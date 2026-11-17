@@ -8,8 +8,8 @@ import {
 } from "./tattooDesigns";
 
 describe("tattooDesigns", () => {
-  it("allows up to 5 designs", () => {
-    expect(TATTOO_DESIGNS_MAX).toBe(5);
+  it("allows up to 10 designs", () => {
+    expect(TATTOO_DESIGNS_MAX).toBe(10);
   });
 
   describe("isTattooDesignsName", () => {
