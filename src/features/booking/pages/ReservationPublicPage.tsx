@@ -27,7 +27,10 @@ import { ReservationNotesSection } from "../components/ReservationNotesSection";
 import { ReservationPreviewNotice } from "../components/ReservationPreviewNotice";
 import { PreparationSection } from "../components/PreparationSection";
 import { TattooDesignsSection } from "../components/TattooDesignsSection";
-import { getTattooEventDate, hasTattooDesignsProduct } from "../utils/tattooDesigns";
+import {
+  getTattooEventDate,
+  hasTattooDesignsInContract,
+} from "../utils/tattooDesigns";
 import { parseLocalDate } from "@common/dates";
 import {
   getEventDate,
@@ -164,8 +167,8 @@ const ReservationPublicPage = ({ token }: Props) => {
   }, [packagesForPrep]);
 
   const hasTattooDesigns = useMemo(() => {
-    return hasTattooDesignsProduct(data?.packages ?? []);
-  }, [data?.packages]);
+    return hasTattooDesignsInContract(data ?? undefined);
+  }, [data]);
 
   const packageTerms = useMemo((): GetTermsResponse[] => {
     const dedup = new Map<number, GetTermsResponse>();

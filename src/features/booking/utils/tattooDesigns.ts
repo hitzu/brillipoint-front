@@ -38,6 +38,24 @@ export const hasTattooDesignsProduct = (
     ),
   );
 
+type DeliveringLine = {
+  deliverables?: ReadonlyArray<{ productId: number }>;
+};
+
+/** Packages and paid extras both deliver products, so either can enable the section. */
+export const hasTattooDesignsInContract = (
+  contract:
+    | {
+        packages?: ReadonlyArray<DeliveringLine>;
+        extras?: ReadonlyArray<DeliveringLine>;
+      }
+    | undefined,
+): boolean =>
+  hasTattooDesignsProduct([
+    ...(contract?.packages ?? []),
+    ...(contract?.extras ?? []),
+  ]);
+
 /** Date (YYYY-MM-DD) of the booking whose purpose is `event`, if any. */
 export const getTattooEventDate = (
   bookings: ReadonlyArray<{ purpose?: string | null; eventDate: string }> | undefined,

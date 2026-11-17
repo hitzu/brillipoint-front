@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getTattooClosingDay,
   getTattooEventDate,
+  hasTattooDesignsInContract,
   hasTattooDesignsProduct,
   TATTOO_DESIGNS_MAX,
   TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS,
@@ -35,6 +36,37 @@ describe("tattooDesigns", () => {
       );
       expect(hasTattooDesignsProduct([{}])).toBe(false);
       expect(hasTattooDesignsProduct([])).toBe(false);
+    });
+  });
+
+  describe("hasTattooDesignsInContract", () => {
+    it("is true when a contracted package delivers a trigger product", () => {
+      expect(
+        hasTattooDesignsInContract({
+          packages: [{ deliverables: [{ productId: 131 }] }],
+          extras: [],
+        }),
+      ).toBe(true);
+    });
+
+    it("is true when only a paid extra delivers a trigger product", () => {
+      expect(
+        hasTattooDesignsInContract({
+          packages: [{ deliverables: [{ productId: 1 }] }],
+          extras: [{ deliverables: [{ productId: 122 }] }],
+        }),
+      ).toBe(true);
+    });
+
+    it("is false when neither packages nor extras deliver a trigger product", () => {
+      expect(
+        hasTattooDesignsInContract({
+          packages: [{ deliverables: [{ productId: 1 }] }],
+          extras: [{ deliverables: [{ productId: 2 }] }],
+        }),
+      ).toBe(false);
+      expect(hasTattooDesignsInContract({})).toBe(false);
+      expect(hasTattooDesignsInContract(undefined)).toBe(false);
     });
   });
 
