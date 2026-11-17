@@ -4,6 +4,7 @@ import FormDropzone from "@shared/forms/file-upload/FormDropzone";
 import { PrepAssetMetadata } from "../../../interfaces";
 import {
   TATTOO_CATALOG_MAX,
+  TATTOO_PRINT_MAX,
   TATTOO_UPLOADS_MAX,
   TattooCatalogChoice,
   TattooCatalogItem,
@@ -17,8 +18,10 @@ type Props = {
   closingDayLabel: string | null;
   isBusy: boolean;
   errorMessage: string | null;
-  /** Live catalog the client can choose from. */
+  /** Live catalog the client can choose from (templates and final designs). */
   catalog: TattooCatalogItem[];
+  /** Reference photos showing what a good upload looks like. */
+  examples?: TattooCatalogItem[];
   /** Designs already chosen (frozen copies, they survive catalog changes). */
   chosen: TattooCatalogChoice[];
   onAddFiles: (files: File[]) => void;
@@ -94,6 +97,43 @@ function StepTitle({ n, children }: { n: number; children: React.ReactNode }) {
   );
 }
 
+function CatalogGroup({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ display: "grid", gap: "0.5rem" }}>
+      <div style={{ display: "grid", gap: 2 }}>
+        <h4
+          style={{
+            margin: 0,
+            color: "var(--bp-brown-1)",
+            fontWeight: 900,
+            fontSize: 15,
+          }}
+        >
+          {title}
+        </h4>
+        <span style={mutedText}>{hint}</span>
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gap: "0.75rem",
+          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 type Slot =
   | { kind: "upload"; key: string; src?: string; name: string; path: string }
   | { kind: "empty"; key: string; n: number };
@@ -142,6 +182,7 @@ export function TattooDesignsView({
   isBusy,
   errorMessage,
   catalog,
+  examples = [],
   chosen,
   onAddFiles,
   onRemove,
@@ -159,6 +200,9 @@ export function TattooDesignsView({
     ? chosen.filter((c) => !catalogIds.has(c.carouselId))
     : chosen;
 
+  const templates = catalog.filter((item) => item.kind === "template");
+  const finals = catalog.filter((item) => item.kind !== "template");
+
   const filled: Slot[] = designs.map((d, i) => ({
     kind: "upload",
     key: d.path,
@@ -173,6 +217,79 @@ export function TattooDesignsView({
         filled[i] ?? { kind: "empty", key: `empty-${i}`, n: i + 1 },
       )
     : filled;
+
+  const renderTile = (item: TattooCatalogItem) => {
+        const selected = chosenIds.has(item.id);
+        const blocked = !selected && catalogFull;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            aria-pressed={selected}
+            aria-label={`${selected ? "Quitar" : "Elegir"} ${item.title}`}
+            disabled={isBusy || blocked}
+            onClick={() => onToggleCatalog(item.id)}
+            style={{
+              display: "grid",
+              gap: "0.3rem",
+              padding: 8,
+              background: "transparent",
+              textAlign: "center",
+              borderRadius: 14,
+              border: selected
+                ? "3px solid var(--bp-brown-1)"
+                : "1px solid var(--bp-brown-4)",
+              opacity: blocked ? 0.5 : 1,
+              cursor: blocked ? "not-allowed" : "pointer",
+            }}
+          >
+            <span style={{ position: "relative", display: "block" }}>
+              <img
+                src={item.imageUrl}
+                alt=""
+                style={{
+                  width: "100%",
+                  aspectRatio: "1 / 1",
+                  objectFit: "cover",
+                  borderRadius: 10,
+                  display: "block",
+                }}
+              />
+              {selected ? (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    right: 6,
+                    top: 6,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 999,
+                    background: "#3F6B4F",
+                    color: "#fff",
+                    fontWeight: 900,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  ✓
+                </span>
+              ) : null}
+            </span>
+            <span style={{ ...mutedText, fontWeight: 800 }}>
+              {item.title}
+            </span>
+            <span style={{ ...mutedText, fontSize: 12 }}>
+              {selected
+                ? "Seleccionado"
+                : blocked
+                  ? "Sin lugares libres"
+                  : "Toca para elegir"}
+            </span>
+          </button>
+        );
+  };
 
   return (
     <section className={styles.card} style={{ marginBottom: "1rem" }}>
@@ -190,21 +307,44 @@ export function TattooDesignsView({
           </h2>
           <div style={mutedText}>
             Puedes <strong>subir hasta {TATTOO_UPLOADS_MAX} fotos o diseños</strong>{" "}
-            tuyos y <strong>elegir hasta {TATTOO_CATALOG_MAX} templates</strong>{" "}
-            de nuestro catálogo. Nuestro equipo decide con qué foto trabaja cada
-            template.
+            tuyos y <strong>elegir hasta {TATTOO_CATALOG_MAX} diseños</strong> de
+            nuestro catálogo.
             {closingDayLabel && canEdit
               ? ` Puedes cambiar tus elecciones hasta el ${closingDayLabel}.`
               : ""}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             <span style={chipStyle}>
-              {TATTOO_UPLOADS_MAX} fotos o diseños + {TATTOO_CATALOG_MAX} templates
+              Subes hasta {TATTOO_UPLOADS_MAX} · eliges hasta {TATTOO_CATALOG_MAX}
             </span>
             <span style={chipStyle}>
               Nuestro equipo necesita una semana para trabajarlos
             </span>
           </div>
+        </div>
+
+        <div
+          role="note"
+          style={{
+            display: "grid",
+            gap: 6,
+            border: "1px solid var(--bp-brown-3)",
+            borderRadius: 12,
+            padding: "12px 14px",
+          }}
+        >
+          <strong style={{ color: "var(--bp-brown-1)", fontSize: 14 }}>
+            Solo se imprimen {TATTOO_PRINT_MAX} tatuajes finales
+          </strong>
+          <span style={mutedText}>
+            Aunque subas y elijas más, nuestro equipo define cuáles se imprimen
+            con esta prioridad:
+          </span>
+          <ol style={{ ...mutedText, margin: 0, paddingLeft: 20 }}>
+            <li>Diseño final que cargues.</li>
+            <li>Personalizados: templates trabajados con tus fotos.</li>
+            <li>Diseños propios de nuestro catálogo.</li>
+          </ol>
         </div>
 
         {locked ? (
@@ -217,6 +357,39 @@ export function TattooDesignsView({
         {canEdit ? (
           <div style={{ display: "grid", gap: "0.6rem" }}>
             <StepTitle n={1}>Sube tus fotos o diseños</StepTitle>
+            <div style={mutedText}>
+              Si subes fotos, podrán usarse para personalizar los templates,
+              pero no aseguramos que funcionen: no todas las fotos sirven para
+              todos los templates. Nuestro equipo decide qué foto usa con cada
+              template.
+            </div>
+            {examples.length > 0 ? (
+              <div style={{ display: "grid", gap: "0.5rem" }}>
+                <span style={{ ...mutedText, fontWeight: 800 }}>
+                  Ejemplos de buenas fotos (selfies, rostro de cerca…)
+                </span>
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "0.5rem",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))",
+                  }}
+                >
+                  {examples.map((example) => (
+                    <figure key={example.id} style={{ margin: 0, display: "grid", gap: 4 }}>
+                      <img
+                        src={example.imageUrl}
+                        alt={example.title}
+                        style={thumbStyle}
+                      />
+                      <figcaption style={{ ...mutedText, fontSize: 12 }}>
+                        {example.title}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             {uploadsFull ? (
               <div style={{ ...mutedText, fontWeight: 700 }}>
                 Ya tienes tus {TATTOO_UPLOADS_MAX} fotos y diseños. Quita uno de
@@ -333,99 +506,33 @@ export function TattooDesignsView({
             }}
           >
             {canEdit && catalog.length > 0 ? (
-              <StepTitle n={2}>Elige templates de nuestro catálogo</StepTitle>
+              <StepTitle n={2}>Elige de nuestro catálogo</StepTitle>
             ) : null}
             <SectionHeading count={chosen.length} max={TATTOO_CATALOG_MAX}>
-              Tus templates
+              Tu selección del catálogo
             </SectionHeading>
             {canEdit && catalog.length > 0 ? (
               <div style={mutedText}>
-                Toca un template para elegirlo; queda marcado con una palomita.
-                Toca otra vez para quitarlo. No ocupa lugar de tus fotos.
+                Toca un diseño para elegirlo; queda marcado con una palomita. Toca
+                otra vez para quitarlo. No ocupa lugar de tus fotos.
               </div>
             ) : null}
 
-            {canEdit && catalog.length > 0 ? (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "0.75rem",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-                }}
+            {canEdit && templates.length > 0 ? (
+              <CatalogGroup
+                title="Templates personalizables"
+                hint="Los personalizamos con tus fotos."
               >
-                {catalog.map((item) => {
-                  const selected = chosenIds.has(item.id);
-                  const blocked = !selected && catalogFull;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      aria-pressed={selected}
-                      aria-label={`${selected ? "Quitar" : "Elegir"} ${item.title}`}
-                      disabled={isBusy || blocked}
-                      onClick={() => onToggleCatalog(item.id)}
-                      style={{
-                        display: "grid",
-                        gap: "0.3rem",
-                        padding: 8,
-                        background: "transparent",
-                        textAlign: "center",
-                        borderRadius: 14,
-                        border: selected
-                          ? "3px solid var(--bp-brown-1)"
-                          : "1px solid var(--bp-brown-4)",
-                        opacity: blocked ? 0.5 : 1,
-                        cursor: blocked ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      <span style={{ position: "relative", display: "block" }}>
-                        <img
-                          src={item.imageUrl}
-                          alt=""
-                          style={{
-                            width: "100%",
-                            aspectRatio: "1 / 1",
-                            objectFit: "cover",
-                            borderRadius: 10,
-                            display: "block",
-                          }}
-                        />
-                        {selected ? (
-                          <span
-                            aria-hidden="true"
-                            style={{
-                              position: "absolute",
-                              right: 6,
-                              top: 6,
-                              width: 28,
-                              height: 28,
-                              borderRadius: 999,
-                              background: "#3F6B4F",
-                              color: "#fff",
-                              fontWeight: 900,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            ✓
-                          </span>
-                        ) : null}
-                      </span>
-                      <span style={{ ...mutedText, fontWeight: 800 }}>
-                        {item.title}
-                      </span>
-                      <span style={{ ...mutedText, fontSize: 12 }}>
-                        {selected
-                          ? "Seleccionado"
-                          : blocked
-                            ? "Sin lugares libres"
-                            : "Toca para elegir"}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                {templates.map(renderTile)}
+              </CatalogGroup>
+            ) : null}
+            {canEdit && finals.length > 0 ? (
+              <CatalogGroup
+                title="Diseños finales"
+                hint="Listos, tal como se ven."
+              >
+                {finals.map(renderTile)}
+              </CatalogGroup>
             ) : null}
 
             {listedChoices.length > 0 ? (
@@ -458,7 +565,7 @@ export function TattooDesignsView({
                         className={styles.btnSecondary}
                         style={removeButtonStyle}
                         disabled={isBusy}
-                        aria-label={`Quitar de mis templates: ${design.title}`}
+                        aria-label={`Quitar de mi selección: ${design.title}`}
                         onClick={() => onToggleCatalog(design.carouselId)}
                       >
                         Quitar

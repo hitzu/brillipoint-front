@@ -179,7 +179,7 @@ export function PrepProfileAnswersView({ answers }: Props) {
         <div role="region" aria-labelledby="tattoo-catalog-title">
           <h6 id="tattoo-catalog-title">Diseños elegidos del catálogo</h6>
           <small className="text-muted d-block mb-2">
-            {`${catalogChoices.length} de ${TATTOO_CATALOG_MAX} templates`}
+            {`${catalogChoices.length} de ${TATTOO_CATALOG_MAX} elegidos`}
           </small>
           <CatalogChoices choices={catalogChoices} />
         </div>

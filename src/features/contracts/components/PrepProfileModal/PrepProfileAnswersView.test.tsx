@@ -104,7 +104,7 @@ describe("PrepProfileAnswersView", () => {
     ).toBe("https://cdn.example/mariposa.png");
   });
 
-  it("counts uploaded designs and chosen templates separately", () => {
+  it("counts uploaded designs and chosen catalog designs separately", () => {
     render(
       <PrepProfileAnswersView
         answers={{
@@ -117,7 +117,7 @@ describe("PrepProfileAnswersView", () => {
     );
 
     expect(screen.getByText("2 de 10 fotos y diseños")).toBeTruthy();
-    expect(screen.getByText("1 de 10 templates")).toBeTruthy();
+    expect(screen.getByText("1 de 10 elegidos")).toBeTruthy();
   });
 
   it("does not print the raw catalog answer as an unknown field", () => {

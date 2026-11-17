@@ -9,10 +9,25 @@ export const TATTOO_CATALOG_MAX = 10;
 export const TATTOO_CATALOG_QUESTION_ID = "tattoo_catalog_designs";
 // The catalog is a page/section of the API `carousels` table (global).
 export const TATTOO_CATALOG_PAGE = "reservation";
-export const TATTOO_CATALOG_SECTION = "tattoo-designs";
+/** Customizable templates: the team personalizes them with the client's photos. */
+export const TATTOO_TEMPLATES_SECTION = "tattoo-templates";
+/** Final designs proposed by Brillipoint. */
+export const TATTOO_FINALS_SECTION = "tattoo-finals";
+/** Legacy section of the first catalog rows; shown as final designs. */
+export const TATTOO_LEGACY_SECTION = "tattoo-designs";
+/** Reference photos that show what a good upload looks like; not selectable. */
+export const PHOTO_EXAMPLES_SECTION = "photos-examples";
+/** Only this many final tattoos are printed, whatever the client uploads or chooses. */
+export const TATTOO_PRINT_MAX = 5;
 
 /** A design the client can choose, from the live catalog. */
-export type TattooCatalogItem = { id: number; title: string; imageUrl: string };
+export type TattooCatalogItem = {
+  id: number;
+  title: string;
+  imageUrl: string;
+  /** Customizable template or final design; legacy rows count as final. */
+  kind?: "template" | "final";
+};
 
 /** Frozen copy the API stores when the client chooses a catalog design. */
 export type TattooCatalogChoice = {

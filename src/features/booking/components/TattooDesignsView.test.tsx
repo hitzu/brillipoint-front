@@ -72,7 +72,7 @@ describe("TattooDesignsView", () => {
     render(<TattooDesignsView {...baseProps} catalog={[catalogItem(1)]} />);
 
     const upload = screen.getByText("Sube tus fotos o diseños");
-    const catalogTitle = screen.getByText("Elige templates de nuestro catálogo");
+    const catalogTitle = screen.getByText("Elige de nuestro catálogo");
     expect(
       upload.compareDocumentPosition(catalogTitle) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
@@ -130,7 +130,67 @@ describe("TattooDesignsView", () => {
     expect(screen.getByRole("alert").textContent).toBe("No se pudo guardar");
   });
 
+  it("explains that only 5 final tattoos are printed and in which priority", () => {
+    render(<TattooDesignsView {...baseProps} />);
+
+    const note = screen.getByRole("note");
+    expect(note.textContent).toContain("Solo se imprimen 5 tatuajes finales");
+    const items = Array.from(note.querySelectorAll("li")).map((li) => li.textContent);
+    expect(items).toEqual([
+      "Diseño final que cargues.",
+      "Personalizados: templates trabajados con tus fotos.",
+      "Diseños propios de nuestro catálogo.",
+    ]);
+  });
+
+  it("warns that photos may be used to personalize templates without guarantee", () => {
+    render(<TattooDesignsView {...baseProps} />);
+
+    expect(
+      screen.getByText(/podrán usarse para personalizar los templates, pero no aseguramos/),
+    ).toBeTruthy();
+  });
+
+  it("shows the photo examples next to the uploader, and hides them when read-only", () => {
+    const examples = [catalogItem(1), catalogItem(2)];
+    const { rerender } = render(<TattooDesignsView {...baseProps} examples={examples} />);
+
+    expect(screen.getByText(/Ejemplos de buenas fotos/)).toBeTruthy();
+    expect(screen.getByAltText("Diseño catálogo 1")).toBeTruthy();
+
+    rerender(<TattooDesignsView {...baseProps} examples={examples} locked />);
+    expect(screen.queryByText(/Ejemplos de buenas fotos/)).toBeNull();
+  });
+
   describe("catalog gallery", () => {
+    it("splits the catalog into templates and final designs", () => {
+      render(
+        <TattooDesignsView
+          {...baseProps}
+          catalog={[
+            { ...catalogItem(1), kind: "template" },
+            { ...catalogItem(2), kind: "final" },
+            catalogItem(3),
+          ]}
+        />,
+      );
+
+      const groups = screen.getAllByRole("heading", { level: 4 }).map((h) => h.textContent);
+      expect(groups).toEqual(["Templates personalizables", "Diseños finales"]);
+    });
+
+    it("hides a group when it has no designs", () => {
+      render(
+        <TattooDesignsView
+          {...baseProps}
+          catalog={[{ ...catalogItem(1), kind: "template" }]}
+        />,
+      );
+
+      expect(screen.queryByText("Diseños finales")).toBeNull();
+      expect(screen.getByText("Templates personalizables")).toBeTruthy();
+    });
+
     it("shows the catalog designs by name and lets the client choose one", () => {
       const onToggleCatalog = vi.fn();
       render(
@@ -141,7 +201,7 @@ describe("TattooDesignsView", () => {
         />,
       );
 
-      expect(screen.getByText("Elige templates de nuestro catálogo")).toBeTruthy();
+      expect(screen.getByText("Elige de nuestro catálogo")).toBeTruthy();
       fireEvent.click(
         screen.getByRole("button", { name: "Elegir Diseño catálogo 2" }),
       );
@@ -222,7 +282,7 @@ describe("TattooDesignsView", () => {
 
       expect(screen.getByText("1 de 10")).toBeTruthy();
       fireEvent.click(
-        screen.getByRole("button", { name: "Quitar de mis templates: Diseño catálogo 9" }),
+        screen.getByRole("button", { name: "Quitar de mi selección: Diseño catálogo 9" }),
       );
 
       expect(onToggleCatalog).toHaveBeenCalledWith(9);
@@ -231,7 +291,7 @@ describe("TattooDesignsView", () => {
     it("hides the gallery when the catalog is empty", () => {
       render(<TattooDesignsView {...baseProps} catalog={[]} />);
 
-      expect(screen.queryByText("Elige templates de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Elige de nuestro catálogo")).toBeNull();
     });
 
     it("is read-only once the window closed: chosen designs stay visible, nothing can change", () => {
@@ -245,7 +305,7 @@ describe("TattooDesignsView", () => {
       );
 
       expect(screen.getByText("Diseño catálogo 1")).toBeTruthy();
-      expect(screen.queryByText("Elige templates de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Elige de nuestro catálogo")).toBeNull();
       expect(screen.queryByRole("button", { name: /Quitar|Elegir/ })).toBeNull();
     });
   });

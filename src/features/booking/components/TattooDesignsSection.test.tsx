@@ -17,7 +17,10 @@ const service = vi.hoisted(() => ({
 }));
 vi.mock("../../../api/services/prepProfileService", () => service);
 
-const catalogService = vi.hoisted(() => ({ getTattooCatalog: vi.fn() }));
+const catalogService = vi.hoisted(() => ({
+  getTattooCatalog: vi.fn(),
+  getPhotoExamples: vi.fn(),
+}));
 vi.mock("../../../api/services/tattooCatalogService", () => catalogService);
 
 import { TattooDesignsSection } from "./TattooDesignsSection";
@@ -54,6 +57,8 @@ beforeEach(() => {
   Object.values(service).forEach((fn) => fn.mockReset());
   catalogService.getTattooCatalog.mockReset();
   catalogService.getTattooCatalog.mockResolvedValue([]);
+  catalogService.getPhotoExamples.mockReset();
+  catalogService.getPhotoExamples.mockResolvedValue([]);
 });
 afterEach(cleanup);
 
@@ -150,7 +155,7 @@ describe("TattooDesignsSection", () => {
       render(<TattooDesignsSection contractToken="tok" />);
 
       await waitFor(() =>
-        expect(screen.getByText("Elige templates de nuestro catálogo")).toBeTruthy(),
+        expect(screen.getByText("Elige de nuestro catálogo")).toBeTruthy(),
       );
       expect(
         screen.getByRole("button", { name: "Elegir Diseño catálogo 2" }),
@@ -229,7 +234,7 @@ describe("TattooDesignsSection", () => {
         expect(screen.getByRole("status")).toBeTruthy(),
       );
       expect(
-        screen.queryByText("Elige templates de nuestro catálogo"),
+        screen.queryByText("Elige de nuestro catálogo"),
       ).toBeNull();
     });
 
@@ -242,7 +247,7 @@ describe("TattooDesignsSection", () => {
       await waitFor(() =>
         expect(screen.getByText("1 de 10")).toBeTruthy(),
       );
-      expect(screen.queryByText("Elige templates de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Elige de nuestro catálogo")).toBeNull();
     });
   });
 });
