@@ -3,9 +3,8 @@ import {
   getTattooClosingDay,
   getTattooEventDate,
   hasTattooDesignsInContract,
-  hasTattooDesignsProduct,
+  isTattooDesignsName,
   TATTOO_DESIGNS_MAX,
-  TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS,
 } from "./tattooDesigns";
 
 describe("tattooDesigns", () => {
@@ -13,56 +12,69 @@ describe("tattooDesigns", () => {
     expect(TATTOO_DESIGNS_MAX).toBe(5);
   });
 
-  describe("hasTattooDesignsProduct", () => {
-    it('triggers on "Tatuajes personalizados" of Glitter bar (131) and Photobooth (122)', () => {
-      expect([...TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS].sort()).toEqual([122, 131]);
+  describe("isTattooDesignsName", () => {
+    it.each([
+      "Tatuajes personalizados",
+      "TATUAJES PERSONALIZADOS",
+      "Tatuajes personalizados (precio especial)",
+      "Tatuaje personalizado",
+      "Diseños personalizados de tatuajes",
+      "Tátuajes personalizádos",
+    ])('matches "%s"', (name) => {
+      expect(isTattooDesignsName(name)).toBe(true);
     });
 
-    it("is true when a contracted package delivers a trigger product", () => {
-      expect(
-        hasTattooDesignsProduct([
-          { deliverables: [{ productId: 1 }] },
-          { deliverables: [{ productId: 1 }, { productId: 122 }] },
-        ]),
-      ).toBe(true);
-      expect(hasTattooDesignsProduct([{ deliverables: [{ productId: 131 }] }])).toBe(
-        true,
-      );
-    });
-
-    it("is false when no package delivers a trigger product", () => {
-      expect(hasTattooDesignsProduct([{ deliverables: [{ productId: 1 }] }])).toBe(
-        false,
-      );
-      expect(hasTattooDesignsProduct([{}])).toBe(false);
-      expect(hasTattooDesignsProduct([])).toBe(false);
+    it.each([
+      "Tatuajes temporales",
+      "Glitter tattoo",
+      "Accesorios personalizados",
+      "",
+      null,
+      undefined,
+    ])("does not match %p", (name) => {
+      expect(isTattooDesignsName(name)).toBe(false);
     });
   });
 
   describe("hasTattooDesignsInContract", () => {
-    it("is true when a contracted package delivers a trigger product", () => {
+    it("is true when a contracted package delivers a product with a matching name", () => {
       expect(
         hasTattooDesignsInContract({
-          packages: [{ deliverables: [{ productId: 131 }] }],
+          packages: [
+            { deliverables: [{ name: "Glitter" }, { name: "Tatuajes personalizados" }] },
+          ],
           extras: [],
         }),
       ).toBe(true);
     });
 
-    it("is true when only a paid extra delivers a trigger product", () => {
+    it("is true when a paid extra delivers a matching product", () => {
       expect(
         hasTattooDesignsInContract({
-          packages: [{ deliverables: [{ productId: 1 }] }],
-          extras: [{ deliverables: [{ productId: 122 }] }],
+          packages: [{ deliverables: [{ name: "Glitter" }] }],
+          extras: [
+            { nameSnapshot: "Beneficio a elegir", deliverables: [{ name: "Tatuajes personalizados" }] },
+          ],
         }),
       ).toBe(true);
     });
 
-    it("is false when neither packages nor extras deliver a trigger product", () => {
+    it("is true when the paid extra itself is named after the tattoo designs, even without products", () => {
       expect(
         hasTattooDesignsInContract({
-          packages: [{ deliverables: [{ productId: 1 }] }],
-          extras: [{ deliverables: [{ productId: 2 }] }],
+          packages: [],
+          extras: [
+            { nameSnapshot: "Tatuajes personalizados (precio especial)", deliverables: [] },
+          ],
+        }),
+      ).toBe(true);
+    });
+
+    it("is false when no package, extra or product name matches", () => {
+      expect(
+        hasTattooDesignsInContract({
+          packages: [{ deliverables: [{ name: "Tatuajes temporales" }] }],
+          extras: [{ nameSnapshot: "1 hora extra", deliverables: [{ name: "Maquillista" }] }],
         }),
       ).toBe(false);
       expect(hasTattooDesignsInContract({})).toBe(false);

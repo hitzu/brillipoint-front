@@ -17,29 +17,29 @@ export type TattooCatalogChoice = {
   title: string;
   imageUrl: string;
 };
-// Products that enable the section when a contracted package delivers them:
-// "Tatuajes personalizados" of Glitter bar (131) and Photobooth (122).
-// Hardcoded for now (to move to the database); keep in sync with
-// TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS in bookandsign-api.
-export const TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS: readonly number[] = [131, 122];
 // The API closes when the event is 7 days away or closer, so the last day the
 // client can still change designs is 8 days before the event.
 const LAST_OPEN_DAYS_BEFORE_EVENT = 8;
 
-/** `deliverables` is the API's frozen product snapshot of each contract line. */
-export const hasTattooDesignsProduct = (
-  packages: ReadonlyArray<{
-    deliverables?: ReadonlyArray<{ productId: number }>;
-  }>,
-): boolean =>
-  packages.some((p) =>
-    (p.deliverables ?? []).some((d) =>
-      TATTOO_DESIGNS_TRIGGER_PRODUCT_IDS.includes(d.productId),
-    ),
-  );
+/**
+ * The section is enabled by NAME, not by ids (ids differ between stages and
+ * change when a product is recreated): any contracted product or paid extra
+ * whose name says both "tatuajes" and "personalizados". Keep in sync with
+ * isTattooDesignsName in bookandsign-api; a stable product key is planned.
+ */
+export const isTattooDesignsName = (name: string | null | undefined): boolean => {
+  const normalized = (name ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  return normalized.includes("tatuaj") && normalized.includes("personaliz");
+};
 
 type DeliveringLine = {
-  deliverables?: ReadonlyArray<{ productId: number }>;
+  /** The API's frozen product snapshot of the contract line. */
+  deliverables?: ReadonlyArray<{ name: string }>;
+  /** Paid extras are also matched by their own name. */
+  nameSnapshot?: string | null;
 };
 
 /** Packages and paid extras both deliver products, so either can enable the section. */
@@ -50,11 +50,16 @@ export const hasTattooDesignsInContract = (
         extras?: ReadonlyArray<DeliveringLine>;
       }
     | undefined,
-): boolean =>
-  hasTattooDesignsProduct([
-    ...(contract?.packages ?? []),
-    ...(contract?.extras ?? []),
-  ]);
+): boolean => {
+  const deliversTattoos = (line: DeliveringLine) =>
+    (line.deliverables ?? []).some((d) => isTattooDesignsName(d.name));
+  return (
+    (contract?.packages ?? []).some(deliversTattoos) ||
+    (contract?.extras ?? []).some(
+      (line) => isTattooDesignsName(line.nameSnapshot) || deliversTattoos(line),
+    )
+  );
+};
 
 /** Date (YYYY-MM-DD) of the booking whose purpose is `event`, if any. */
 export const getTattooEventDate = (
