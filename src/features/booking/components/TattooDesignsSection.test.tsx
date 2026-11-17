@@ -17,7 +17,10 @@ const service = vi.hoisted(() => ({
 }));
 vi.mock("../../../api/services/prepProfileService", () => service);
 
-const catalogService = vi.hoisted(() => ({ getTattooCatalog: vi.fn() }));
+const catalogService = vi.hoisted(() => ({
+  getTattooCatalog: vi.fn(),
+  getPhotoExamples: vi.fn(),
+}));
 vi.mock("../../../api/services/tattooCatalogService", () => catalogService);
 
 import { TattooDesignsSection } from "./TattooDesignsSection";
@@ -54,16 +57,31 @@ beforeEach(() => {
   Object.values(service).forEach((fn) => fn.mockReset());
   catalogService.getTattooCatalog.mockReset();
   catalogService.getTattooCatalog.mockResolvedValue([]);
+  catalogService.getPhotoExamples.mockReset();
+  catalogService.getPhotoExamples.mockResolvedValue([]);
 });
 afterEach(cleanup);
 
 describe("TattooDesignsSection", () => {
+  it("keeps Continuar disabled until the phone has 10 digits", () => {
+    render(<TattooDesignsSection contractToken="tok" phone="2222232323" />);
+    const input = screen.getByLabelText("Celular del contrato (10 dígitos)");
+    const button = screen.getByRole("button", { name: "Continuar" }) as HTMLButtonElement;
+
+    expect(button.disabled).toBe(true);
+    fireEvent.change(input, { target: { value: "222223232" } });
+    expect(button.disabled).toBe(true);
+    fireEvent.change(input, { target: { value: "2222232323" } });
+    expect(button.disabled).toBe(false);
+    expect(screen.getByText(/Número registrado en el contrato: \*+2323/)).toBeTruthy();
+  });
+
   it("asks for the phone first and rejects a wrong number", async () => {
     service.getPublicPrepProfile.mockRejectedValue(new Error("404"));
     render(<TattooDesignsSection contractToken="tok" phone="2222232323" />);
 
-    fireEvent.change(screen.getByLabelText("Número de celular"), {
-      target: { value: "000" },
+    fireEvent.change(screen.getByLabelText("Celular del contrato (10 dígitos)"), {
+      target: { value: "0000000000" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
 
@@ -77,12 +95,12 @@ describe("TattooDesignsSection", () => {
     service.getPublicPrepProfile.mockResolvedValue(profile([asset(1), asset(2)]));
     render(<TattooDesignsSection contractToken="tok" phone="2222232323" />);
 
-    fireEvent.change(screen.getByLabelText("Número de celular"), {
+    fireEvent.change(screen.getByLabelText("Celular del contrato (10 dígitos)"), {
       target: { value: "222-223-2323" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
 
-    await waitFor(() => expect(screen.getByText("2 de 5 diseños")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("2 de 10")).toBeTruthy());
     expect(service.getPublicPrepProfile).toHaveBeenCalledWith({
       contractToken: "tok",
       phone: "2222232323",
@@ -94,7 +112,7 @@ describe("TattooDesignsSection", () => {
     service.getPublicPrepProfile.mockResolvedValue(profile([asset(1)]));
     render(<TattooDesignsSection contractToken="tok" />);
 
-    await waitFor(() => expect(screen.getByText("1 de 5 diseños")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("1 de 10")).toBeTruthy());
   });
 
   it("is read-only when the API reports the window as closed", async () => {
@@ -103,7 +121,7 @@ describe("TattooDesignsSection", () => {
     render(<TattooDesignsSection contractToken="tok" />);
 
     await waitFor(() => expect(screen.getByRole("status")).toBeTruthy());
-    expect(screen.queryByRole("button", { name: /Eliminar diseño/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Quitar de mis diseños/ })).toBeNull();
   });
 
   it("deletes a design by saving the remaining list", async () => {
@@ -112,10 +130,10 @@ describe("TattooDesignsSection", () => {
     service.setPublicPrepProfileTattooDesigns.mockResolvedValue(profile([asset(2)]));
     render(<TattooDesignsSection contractToken="tok" />);
 
-    await waitFor(() => expect(screen.getByText("2 de 5 diseños")).toBeTruthy());
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar diseño 1" }));
+    await waitFor(() => expect(screen.getByText("2 de 10")).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "Quitar de mis diseños: Diseño 1" }));
 
-    await waitFor(() => expect(screen.getByText("1 de 5 diseños")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("1 de 10")).toBeTruthy());
     expect(service.setPublicPrepProfileTattooDesigns).toHaveBeenCalledWith({
       contractToken: "tok",
       phone: "2222232323",
@@ -158,7 +176,7 @@ describe("TattooDesignsSection", () => {
       );
 
       await waitFor(() =>
-        expect(screen.getByText("2 de 5 diseños")).toBeTruthy(),
+        expect(screen.getAllByText("1 de 10", { selector: "span" })).toHaveLength(2),
       );
       expect(service.setPublicPrepProfileTattooDesigns).toHaveBeenCalledWith({
         contractToken: "tok",
@@ -187,7 +205,7 @@ describe("TattooDesignsSection", () => {
       );
 
       await waitFor(() =>
-        expect(screen.getByText("1 de 5 diseños")).toBeTruthy(),
+        expect(screen.getByText("1 de 10")).toBeTruthy(),
       );
       expect(service.setPublicPrepProfileTattooDesigns).toHaveBeenCalledWith({
         contractToken: "tok",
@@ -227,7 +245,7 @@ describe("TattooDesignsSection", () => {
       render(<TattooDesignsSection contractToken="tok" />);
 
       await waitFor(() =>
-        expect(screen.getByText("1 de 5 diseños")).toBeTruthy(),
+        expect(screen.getByText("1 de 10")).toBeTruthy(),
       );
       expect(screen.queryByText("Elige de nuestro catálogo")).toBeNull();
     });

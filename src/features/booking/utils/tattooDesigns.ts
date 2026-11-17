@@ -2,14 +2,41 @@
 // the authority; these helpers only decide what to show.
 export const TATTOO_DESIGNS_QUESTION_ID = "tattoo_designs";
 // Chosen catalog designs and uploaded designs share the same maximum.
-export const TATTOO_DESIGNS_MAX = 5;
+/** Uploaded photos and final designs (mixed). */
+export const TATTOO_UPLOADS_MAX = 10;
+/** Catalog templates and final designs the client chooses. Independent of the uploads cap. */
+export const TATTOO_CATALOG_MAX = 10;
 export const TATTOO_CATALOG_QUESTION_ID = "tattoo_catalog_designs";
 // The catalog is a page/section of the API `carousels` table (global).
 export const TATTOO_CATALOG_PAGE = "reservation";
-export const TATTOO_CATALOG_SECTION = "tattoo-designs";
+/** Customizable templates: the team personalizes them with the client's photos. */
+export const TATTOO_TEMPLATES_SECTION = "tattoo-templates";
+/** Final designs proposed by Brillipoint. */
+export const TATTOO_FINALS_SECTION = "tattoo-finals";
+/** Legacy section of the first catalog rows; shown as final designs. */
+export const TATTOO_LEGACY_SECTION = "tattoo-designs";
+/** Reference photos that show what a good upload looks like; not selectable. */
+export const PHOTO_EXAMPLES_SECTION = "photos-examples";
+/**
+ * Pre-release gate: the tattoo tab only shows with `?tatuajes=true` in the URL.
+ * UI-only (not a security control). Remove it, and this helper, to release.
+ */
+export const TATTOO_PREVIEW_QUERY_PARAM = "tatuajes";
+export const isTattooPreviewEnabled = (
+  value: string | string[] | undefined,
+): boolean => value === "true";
+
+/** Only this many final tattoos are printed, whatever the client uploads or chooses. */
+export const TATTOO_PRINT_MAX = 5;
 
 /** A design the client can choose, from the live catalog. */
-export type TattooCatalogItem = { id: number; title: string; imageUrl: string };
+export type TattooCatalogItem = {
+  id: number;
+  title: string;
+  imageUrl: string;
+  /** Customizable template or final design; legacy rows count as final. */
+  kind?: "template" | "final";
+};
 
 /** Frozen copy the API stores when the client chooses a catalog design. */
 export type TattooCatalogChoice = {

@@ -4,12 +4,15 @@ import {
   getTattooEventDate,
   hasTattooDesignsInContract,
   isTattooDesignsName,
-  TATTOO_DESIGNS_MAX,
+  isTattooPreviewEnabled,
+  TATTOO_CATALOG_MAX,
+  TATTOO_UPLOADS_MAX,
 } from "./tattooDesigns";
 
 describe("tattooDesigns", () => {
-  it("allows up to 5 designs", () => {
-    expect(TATTOO_DESIGNS_MAX).toBe(5);
+  it("allows up to 10 uploads and 10 catalog choices, independently", () => {
+    expect(TATTOO_UPLOADS_MAX).toBe(10);
+    expect(TATTOO_CATALOG_MAX).toBe(10);
   });
 
   describe("isTattooDesignsName", () => {
@@ -109,5 +112,15 @@ describe("tattooDesigns", () => {
     it("crosses month boundaries", () => {
       expect(getTattooClosingDay("2026-03-05")).toBe("2026-02-25");
     });
+  });
+});
+
+describe("isTattooPreviewEnabled", () => {
+  it("is on only for ?tatuajes=true", () => {
+    expect(isTattooPreviewEnabled("true")).toBe(true);
+    expect(isTattooPreviewEnabled(undefined)).toBe(false);
+    expect(isTattooPreviewEnabled("false")).toBe(false);
+    expect(isTattooPreviewEnabled("1")).toBe(false);
+    expect(isTattooPreviewEnabled(["true", "true"])).toBe(false);
   });
 });

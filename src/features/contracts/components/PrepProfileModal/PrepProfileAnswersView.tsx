@@ -5,7 +5,8 @@ import {
 } from "../../../booking/components/questions";
 import {
   TATTOO_CATALOG_QUESTION_ID,
-  TATTOO_DESIGNS_MAX,
+  TATTOO_CATALOG_MAX,
+  TATTOO_UPLOADS_MAX,
   TATTOO_DESIGNS_QUESTION_ID,
   TattooCatalogChoice,
 } from "../../../booking/utils/tattooDesigns";
@@ -168,7 +169,7 @@ export function PrepProfileAnswersView({ answers }: Props) {
         <div role="region" aria-labelledby="tattoo-designs-title">
           <h6 id="tattoo-designs-title">Diseños de tatuajes</h6>
           <small className="text-muted d-block mb-2">
-            {`${tattooTotal} de ${TATTOO_DESIGNS_MAX} diseños`}
+            {`${tattooDesigns.length} de ${TATTOO_UPLOADS_MAX} fotos y diseños`}
           </small>
           <AssetThumbnails assets={tattooDesigns} alt="Diseño" />
         </div>
@@ -177,6 +178,9 @@ export function PrepProfileAnswersView({ answers }: Props) {
       {catalogChoices.length > 0 ? (
         <div role="region" aria-labelledby="tattoo-catalog-title">
           <h6 id="tattoo-catalog-title">Diseños elegidos del catálogo</h6>
+          <small className="text-muted d-block mb-2">
+            {`${catalogChoices.length} de ${TATTOO_CATALOG_MAX} elegidos`}
+          </small>
           <CatalogChoices choices={catalogChoices} />
         </div>
       ) : null}

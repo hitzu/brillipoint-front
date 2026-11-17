@@ -8,12 +8,13 @@ import {
   setPublicPrepProfileTattooDesigns,
   uploadPrepProfileFileToSignedUrl,
 } from "../../../api/services/prepProfileService";
-import { getTattooCatalog } from "../../../api/services/tattooCatalogService";
+import { getPhotoExamples, getTattooCatalog } from "../../../api/services/tattooCatalogService";
 import { usePublicContractPhoneGate } from "../hooks/usePublicContractPhoneGate";
 import {
   getTattooClosingDay,
   TATTOO_CATALOG_QUESTION_ID,
-  TATTOO_DESIGNS_MAX,
+  TATTOO_CATALOG_MAX,
+  TATTOO_UPLOADS_MAX,
   TATTOO_DESIGNS_QUESTION_ID,
   TattooCatalogChoice,
   TattooCatalogItem,
@@ -52,6 +53,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   const [designs, setDesigns] = useState<PrepAssetMetadata[]>([]);
   const [chosen, setChosen] = useState<TattooCatalogChoice[]>([]);
   const [catalog, setCatalog] = useState<TattooCatalogItem[]>([]);
+  const [examples, setExamples] = useState<TattooCatalogItem[]>([]);
   const [locked, setLocked] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
@@ -130,7 +132,17 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
         if (!cancelled) setCatalog([]);
       }
     };
+    // Examples are guidance only: failing to load them never blocks anything.
+    const loadExamples = async () => {
+      try {
+        const items = await getPhotoExamples();
+        if (!cancelled) setExamples(items);
+      } catch {
+        if (!cancelled) setExamples([]);
+      }
+    };
     void loadCatalog();
+    void loadExamples();
     return () => {
       cancelled = true;
     };
@@ -190,8 +202,10 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       setErrorMessage("Solo puedes subir imágenes.");
       return;
     }
-    if (designs.length + chosen.length + files.length > TATTOO_DESIGNS_MAX) {
-      setErrorMessage(`Solo puedes tener hasta ${TATTOO_DESIGNS_MAX} diseños.`);
+    if (designs.length + files.length > TATTOO_UPLOADS_MAX) {
+      setErrorMessage(
+        `Solo puedes subir hasta ${TATTOO_UPLOADS_MAX} fotos y diseños.`,
+      );
       return;
     }
     setIsBusy(true);
@@ -229,8 +243,10 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   const toggleCatalogDesign = async (carouselId: number) => {
     setErrorMessage(null);
     const isChosen = chosen.some((c) => c.carouselId === carouselId);
-    if (!isChosen && designs.length + chosen.length >= TATTOO_DESIGNS_MAX) {
-      setErrorMessage(`Solo puedes tener hasta ${TATTOO_DESIGNS_MAX} diseños.`);
+    if (!isChosen && chosen.length >= TATTOO_CATALOG_MAX) {
+      setErrorMessage(
+        `Solo puedes elegir hasta ${TATTOO_CATALOG_MAX} diseños del catálogo.`,
+      );
       return;
     }
     const nextIds = isChosen
@@ -280,32 +296,43 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
     const maskedPhoneHint = digits
       ? `${"*".repeat(Math.max(digits.length - 4, 0))}${digits.slice(-4)}`
       : null;
+    const canContinue = normalizePhone(phoneInput).length >= 10;
     return (
       <section className={styles.card} style={{ marginBottom: "1rem" }}>
         <div style={{ display: "grid", gap: "0.75rem" }}>
-          <div
+          <h2
             style={{
+              margin: 0,
               color: "var(--bp-brown-1)",
               fontWeight: 900,
-              fontSize: 16,
+              fontSize: 18,
             }}
           >
             Confirma tu número de celular
-          </div>
+          </h2>
           <div style={{ color: "var(--bp-brown-2)", fontSize: 13 }}>
-            Para subir tus diseños de tatuajes, necesitamos validar tu número.
+            Esta sección está protegida. Escribe el celular que registramos
+            cuando levantamos tu contrato para subir o elegir tus diseños de
+            tatuajes.
           </div>
+          <label
+            htmlFor="tattoo-phone"
+            style={{ color: "var(--bp-brown-1)", fontWeight: 800, fontSize: 14 }}
+          >
+            Celular del contrato (10 dígitos)
+          </label>
           <input
+            id="tattoo-phone"
             className="form-control"
             type="tel"
             inputMode="numeric"
+            autoComplete="tel-national"
             placeholder="Ej: 2222232323"
-            aria-label="Número de celular"
             value={phoneInput}
             disabled={isAuthorizing}
             onChange={(e) => setPhoneInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") void authorizePhone();
+              if (e.key === "Enter" && canContinue) void authorizePhone();
             }}
           />
           {maskedPhoneHint ? (
@@ -325,10 +352,13 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
             type="button"
             className={styles.btnPrimary}
             onClick={() => void authorizePhone()}
-            disabled={isAuthorizing}
+            disabled={isAuthorizing || !canContinue}
           >
             {isAuthorizing ? "Validando..." : "Continuar"}
           </button>
+          <div style={{ color: "var(--bp-brown-2)", fontSize: 13 }}>
+            ¿Ya no tienes ese número? Escríbenos por WhatsApp y lo actualizamos.
+          </div>
         </div>
       </section>
     );
@@ -342,6 +372,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       isBusy={isBusy}
       errorMessage={errorMessage}
       catalog={catalog}
+      examples={examples}
       chosen={chosen}
       onAddFiles={(files) => void addFiles(files)}
       onRemove={(path) => void removeDesign(path)}
