@@ -30,6 +30,8 @@ import { TattooDesignsSection } from "../components/TattooDesignsSection";
 import {
   getTattooEventDate,
   hasTattooDesignsInContract,
+  isTattooPreviewEnabled,
+  TATTOO_PREVIEW_QUERY_PARAM,
 } from "../utils/tattooDesigns";
 import { parseLocalDate } from "@common/dates";
 import {
@@ -166,9 +168,12 @@ const ReservationPublicPage = ({ token }: Props) => {
     return packagesForPrep.some((p) => p.brandId === 2);
   }, [packagesForPrep]);
 
+  const tattooPreview = isTattooPreviewEnabled(
+    router.query[TATTOO_PREVIEW_QUERY_PARAM],
+  );
   const hasTattooDesigns = useMemo(() => {
-    return hasTattooDesignsInContract(data ?? undefined);
-  }, [data]);
+    return tattooPreview && hasTattooDesignsInContract(data ?? undefined);
+  }, [data, tattooPreview]);
 
   const packageTerms = useMemo((): GetTermsResponse[] => {
     const dedup = new Map<number, GetTermsResponse>();

@@ -17,6 +17,15 @@ export const TATTOO_FINALS_SECTION = "tattoo-finals";
 export const TATTOO_LEGACY_SECTION = "tattoo-designs";
 /** Reference photos that show what a good upload looks like; not selectable. */
 export const PHOTO_EXAMPLES_SECTION = "photos-examples";
+/**
+ * Pre-release gate: the tattoo tab only shows with `?tatuajes=true` in the URL.
+ * UI-only (not a security control). Remove it, and this helper, to release.
+ */
+export const TATTOO_PREVIEW_QUERY_PARAM = "tatuajes";
+export const isTattooPreviewEnabled = (
+  value: string | string[] | undefined,
+): boolean => value === "true";
+
 /** Only this many final tattoos are printed, whatever the client uploads or chooses. */
 export const TATTOO_PRINT_MAX = 5;
 
