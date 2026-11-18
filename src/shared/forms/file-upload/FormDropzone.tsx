@@ -11,7 +11,9 @@ type SelectedFile = File & {
 
 export type FormDropzoneProps = {
   title?: string;
-  description?: string;
+  /** Main call to action; defaults to the generic "drag or tap" text. */
+  label?: React.ReactNode;
+  description?: React.ReactNode;
   multiple?: boolean;
   disabled?: boolean;
   embedded?: boolean;
@@ -39,6 +41,7 @@ function formatBytes(bytes: number): string {
 
 const FormDropzone = ({
   title = "Carga de archivos",
+  label,
   description = "Arrastra archivos aquí para adjuntarlos (mock)",
   multiple = true,
   disabled = false,
@@ -122,7 +125,7 @@ const FormDropzone = ({
               >
                 <i className="display-4 text-muted ri-upload-cloud-2-fill" />
               </div>
-              <div style={{ fontWeight: 800 }}>{acceptsLabel}</div>
+              <div style={{ fontWeight: 800 }}>{label ?? acceptsLabel}</div>
               <div style={{ marginTop: 6, fontSize: 13, opacity: 0.85 }}>
                 {description}
               </div>

@@ -44,12 +44,14 @@ const thumbStyle = {
   display: "block",
 } as const;
 
-const chipStyle = {
-  ...mutedText,
-  fontWeight: 700,
-  border: "1px solid var(--bp-brown-4)",
-  borderRadius: 999,
-  padding: "6px 12px",
+// Never cropped: the example is an instruction graphic, every part matters.
+const exampleImageStyle = {
+  width: "100%",
+  height: "auto",
+  maxHeight: "75vh",
+  objectFit: "contain",
+  borderRadius: 12,
+  display: "block",
 } as const;
 
 const removeButtonStyle = { minHeight: 44 } as const;
@@ -63,7 +65,34 @@ const slotCellStyle = {
   minWidth: 0,
 } as const;
 
-function StepTitle({ n, children }: { n: number; children: React.ReactNode }) {
+function StepTitle({
+  n,
+  children,
+  action,
+}: {
+  n: number;
+  children: React.ReactNode;
+  /** Optional control shown at the end of the title row (wraps on mobile). */
+  action?: React.ReactNode;
+}) {
+  return (
+    <div
+      data-step-row
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 10,
+      }}
+    >
+      <StepHeading n={n}>{children}</StepHeading>
+      {action}
+    </div>
+  );
+}
+
+function StepHeading({ n, children }: { n: number; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <span
@@ -99,27 +128,31 @@ function StepTitle({ n, children }: { n: number; children: React.ReactNode }) {
 }
 
 function CatalogGroup({
+  kicker,
+  tone,
   title,
   hint,
   children,
 }: {
+  kicker: string;
+  tone: "template" | "final";
   title: string;
   hint: string;
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: "grid", gap: "0.5rem" }}>
-      <div style={{ display: "grid", gap: 2 }}>
-        <h4
-          style={{
-            margin: 0,
-            color: "var(--bp-brown-1)",
-            fontWeight: 900,
-            fontSize: 15,
-          }}
+    <div style={{ display: "grid", gap: "0.75rem" }}>
+      <div className={styles.tattooGroupHeader}>
+        <span
+          className={`${styles.tattooGroupKicker} ${
+            tone === "template"
+              ? styles.tattooGroupKickerTemplate
+              : styles.tattooGroupKickerFinal
+          }`}
         >
-          {title}
-        </h4>
+          {kicker}
+        </span>
+        <h4 className={styles.tattooGroupTitle}>{title}</h4>
         <span style={mutedText}>{hint}</span>
       </div>
       <div
@@ -134,10 +167,6 @@ function CatalogGroup({
     </div>
   );
 }
-
-type Slot =
-  | { kind: "upload"; key: string; src?: string; name: string; path: string }
-  | { kind: "empty"; key: string; n: number };
 
 
 function SectionHeading({
@@ -205,20 +234,14 @@ export function TattooDesignsView({
   const templates = catalog.filter((item) => item.kind === "template");
   const finals = catalog.filter((item) => item.kind !== "template");
 
-  const filled: Slot[] = designs.map((d, i) => ({
-    kind: "upload",
+  // One tile per saved file, no placeholders: the dropzone already tells how
+  // many places are left. Chosen templates never take an upload place.
+  const uploads = designs.map((d, i) => ({
     key: d.path,
     src: d.url,
     name: `Diseño ${i + 1}`,
     path: d.path,
   }));
-  // While editing the client always sees every upload place; read-only shows
-  // only what was saved. Chosen templates never take an upload place.
-  const slots: Slot[] = canEdit
-    ? Array.from({ length: TATTOO_UPLOADS_MAX }, (_, i) =>
-        filled[i] ?? { kind: "empty", key: `empty-${i}`, n: i + 1 },
-      )
-    : filled;
 
   const renderTile = (item: TattooCatalogItem) => {
         const selected = chosenIds.has(item.id);
@@ -296,57 +319,44 @@ export function TattooDesignsView({
   return (
     <section className={styles.card} style={{ marginBottom: "1rem" }}>
       <div style={{ display: "grid", gap: "1.25rem" }}>
-        <div style={{ display: "grid", gap: "0.6rem" }}>
-          <h2
-            style={{
-              margin: 0,
-              color: "var(--bp-brown-1)",
-              fontWeight: 900,
-              fontSize: 18,
-            }}
-          >
-            Diseños de tatuajes
-          </h2>
-          <div style={mutedText}>
-            Puedes <strong>subir hasta {TATTOO_UPLOADS_MAX} fotos o diseños</strong>{" "}
-            tuyos y <strong>elegir hasta {TATTOO_CATALOG_MAX} diseños</strong> de
-            nuestro catálogo.
-            {closingDayLabel && canEdit
-              ? ` Puedes cambiar tus elecciones hasta el ${closingDayLabel}.`
-              : ""}
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            <span style={chipStyle}>
-              Subes hasta {TATTOO_UPLOADS_MAX} · eliges hasta {TATTOO_CATALOG_MAX}
-            </span>
-            <span style={chipStyle}>
-              Nuestro equipo necesita una semana para trabajarlos
-            </span>
-          </div>
-        </div>
-
-        <div
-          role="note"
+        <h2
           style={{
-            display: "grid",
-            gap: 6,
-            border: "1px solid var(--bp-brown-3)",
-            borderRadius: 12,
-            padding: "12px 14px",
+            margin: 0,
+            color: "var(--bp-brown-1)",
+            fontWeight: 900,
+            fontSize: 18,
           }}
         >
-          <strong style={{ color: "var(--bp-brown-1)", fontSize: 14 }}>
-            Solo se imprimen {TATTOO_PRINT_MAX} tatuajes finales
-          </strong>
-          <span style={mutedText}>
-            Aunque subas y elijas más, nuestro equipo define cuáles se imprimen
-            con esta prioridad:
-          </span>
-          <ol style={{ ...mutedText, margin: 0, paddingLeft: 20 }}>
-            <li>Diseño final que cargues.</li>
-            <li>Personalizados: templates trabajados con tus fotos.</li>
-            <li>Diseños propios de nuestro catálogo.</li>
+          Diseños de tatuajes
+        </h2>
+
+        <div role="note" className={styles.tattooPriority}>
+          <div style={{ display: "grid", gap: 2 }}>
+            <strong className={styles.tattooPriorityTitle}>
+              Imprimimos{" "}
+              <span className={styles.tattooPriorityCount}>
+                {TATTOO_PRINT_MAX}
+              </span>{" "}
+              tatuajes
+            </strong>
+            <span style={mutedText}>
+              Si eliges más, los escogemos en este orden:
+            </span>
+          </div>
+          <ol className={styles.tattooPriorityList}>
+            <li>Tu diseño final</li>
+            <li>Templates con tus fotos</li>
+            <li>Diseños del catálogo</li>
           </ol>
+        </div>
+
+        <div style={mutedText}>
+          Puedes <strong>subir hasta {TATTOO_UPLOADS_MAX} fotos o diseños</strong>{" "}
+          tuyos y <strong>elegir hasta {TATTOO_CATALOG_MAX} diseños</strong> de
+          nuestro catálogo.
+          {closingDayLabel && canEdit
+            ? ` Puedes cambiar tus elecciones hasta el ${closingDayLabel}.`
+            : ""}
         </div>
 
         {locked ? (
@@ -358,23 +368,25 @@ export function TattooDesignsView({
 
         {canEdit ? (
           <div style={{ display: "grid", gap: "0.6rem" }}>
-            <StepTitle n={1}>Sube tus fotos o diseños</StepTitle>
-            <div style={mutedText}>
-              Si subes fotos, podrán usarse para personalizar los templates,
-              pero no aseguramos que funcionen: no todas las fotos sirven para
-              todos los templates. Nuestro equipo decide qué foto usa con cada
-              template.
-            </div>
-            {examples.length > 0 ? (
-              <button
-                type="button"
-                className={styles.btnSecondary}
-                style={{ minHeight: 44 }}
-                onClick={() => setShowExamples(true)}
-              >
-                Ver ejemplos de buenas fotos
-              </button>
-            ) : null}
+            <StepTitle
+              n={1}
+              action={
+                examples.length > 0 ? (
+                  <button
+                    type="button"
+                    className={styles.tattooExamplesChip}
+                    onClick={() => setShowExamples(true)}
+                  >
+                    <img src={examples[0].imageUrl} alt="" />
+                    <span>
+                      ¿Cómo funciona? <strong>Ver ejemplo</strong>
+                    </span>
+                  </button>
+                ) : null
+              }
+            >
+              Sube tus fotos o diseños
+            </StepTitle>
             {uploadsFull ? (
               <div style={{ ...mutedText, fontWeight: 700 }}>
                 Ya tienes tus {TATTOO_UPLOADS_MAX} fotos y diseños. Quita uno de
@@ -387,9 +399,22 @@ export function TattooDesignsView({
                   showPreviews={false}
                   multiple
                   disabled={isBusy}
-                  description={`Imágenes · te quedan ${remaining} ${
-                    remaining === 1 ? "lugar" : "lugares"
-                  }`}
+                  label="Pulsa aquí para agregar o arrastra para subir tus selfies"
+                  description={
+                    <>
+                      <span style={{ display: "block" }}>
+                        Con ellas personalizamos los templates que elijas. O
+                        también puedes subir tus diseños finales.
+                      </span>
+                      <span
+                        style={{ display: "block", marginTop: 6, fontWeight: 800 }}
+                      >
+                        {remaining === 1
+                          ? "Te queda 1 espacio"
+                          : `Te quedan ${remaining} espacios`}
+                      </span>
+                    </>
+                  }
                   onFilesSelected={onAddFiles}
                 />
               </div>
@@ -397,11 +422,11 @@ export function TattooDesignsView({
           </div>
         ) : null}
 
-        <div style={{ display: "grid", gap: "0.6rem" }}>
-          <SectionHeading count={designs.length} max={TATTOO_UPLOADS_MAX}>
-            Tus fotos y diseños
-          </SectionHeading>
-          {slots.length > 0 ? (
+        {uploads.length > 0 ? (
+          <div style={{ display: "grid", gap: "0.6rem" }}>
+            <SectionHeading count={designs.length} max={TATTOO_UPLOADS_MAX}>
+              Tus fotos y diseños
+            </SectionHeading>
             <div
               style={{
                 display: "grid",
@@ -409,33 +434,7 @@ export function TattooDesignsView({
                 gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))",
               }}
             >
-              {slots.map((slot) => {
-                if (slot.kind === "empty") {
-                  return (
-                    <div
-                      key={slot.key}
-                      style={slotCellStyle}
-                    >
-                      <div
-                        style={{
-                          boxSizing: "border-box",
-                          aspectRatio: "1 / 1",
-                          borderRadius: 12,
-                          border: "2px dashed var(--bp-brown-4)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "var(--bp-brown-2)",
-                          fontWeight: 900,
-                          fontSize: 20,
-                        }}
-                      >
-                        {slot.n}
-                      </div>
-                      <span style={mutedText}>Lugar libre</span>
-                    </div>
-                  );
-                }
+              {uploads.map((slot) => {
                 return (
                   <div
                     key={slot.key}
@@ -478,8 +477,8 @@ export function TattooDesignsView({
                 );
               })}
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
         {chosen.length > 0 || (canEdit && catalog.length > 0) ? (
           <div
@@ -496,25 +495,22 @@ export function TattooDesignsView({
             <SectionHeading count={chosen.length} max={TATTOO_CATALOG_MAX}>
               Tu selección del catálogo
             </SectionHeading>
-            {canEdit && catalog.length > 0 ? (
-              <div style={mutedText}>
-                Toca un diseño para elegirlo; queda marcado con una palomita. Toca
-                otra vez para quitarlo. No ocupa lugar de tus fotos.
-              </div>
-            ) : null}
-
             {canEdit && templates.length > 0 ? (
               <CatalogGroup
-                title="Templates personalizables"
-                hint="Los personalizamos con tus fotos."
+                kicker="Personalizable"
+                tone="template"
+                title="Templates con tus fotos"
+                hint="Elige los que te gusten: les ponemos tu rostro usando tus selfies."
               >
                 {templates.map(renderTile)}
               </CatalogGroup>
             ) : null}
             {canEdit && finals.length > 0 ? (
               <CatalogGroup
-                title="Diseños finales"
-                hint="Listos, tal como se ven."
+                kicker="Listo para imprimir"
+                tone="final"
+                title="Diseños listos"
+                hint="Se imprimen tal como los ves."
               >
                 {finals.map(renderTile)}
               </CatalogGroup>
@@ -581,28 +577,24 @@ export function TattooDesignsView({
       >
         <Modal.Header closeButton closeLabel="Cerrar">
           <Modal.Title id="tattoo-examples-title" as="h2" style={{ fontSize: 18 }}>
-            Ejemplos de buenas fotos
+            ¿Qué foto funciona mejor?
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p style={mutedText}>
-            Mientras más clara y de frente sea tu foto (selfies, rostro de
-            cerca…), mejor podremos adaptarla a los templates.
+            Las fotos claras y de frente funcionan mejor. Nuestro equipo elige
+            la mejor foto para cada template.
           </p>
-          <div
-            style={{
-              display: "grid",
-              gap: "0.75rem",
-              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-            }}
-          >
+          {/* The example image explains itself: shown whole, as large as the
+              modal allows, with no caption. */}
+          <div style={{ display: "grid", gap: "1rem" }}>
             {examples.map((example) => (
-              <figure key={example.id} style={{ margin: 0, display: "grid", gap: 4 }}>
-                <img src={example.imageUrl} alt={example.title} style={thumbStyle} />
-                <figcaption style={{ ...mutedText, fontWeight: 700 }}>
-                  {example.title}
-                </figcaption>
-              </figure>
+              <img
+                key={example.id}
+                src={example.imageUrl}
+                alt={example.title}
+                style={exampleImageStyle}
+              />
             ))}
           </div>
         </Modal.Body>
