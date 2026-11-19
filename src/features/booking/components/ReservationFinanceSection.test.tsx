@@ -13,13 +13,17 @@ const payment = {
   reference: null,
 } as any;
 
-const renderSection = (contract: Record<string, unknown>, balanceDue?: number) =>
+const renderSection = (
+  contract: Record<string, unknown>,
+  balanceDue?: number,
+  payments: unknown[] = [payment]
+) =>
   render(
     <ReservationFinanceSection
       contract={
         { total: 2000, subtotal: 2000, discountTotal: 0, ...contract } as any
       }
-      payments={[payment]}
+      payments={payments as any}
       paidAmount={700}
       balanceDue={balanceDue}
     />
@@ -59,5 +63,18 @@ describe("ReservationFinanceSection", () => {
     renderSection({ transportStatus: "included" }, 1300);
 
     expect(screen.getByText("Ver histórico de pagos")).toBeTruthy();
+  });
+
+  it("shows 'Ver comprobante' only on payments with a receipt, opening a new tab", () => {
+    renderSection({ transportStatus: "included" }, 1300, [
+      { ...payment, id: 1, reference: "folio-9", receiptUrl: "https://s/r.pdf" },
+      { ...payment, id: 2, receivedAt: "2026-10-31" },
+    ]);
+
+    const links = screen.getAllByText("Ver comprobante");
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toBe("https://s/r.pdf");
+    expect(links[0].getAttribute("target")).toBe("_blank");
+    expect(screen.getByText(/Referencia: folio-9/)).toBeTruthy();
   });
 });

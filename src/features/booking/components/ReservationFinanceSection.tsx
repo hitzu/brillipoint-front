@@ -159,6 +159,19 @@ export const ReservationFinanceSection = ({
                       <div className={styles.paymentReference}>
                         {translatePaymentMethod(p.method)}
                         {p.reference ? ` · Referencia: ${p.reference}` : ""}
+                        {p.receiptUrl && (
+                          <>
+                            {" · "}
+                            <a
+                              href={p.receiptUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.paymentReceiptLink}
+                            >
+                              Ver comprobante
+                            </a>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}

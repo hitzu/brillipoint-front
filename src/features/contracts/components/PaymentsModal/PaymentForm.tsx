@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import type { CreatePaymentPayload, PaymentMethod } from "../../../../interfaces";
-import { PAYMENT_METHOD_OPTIONS, type PaymentFormValues } from "./types";
+import type { Payment, PaymentMethod } from "../../../../interfaces";
+import {
+  uploadPaymentReceipt,
+  validatePaymentReceiptFile,
+} from "../../../../api/services/paymentService";
+import {
+  PAYMENT_METHOD_OPTIONS,
+  type PaymentFormPayload,
+  type PaymentFormValues,
+} from "./types";
 
 const validationSchema = yup.object().shape({
   amount: yup
@@ -17,11 +25,7 @@ const validationSchema = yup.object().shape({
     .required("El método es requerido"),
   receivedAt: yup.string().required("La fecha es requerida"),
   note: yup.string(),
-  reference: yup.string().when("method", {
-    is: "transfer",
-    then: (schema) => schema.required("La referencia es requerida"),
-    otherwise: (schema) => schema.optional(),
-  }),
+  reference: yup.string(),
 });
 
 function nowForDatetimeLocal(): string {
@@ -30,59 +34,112 @@ function nowForDatetimeLocal(): string {
   return new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
-interface PaymentFormProps {
-  contractId: number;
-  onSubmit: (payload: CreatePaymentPayload) => Promise<boolean>;
+function toDatetimeLocal(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return nowForDatetimeLocal();
+  }
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
-export function PaymentForm({ contractId, onSubmit }: PaymentFormProps) {
+interface PaymentFormProps {
+  contractId: number;
+  /** When set, the form edits this payment instead of creating one. */
+  payment?: Payment | null;
+  onSubmit: (payload: PaymentFormPayload) => Promise<boolean>;
+  onCancel?: () => void;
+}
+
+export function PaymentForm({
+  contractId,
+  payment = null,
+  onSubmit,
+  onCancel,
+}: PaymentFormProps) {
+  const isEdit = payment !== null;
+  const [file, setFile] = useState<File | null>(null);
+  const [removeReceipt, setRemoveReceipt] = useState(false);
+  const [receiptError, setReceiptError] = useState<string | null>(null);
+
+  const emptyValues = (): PaymentFormValues => ({
+    amount: "",
+    method: "cash",
+    receivedAt: nowForDatetimeLocal(),
+    note: "",
+    reference: "",
+  });
+
   const formik = useFormik<PaymentFormValues>({
-    initialValues: {
-      amount: "",
-      method: "cash",
-      receivedAt: nowForDatetimeLocal(),
-      note: "",
-      reference: "",
-    },
+    initialValues: payment
+      ? {
+          amount: String(payment.amount),
+          method: payment.method,
+          receivedAt: toDatetimeLocal(payment.receivedAt),
+          note: payment.note ?? "",
+          reference: payment.reference ?? "",
+        }
+      : emptyValues(),
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
-      const payload: CreatePaymentPayload = {
-        contractId,
+      const carriesReceipt =
+        values.method === "transfer" || values.method === "card";
+      // Editing sends null to clear a field; creating just omits it.
+      const empty = isEdit ? null : undefined;
+
+      const reference = carriesReceipt ? values.reference.trim() : "";
+      const note = values.note.trim();
+      const payload: PaymentFormPayload = {
         amount: Number(values.amount),
         method: values.method,
         receivedAt: new Date(values.receivedAt).toISOString(),
+        reference: reference || empty,
+        note: note || empty,
       };
 
-      if (values.method === "transfer" || values.method === "card") {
-        const reference = values.reference.trim();
-        if (reference) {
-          payload.reference = reference;
+      if (carriesReceipt && file) {
+        try {
+          payload.receiptPath = await uploadPaymentReceipt(contractId, file);
+        } catch (error) {
+          console.error("Error uploading receipt:", error);
+          setReceiptError("No se pudo subir el comprobante. Intenta de nuevo.");
+          return;
         }
-      }
-
-      const note = values.note.trim();
-      if (note) {
-        payload.note = note;
+      } else if (isEdit && removeReceipt) {
+        payload.receiptPath = null;
       }
 
       const success = await onSubmit(payload);
-      if (success) {
-        resetForm({
-          values: {
-            amount: "",
-            method: "cash",
-            receivedAt: nowForDatetimeLocal(),
-            note: "",
-            reference: "",
-          },
-        });
+      if (success && !isEdit) {
+        resetForm({ values: emptyValues() });
+        setFile(null);
+        setRemoveReceipt(false);
       }
     },
   });
 
-  const isTransfer = formik.values.method === "transfer";
-  const showsReference =
+  const showsReceipt =
     formik.values.method === "transfer" || formik.values.method === "card";
+  const currentReceiptUrl =
+    isEdit && !removeReceipt ? payment?.receiptUrl ?? null : null;
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0] ?? null;
+    if (!selected) {
+      setFile(null);
+      setReceiptError(null);
+      return;
+    }
+    const invalid = validatePaymentReceiptFile(selected);
+    if (invalid) {
+      setFile(null);
+      setReceiptError(invalid);
+      event.target.value = "";
+      return;
+    }
+    setReceiptError(null);
+    setFile(selected);
+  };
 
   return (
     <Form onSubmit={formik.handleSubmit}>
@@ -140,11 +197,9 @@ export function PaymentForm({ contractId, onSubmit }: PaymentFormProps) {
           </Form.Control.Feedback>
         </Form.Group>
 
-        {showsReference && (
+        {showsReceipt && (
           <Form.Group className="col-sm-6">
-            <Form.Label>
-              Referencia{!isTransfer && " (opcional)"}
-            </Form.Label>
+            <Form.Label>Referencia (opcional)</Form.Label>
             <Form.Control
               type="text"
               placeholder="bank-tx-123"
@@ -157,6 +212,53 @@ export function PaymentForm({ contractId, onSubmit }: PaymentFormProps) {
             <Form.Control.Feedback type="invalid">
               {formik.errors.reference}
             </Form.Control.Feedback>
+          </Form.Group>
+        )}
+
+        {showsReceipt && (
+          <Form.Group className="col-12">
+            <Form.Label>Subir comprobante (PDF, opcional)</Form.Label>
+            <Form.Control
+              type="file"
+              name="receipt"
+              accept="application/pdf"
+              onChange={handleFileChange}
+              isInvalid={!!receiptError}
+            />
+            <Form.Control.Feedback type="invalid">
+              {receiptError}
+            </Form.Control.Feedback>
+            {currentReceiptUrl && !file && (
+              <div className="mt-1">
+                <a
+                  href={currentReceiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Ver comprobante actual
+                </a>{" "}
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="text-danger"
+                  onClick={() => setRemoveReceipt(true)}
+                >
+                  Quitar comprobante
+                </Button>
+              </div>
+            )}
+            {isEdit && removeReceipt && (
+              <div className="mt-1 text-muted">
+                El comprobante se quitará al guardar.{" "}
+                <Button
+                  size="sm"
+                  variant="link"
+                  onClick={() => setRemoveReceipt(false)}
+                >
+                  Deshacer
+                </Button>
+              </div>
+            )}
           </Form.Group>
         )}
 
@@ -174,13 +276,22 @@ export function PaymentForm({ contractId, onSubmit }: PaymentFormProps) {
         </Form.Group>
       </div>
 
-      <div className="d-flex justify-content-end mt-3">
+      <div className="d-flex justify-content-end gap-2 mt-3">
+        {onCancel && (
+          <Button type="button" variant="light" onClick={onCancel}>
+            Cancelar
+          </Button>
+        )}
         <Button
           type="submit"
           variant="primary"
           disabled={formik.isSubmitting}
         >
-          {formik.isSubmitting ? "Guardando..." : "Registrar pago"}
+          {formik.isSubmitting
+            ? "Guardando..."
+            : isEdit
+              ? "Guardar cambios"
+              : "Registrar pago"}
         </Button>
       </div>
     </Form>

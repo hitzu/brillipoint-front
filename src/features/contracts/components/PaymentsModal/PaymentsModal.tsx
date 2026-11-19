@@ -1,9 +1,11 @@
-import React, { useEffect } from "react";
-import { Modal, Toast } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Button, Modal, Toast } from "react-bootstrap";
+import type { Payment } from "../../../../interfaces";
 import { usePayments } from "./usePayments";
 import { PaymentsList } from "./PaymentsList";
 import { PaymentForm } from "./PaymentForm";
 import { TransportSection } from "./TransportSection";
+import type { PaymentFormPayload } from "./types";
 
 interface PaymentsModalProps {
   show: boolean;
@@ -30,11 +32,42 @@ export function PaymentsModal({
     hideToast,
     fetchPayments,
     addPayment,
+    editPayment,
+    removePayment,
     transport,
     savingTransport,
     fetchTransport,
     saveTransport,
   } = usePayments();
+
+  const [editing, setEditing] = useState<Payment | null>(null);
+  const [deleting, setDeleting] = useState<Payment | null>(null);
+
+  const handleSubmit = async (payload: PaymentFormPayload): Promise<boolean> => {
+    if (editing) {
+      const ok = await editPayment(contractId, editing.id, payload);
+      if (ok) setEditing(null);
+      return ok;
+    }
+    return addPayment({
+      contractId,
+      ...payload,
+      note: payload.note ?? undefined,
+      reference: payload.reference ?? undefined,
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    const target = deleting;
+    setDeleting(null);
+    await removePayment(contractId, target.id);
+  };
+
+  useEffect(() => {
+    setEditing(null);
+    setDeleting(null);
+  }, [show, contractId]);
 
   useEffect(() => {
     if (show && contractId) {
@@ -73,7 +106,12 @@ export function PaymentsModal({
         </Modal.Header>
         <Modal.Body>
           <h6 className="mb-3">Pagos registrados</h6>
-          <PaymentsList payments={payments} loading={loading} />
+          <PaymentsList
+            payments={payments}
+            loading={loading}
+            onEdit={setEditing}
+            onDelete={setDeleting}
+          />
 
           <hr className="my-4" />
 
@@ -100,9 +138,37 @@ export function PaymentsModal({
 
           <hr className="my-4" />
 
-          <h6 className="mb-3">Agregar pago</h6>
-          <PaymentForm contractId={contractId} onSubmit={addPayment} />
+          <h6 className="mb-3">{editing ? "Editar pago" : "Agregar pago"}</h6>
+          <PaymentForm
+            key={editing?.id ?? "new"}
+            contractId={contractId}
+            payment={editing}
+            onSubmit={handleSubmit}
+            onCancel={editing ? () => setEditing(null) : undefined}
+          />
         </Modal.Body>
+      </Modal>
+
+      <Modal
+        show={deleting !== null}
+        onHide={() => setDeleting(null)}
+        dialogClassName="modal-dialog-centered"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title as="h5">Eliminar pago</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Seguro que quieres eliminar este pago? El saldo del contrato se
+          recalculará.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="light" onClick={() => setDeleting(null)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={confirmDelete}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
       </Modal>
     </>
   );

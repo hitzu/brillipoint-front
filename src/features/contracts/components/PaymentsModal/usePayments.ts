@@ -3,6 +3,7 @@ import type {
   ContractTransportStatus,
   CreatePaymentPayload,
   Payment,
+  UpdatePaymentPayload,
 } from "../../../../interfaces";
 import {
   getContractById,
@@ -10,7 +11,9 @@ import {
 } from "../../../../api/services/contractService";
 import {
   createPayment,
+  deletePayment,
   getPayments,
+  updatePayment,
 } from "../../../../api/services/paymentService";
 
 type ToastVariant = "success" | "danger";
@@ -126,6 +129,42 @@ export function usePayments() {
     [fetchPayments, fetchTransport, showToast]
   );
 
+  const editPayment = useCallback(
+    async (
+      contractId: number,
+      paymentId: number,
+      payload: UpdatePaymentPayload
+    ): Promise<boolean> => {
+      try {
+        await updatePayment(contractId, paymentId, payload);
+        await Promise.all([fetchPayments(contractId), fetchTransport(contractId)]);
+        showToast("Pago actualizado", "success");
+        return true;
+      } catch (error) {
+        console.error("Error updating payment:", error);
+        showToast("Error al actualizar el pago", "danger");
+        return false;
+      }
+    },
+    [fetchPayments, fetchTransport, showToast]
+  );
+
+  const removePayment = useCallback(
+    async (contractId: number, paymentId: number): Promise<boolean> => {
+      try {
+        await deletePayment(contractId, paymentId);
+        await Promise.all([fetchPayments(contractId), fetchTransport(contractId)]);
+        showToast("Pago eliminado", "success");
+        return true;
+      } catch (error) {
+        console.error("Error deleting payment:", error);
+        showToast("Error al eliminar el pago", "danger");
+        return false;
+      }
+    },
+    [fetchPayments, fetchTransport, showToast]
+  );
+
   return {
     payments,
     loading,
@@ -133,6 +172,8 @@ export function usePayments() {
     hideToast,
     fetchPayments,
     addPayment,
+    editPayment,
+    removePayment,
     transport,
     savingTransport,
     fetchTransport,

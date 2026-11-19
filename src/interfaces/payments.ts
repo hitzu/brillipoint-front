@@ -9,6 +9,8 @@ export interface Payment {
   receivedAt: string;
   note: string | null;
   reference: string | null;
+  /** Short-lived signed URL of the PDF receipt, when the payment has one. */
+  receiptUrl?: string | null;
 }
 
 export interface CreatePaymentPayload {
@@ -18,4 +20,21 @@ export interface CreatePaymentPayload {
   receivedAt: string;
   note?: string;
   reference?: string;
+  receiptPath?: string | null;
+}
+
+export interface UpdatePaymentPayload {
+  amount?: number;
+  method?: PaymentMethod;
+  receivedAt?: string;
+  note?: string | null;
+  reference?: string | null;
+  /** `null` removes the receipt; omit to keep it. */
+  receiptPath?: string | null;
+}
+
+export interface PaymentReceiptUploadUrl {
+  path: string;
+  signedUrl: string;
+  token: string;
 }

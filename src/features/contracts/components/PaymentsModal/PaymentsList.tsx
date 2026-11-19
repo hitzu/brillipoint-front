@@ -1,11 +1,13 @@
 import React from "react";
-import { Spinner, Table } from "react-bootstrap";
+import { Button, Spinner, Table } from "react-bootstrap";
 import type { Payment, PaymentMethod } from "../../../../interfaces";
 import { PAYMENT_METHOD_LABELS } from "./types";
 
 interface PaymentsListProps {
   payments: Payment[];
   loading: boolean;
+  onEdit: (payment: Payment) => void;
+  onDelete: (payment: Payment) => void;
 }
 
 const METHOD_BADGE_COLOR: Record<PaymentMethod, string> = {
@@ -33,7 +35,12 @@ function formatAmount(value: number): string {
   }).format(value);
 }
 
-export function PaymentsList({ payments, loading }: PaymentsListProps) {
+export function PaymentsList({
+  payments,
+  loading,
+  onEdit,
+  onDelete,
+}: PaymentsListProps) {
   if (loading) {
     return (
       <div className="text-center py-4">
@@ -58,6 +65,7 @@ export function PaymentsList({ payments, loading }: PaymentsListProps) {
           <th>Método</th>
           <th className="text-end">Monto</th>
           <th>Referencia / Nota</th>
+          <th className="text-end">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -76,6 +84,29 @@ export function PaymentsList({ payments, loading }: PaymentsListProps) {
             <td className="text-end">{formatAmount(payment.amount)}</td>
             <td className="text-muted">
               {payment.reference || payment.note || "—"}
+            </td>
+            <td className="text-end text-nowrap">
+              {payment.receiptUrl && (
+                <a
+                  href={payment.receiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-sm btn-link"
+                >
+                  Ver comprobante
+                </a>
+              )}
+              <Button size="sm" variant="link" onClick={() => onEdit(payment)}>
+                Editar
+              </Button>
+              <Button
+                size="sm"
+                variant="link"
+                className="text-danger"
+                onClick={() => onDelete(payment)}
+              >
+                Eliminar
+              </Button>
             </td>
           </tr>
         ))}

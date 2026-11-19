@@ -692,6 +692,12 @@
   margin-top: -0.15rem;
 }
 
+.paymentReceiptLink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .totalRow {
   display: flex;
   align-items: flex-end;
