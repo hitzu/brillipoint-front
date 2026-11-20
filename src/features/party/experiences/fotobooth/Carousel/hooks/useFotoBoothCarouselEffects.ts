@@ -85,8 +85,11 @@ export const useFotoBoothCarouselEffects = ({
       }
 
       preloadedItemIndexes.current.add(itemIndex);
+      // A video is never an <img>: warm its poster and let the browser stream the clip.
+      const preloadSrc = item.type === "video" ? item.posterSrc : item.src;
+      if (!preloadSrc) return;
       const image = new Image();
-      image.src = item.src;
+      image.src = preloadSrc;
     });
   }, [activeItemStatus, index, items]);
 

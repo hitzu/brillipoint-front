@@ -20,6 +20,12 @@ export interface SessionPhoto {
   position: number;
 }
 
+export interface SessionVideo {
+  url: string;
+  posterUrl: string;
+  durationMs: number | null;
+}
+
 export interface SessionEventTheme extends EventThemes {
   createdAt?: string;
   updatedAt?: string;
@@ -41,6 +47,8 @@ export interface SessionResponse {
   sessionToken: string;
   status: SessionStatus;
   photos: SessionPhoto[];
+  /** Present only when the session has a video; its absence means "no trace of video". */
+  videos?: SessionVideo[];
   event: SessionEventData;
 }
 
@@ -48,6 +56,8 @@ export interface GallerySessionItem {
   sessionToken: string;
   coverPhoto: string;
   photoCount: number;
+  /** Optional API field; the gallery cover is always a photo, so the overview ignores it. */
+  videos?: SessionVideo[];
   time?: string;
 }
 

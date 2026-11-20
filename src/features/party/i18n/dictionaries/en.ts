@@ -15,6 +15,7 @@ export const en: Dictionary = {
     pageTitleWithNames: "My Photos - {{names}}",
     fallbackEventName: "your event",
     photoAlt: "Photo {{number}} from {{eventName}}",
+    videoAlt: "Video from {{eventName}}",
     loading: "Loading your photos...",
     splash: {
       preparing: "Getting everything ready",
