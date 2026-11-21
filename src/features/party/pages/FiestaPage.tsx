@@ -20,6 +20,7 @@ import {
   getPublicPhotosByEventToken,
 } from "../../../api/services/partyPublicService";
 import { formatSplashDate } from "../utils/formatSplashDate";
+import { maskHiddenEventIdentity } from "../utils/maskHiddenEventIdentity";
 import { isExpiredEventStatus } from "../utils/eventStatus";
 import { preloadImages } from "../utils/preloadImages";
 import { buildThemeVars } from "../utils/themeVars";
@@ -114,7 +115,7 @@ function FiestaPage({ eventToken }: { eventToken?: string }) {
     try {
       setSplashStep("fiesta.splash.findingPhotos");
       const data = await getEventGalleryV2(resolvedEventToken);
-      setEventData(data.event);
+      setEventData(maskHiddenEventIdentity(data.event));
 
       if (isExpiredEventStatus(data.event.status)) {
         setSessions([]);
@@ -166,7 +167,7 @@ function FiestaPage({ eventToken }: { eventToken?: string }) {
     const url = typeof window !== "undefined" ? window.location.href : "";
     await shareUrl(
       url,
-      eventData?.honoreesNames ?? t("fiesta.fallbackEventName"),
+      eventData?.honoreesNames || t("fiesta.fallbackEventName"),
     );
   };
 
@@ -212,7 +213,7 @@ function FiestaPage({ eventToken }: { eventToken?: string }) {
       0,
       allPhotos.findIndex((item) => item.id === photo.id),
     );
-    const title = eventData?.honoreesNames ?? "Brillipoint";
+    const title = eventData?.honoreesNames || "Brillipoint";
     try {
       await downloadPhoto(
         photo.publicUrl,
@@ -233,7 +234,7 @@ function FiestaPage({ eventToken }: { eventToken?: string }) {
   };
 
   const handleSharePhoto = async (photo: EventPhoto) => {
-    const title = eventData?.honoreesNames ?? "Brillipoint";
+    const title = eventData?.honoreesNames || "Brillipoint";
     await sharePhoto(
       photo.publicUrl,
       title,
@@ -368,12 +369,12 @@ function FiestaPage({ eventToken }: { eventToken?: string }) {
         isOpen={viewerIndex !== null && allPhotos.length > 0}
         photos={allPhotos}
         activeIndex={viewerIndex}
-        eventTitle={eventData?.honoreesNames ?? "Brillipoint"}
+        eventTitle={eventData?.honoreesNames || "Brillipoint"}
         onClose={() => setViewerIndex(null)}
         onActiveIndexChange={setViewerIndex}
         onDownload={handleDownloadPhoto}
         onShare={handleSharePhoto}
-        nombreFestejado={eventData?.honoreesNames ?? ""}
+        nombreFestejado={eventData?.honoreesNames || ""}
         eventToken={resolvedEventToken}
         showNavigationHints
         backdropColor={theme.pageBackground}

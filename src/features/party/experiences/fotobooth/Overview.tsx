@@ -293,7 +293,7 @@ const FotoBoothOverview = ({
               <p className={styles.mirrorPhrase}>{albumPhrase}</p>
             )}
             <h1 className={styles.mirrorName}>
-              {eventData?.honoreesNames ?? t("overview.welcome")}
+              {eventData?.honoreesNames || t("overview.welcome")}
             </h1>
             {dateLabel && <p className={styles.mirrorDate}>{dateLabel}</p>}
           </div>
@@ -321,7 +321,7 @@ const FotoBoothOverview = ({
                 <p className={styles.emptyTitle}>{albumPhrase}</p>
               )}
               <h1 className={styles.emptyEventName}>
-                {eventData?.honoreesNames ?? t("overview.welcome")}
+                {eventData?.honoreesNames || t("overview.welcome")}
               </h1>
               {dateLabel && (
                 <p className={styles.emptyEventDate}>{dateLabel}</p>

@@ -20,6 +20,7 @@ import {
   isExpiredSessionStatus,
 } from "../utils/eventStatus";
 import { formatSplashDate } from "../utils/formatSplashDate";
+import { maskHiddenEventIdentity } from "../utils/maskHiddenEventIdentity";
 import { buildThemeVars } from "../utils/themeVars";
 import { EventPageTheme } from "../types/eventPageTheme";
 import { useEventTheme } from "../hooks/useEventTheme";
@@ -70,7 +71,7 @@ const EmptyStateEnCamino = ({
       <p className={styles.emptyTitle}>
         {t("misFotos.empty.titleBeforeNames")}{" "}
         <strong>
-          {eventData?.honoreesNames ?? t("misFotos.fallbackEventName")}
+          {eventData?.honoreesNames || t("misFotos.fallbackEventName")}
         </strong>{" "}
         {t("misFotos.empty.titleAfterNames")}
       </p>
@@ -101,7 +102,7 @@ const EmptyStateError = ({
       <p className={styles.emptyTitle}>
         {t("misFotos.error.titleBeforeNames")}{" "}
         <strong>
-          {eventData?.honoreesNames ?? t("misFotos.fallbackEventName")}
+          {eventData?.honoreesNames || t("misFotos.fallbackEventName")}
         </strong>{" "}
         {t("misFotos.error.titleAfterNames")}
       </p>
@@ -171,7 +172,7 @@ function MisFotosPage({ sessionToken }: { sessionToken: string }) {
     try {
       setSplashStep("misFotos.splash.findingSession");
       const session = await getEventGallerySessionV2(sessionToken);
-      setEventData(session?.event ?? null);
+      setEventData(maskHiddenEventIdentity(session?.event));
 
       if (session?.event?.eventToken) {
         setThemeEventToken(session.event.eventToken);
