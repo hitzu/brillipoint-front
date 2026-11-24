@@ -11,6 +11,7 @@ import {
 } from "../utils/tattooDesigns";
 import { TattooSaveStatus } from "../utils/tattooSaveStatus";
 import { TattooPrintNotice } from "./TattooPrintNotice";
+import { TattooSaveToast } from "./TattooSaveToast";
 import { TattooSelectionBar } from "./TattooSelectionBar";
 import { TattooSummaryModal } from "./TattooSummaryModal";
 
@@ -324,16 +325,11 @@ export function TattooDesignsView({
           Diseños de tatuajes
         </h2>
 
-        <TattooPrintNotice />
-
-        <div style={mutedText}>
-          Puedes <strong>subir hasta {TATTOO_UPLOADS_MAX} fotos o diseños</strong>{" "}
-          tuyos y <strong>elegir hasta {TATTOO_CATALOG_MAX} diseños</strong> de
-          nuestro catálogo.
-          {closingDayLabel && canEdit
-            ? ` Puedes cambiar tus elecciones hasta el ${closingDayLabel}.`
-            : ""}
-        </div>
+        <TattooPrintNotice
+          showSteps
+          closingDayLabel={closingDayLabel}
+          canEdit={canEdit}
+        />
 
         {locked ? (
           <div role="status" style={{ ...mutedText, fontWeight: 800 }}>
@@ -544,6 +540,8 @@ export function TattooDesignsView({
             {errorMessage}
           </div>
         ) : null}
+
+        <TattooSaveToast status={saveStatus} />
 
         <TattooSelectionBar
           uploadsCount={designs.length}

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -87,12 +88,31 @@ describe("TattooDesignsView", () => {
     expect(screen.getByText("2 de 10", { selector: "span" })).toBeTruthy();
   });
 
-  it("shows the print priority before the upload and catalog limits", () => {
-    render(<TattooDesignsView {...baseProps} />);
+  it("explains how it works in three steps inside the print notice", () => {
+    render(<TattooDesignsView {...baseProps} closingDayLabel="11 de diciembre" />);
 
     const note = screen.getByRole("note");
-    const limits = screen.getByText("subir hasta 10 fotos o diseños");
-    expect(note.compareDocumentPosition(limits) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(note.textContent).toContain("Sube hasta 10 fotos o diseños tuyos.");
+    expect(note.textContent).toContain("Elige hasta 10 diseños de nuestro catálogo.");
+    expect(note.textContent).toContain("Nosotros escogemos 5 de tus favoritos para imprimir.");
+    expect(note.textContent).toContain(
+      "Todo se guarda solo. Puedes cambiar tus elecciones hasta el 11 de diciembre.",
+    );
+    expect(screen.queryByText(/Tus cambios se guardan automáticamente/)).toBeNull();
+  });
+
+  it("keeps the footer without a date when the reservation has no event date", () => {
+    render(<TattooDesignsView {...baseProps} closingDayLabel={null} />);
+
+    const note = screen.getByRole("note");
+    expect(note.textContent).toContain("Todo se guarda solo.");
+    expect(note.textContent).not.toContain("Puedes cambiar");
+  });
+
+  it("drops the saving footer and steps promise once read-only", () => {
+    render(<TattooDesignsView {...baseProps} locked saveStatus="locked" closingDayLabel="11 de diciembre" />);
+
+    expect(screen.getByRole("note").textContent).not.toContain("Todo se guarda solo.");
   });
 
   it("orders the steps: upload first, catalog second", () => {
@@ -146,7 +166,11 @@ describe("TattooDesignsView", () => {
   });
 
   it("tells the client until when designs can be changed", () => {
-    render(<TattooDesignsView {...baseProps} closingDayLabel="12 de septiembre" />);
+    render(<TattooDesignsView
+          {...baseProps}
+          designs={[design(1)]}
+          closingDayLabel="12 de septiembre"
+        />);
 
     expect(screen.getByText(/hasta el 12 de septiembre/)).toBeTruthy();
   });
@@ -312,6 +336,67 @@ describe("TattooDesignsView", () => {
       expect(within(bar()).getByRole("button", { name: "Ver seleccionado" })).toBeTruthy();
     });
 
+    it("keeps the summary button gray and disabled while nothing is selected", () => {
+      render(<TattooDesignsView {...baseProps} />);
+
+      const button = within(bar()).getByRole("button", { name: "Ver seleccionado" }) as HTMLButtonElement;
+      expect(button.disabled).toBe(true);
+      expect(button.className).not.toContain("tattoo-summary-ready");
+    });
+
+    it("turns the summary button green with a one-time jump once there is a selection", () => {
+      const { rerender } = render(<TattooDesignsView {...baseProps} />);
+
+      rerender(<TattooDesignsView {...baseProps} designs={[design(1)]} />);
+
+      const button = within(bar()).getByRole("button", { name: "Ver seleccionado" }) as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      expect(button.className).toContain("tattoo-summary-ready");
+      expect(button.style.background).toBe("rgb(46, 158, 91)");
+    });
+
+    it("also enables it with only a catalog choice", () => {
+      render(<TattooDesignsView {...baseProps} chosen={[choice(1)]} />);
+
+      const button = within(bar()).getByRole("button", { name: "Ver seleccionado" }) as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+    });
+
+    it("turns off the jump for people who prefer reduced motion", () => {
+      render(<TattooDesignsView {...baseProps} designs={[design(1)]} />);
+
+      expect(bar().querySelector("style")?.textContent).toMatch(
+        /prefers-reduced-motion: reduce\)[\s\S]*animation: none/,
+      );
+    });
+
+    it("shows a green check toast after a save finishes, then hides it", () => {
+      vi.useFakeTimers();
+      try {
+        const { rerender } = render(<TattooDesignsView {...baseProps} saveStatus="saving" />);
+        expect(screen.queryByTestId("tattoo-save-toast")).toBeNull();
+
+        rerender(<TattooDesignsView {...baseProps} saveStatus="saved" />);
+        expect(screen.getByTestId("tattoo-save-toast").textContent).toContain("Guardado");
+
+        act(() => {
+          vi.advanceTimersByTime(2100);
+        });
+        expect(screen.queryByTestId("tattoo-save-toast")).toBeNull();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("shows no toast when the save fails or on first render", () => {
+      const { rerender } = render(<TattooDesignsView {...baseProps} saveStatus="saved" />);
+      expect(screen.queryByTestId("tattoo-save-toast")).toBeNull();
+
+      rerender(<TattooDesignsView {...baseProps} saveStatus="saving" />);
+      rerender(<TattooDesignsView {...baseProps} saveStatus="error" />);
+      expect(screen.queryByTestId("tattoo-save-toast")).toBeNull();
+    });
+
     it("gives the summary button a 44 px touch target", () => {
       render(<TattooDesignsView {...baseProps} />);
 
@@ -349,7 +434,7 @@ describe("TattooDesignsView", () => {
     });
 
     it("repeats the print notice: only 5 are printed, with their priority", () => {
-      render(<TattooDesignsView {...baseProps} />);
+      render(<TattooDesignsView {...baseProps} designs={[design(1)]} />);
 
       open();
 
@@ -359,7 +444,11 @@ describe("TattooDesignsView", () => {
     });
 
     it("tells until when changes are possible when the event has a date", () => {
-      render(<TattooDesignsView {...baseProps} closingDayLabel="12 de septiembre" />);
+      render(<TattooDesignsView
+          {...baseProps}
+          designs={[design(1)]}
+          closingDayLabel="12 de septiembre"
+        />);
 
       open();
 
@@ -371,7 +460,7 @@ describe("TattooDesignsView", () => {
     });
 
     it("omits the deadline line when the reservation has no event date", () => {
-      render(<TattooDesignsView {...baseProps} closingDayLabel={null} />);
+      render(<TattooDesignsView {...baseProps} designs={[design(1)]} closingDayLabel={null} />);
 
       open();
 
@@ -386,6 +475,7 @@ describe("TattooDesignsView", () => {
           {...baseProps}
           locked
           saveStatus="locked"
+          designs={[design(1)]}
           closingDayLabel="12 de septiembre"
         />,
       );
@@ -408,16 +498,6 @@ describe("TattooDesignsView", () => {
 
       await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
       expect(screen.getByRole("button", { name: "Quitar de mis diseños: Diseño 1" })).toBeTruthy();
-    });
-
-    it("says so when nothing is selected yet", () => {
-      render(<TattooDesignsView {...baseProps} />);
-
-      open();
-
-      const dialog = screen.getByRole("dialog");
-      expect(within(dialog).getByText("Todavía no has subido nada.")).toBeTruthy();
-      expect(within(dialog).getByText("Todavía no has elegido nada del catálogo.")).toBeTruthy();
     });
   });
 
