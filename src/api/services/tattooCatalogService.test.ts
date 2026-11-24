@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const http = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock("../config/axiosConfig", () => ({ axiosInstanceWithoutToken: http }));
 
-import { getPhotoExamples, getTattooCatalog } from "./tattooCatalogService";
+import { getTattooCatalog } from "./tattooCatalogService";
 
 const row = (id: number, title: string) => ({ id, title, imageUrl: `https://cdn/${id}.png` });
 
@@ -27,19 +27,6 @@ describe("tattooCatalogService", () => {
       "tattoo-templates",
       "tattoo-finals",
       "tattoo-designs",
-    ]);
-  });
-
-  it("reads the photo examples from their own section, without a kind", async () => {
-    http.get.mockResolvedValue({ data: [row(9, "Selfie de frente")] });
-
-    const items = await getPhotoExamples();
-
-    expect(http.get).toHaveBeenCalledWith("/carousels", {
-      params: { page: "reservation", section: "photos-examples" },
-    });
-    expect(items).toEqual([
-      { id: 9, title: "Selfie de frente", imageUrl: "https://cdn/9.png" },
     ]);
   });
 });

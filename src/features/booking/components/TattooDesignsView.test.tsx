@@ -40,7 +40,8 @@ describe("TattooDesignsView", () => {
     render(<TattooDesignsView {...baseProps} designs={[design(1), design(2)]} />);
 
     expect(screen.getByText("2 de 10")).toBeTruthy();
-    expect(screen.getAllByRole("img")).toHaveLength(2);
+    // Two uploaded designs plus the tutorial image.
+    expect(screen.getAllByRole("img")).toHaveLength(3);
     expect(screen.getAllByRole("button", { name: /Quitar de mis diseños/ })).toHaveLength(2);
     expect(screen.getByText(/Te quedan/)).toBeTruthy();
   });
@@ -163,8 +164,8 @@ describe("TattooDesignsView", () => {
     expect(note.textContent).toContain("Si eliges más, los escogemos en este orden:");
     const items = Array.from(note.querySelectorAll("li")).map((li) => li.textContent);
     expect(items).toEqual([
-      "Tu diseño final",
-      "Templates con tus fotos",
+      "Diseños que subes túSi creaste tu propio tatuaje, se imprime primero.",
+      "Templates con tus fotos(nosotros los diseñamos)",
       "Diseños del catálogo",
     ]);
   });
@@ -173,12 +174,7 @@ describe("TattooDesignsView", () => {
     const { rerender } = render(<TattooDesignsView {...baseProps} />);
 
     expect(
-      screen.getByText("Pulsa aquí para agregar o arrastra para subir tus selfies"),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(
-        "Con ellas personalizamos los templates que elijas. O también puedes subir tus diseños finales.",
-      ),
+      screen.getByText("Pulsa aquí para agregar o arrastra tus selfies o diseños"),
     ).toBeTruthy();
     expect(screen.getByText("Te quedan 10 espacios")).toBeTruthy();
     expect(screen.queryByText(/Sube selfies o fotos de tu rostro/)).toBeNull();
@@ -190,48 +186,25 @@ describe("TattooDesignsView", () => {
     expect(screen.getByText("Te queda 1 espacio")).toBeTruthy();
   });
 
-  it("puts the examples chip next to the upload step title", () => {
-    render(<TattooDesignsView {...baseProps} examples={[catalogItem(1)]} />);
-
-    const stepRow = screen.getByRole("heading", { name: "Sube tus fotos o diseños" })
-      .closest("[data-step-row]");
-    expect(stepRow).not.toBeNull();
-    expect(
-      within(stepRow as HTMLElement).getByRole("button", { name: "¿Cómo funciona? Ver ejemplo" }),
-    ).toBeTruthy();
-  });
-
-  it("opens the photo examples in a modal from a compact chip, and hides it when read-only", () => {
-    const examples = [catalogItem(1), catalogItem(2)];
-    const { rerender } = render(<TattooDesignsView {...baseProps} examples={examples} />);
-
-    expect(screen.queryByRole("dialog")).toBeNull();
-    const chip = screen.getByRole("button", { name: "¿Cómo funciona? Ver ejemplo" });
-    // The chip previews the first example so it reads as "there is an image inside".
-    expect(chip.querySelector("img")?.getAttribute("src")).toBe(examples[0].imageUrl);
-    fireEvent.click(chip);
-
-    const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText("¿Qué foto funciona mejor?")).toBeTruthy();
-    expect(
-      within(dialog).getByText(
-        "Las fotos claras y de frente funcionan mejor. Nuestro equipo elige la mejor foto para cada template.",
-      ),
-    ).toBeTruthy();
-    expect(within(dialog).getAllByRole("img")).toHaveLength(2);
-    // The image explains itself: no visible caption under it.
-    expect(within(dialog).queryByText("Diseño catálogo 1")).toBeNull();
-    expect(within(dialog).getByRole("img", { name: "Diseño catálogo 1" })).toBeTruthy();
-
-    fireEvent.click(within(dialog).getByRole("button", { name: "Cerrar" }));
-    rerender(<TattooDesignsView {...baseProps} examples={examples} locked />);
-    expect(screen.queryByRole("button", { name: "¿Cómo funciona? Ver ejemplo" })).toBeNull();
-  });
-
-  it("has no examples chip when there are no examples", () => {
+  it("shows the photo tutorial in the open, with both kinds of upload explained", () => {
     render(<TattooDesignsView {...baseProps} />);
 
-    expect(screen.queryByRole("button", { name: "¿Cómo funciona? Ver ejemplo" })).toBeNull();
+    expect(
+      screen.getByRole("img", { name: /selfie clara y de frente funciona/ }).getAttribute("src"),
+    ).toBe("/assets/tattoo/photo-tips.webp");
+    expect(screen.getByText("Tus selfies:")).toBeTruthy();
+    expect(screen.getByText("Tu propio diseño:")).toBeTruthy();
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ver el ejemplo en grande" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByRole("img", { name: /selfie clara y de frente funciona/ })).toBeTruthy();
+  });
+
+  it("hides the tutorial when read-only", () => {
+    render(<TattooDesignsView {...baseProps} locked />);
+
+    expect(screen.queryByRole("img", { name: /selfie clara y de frente funciona/ })).toBeNull();
   });
 
   describe("catalog gallery", () => {

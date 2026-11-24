@@ -15,8 +15,6 @@ export const TATTOO_TEMPLATES_SECTION = "tattoo-templates";
 export const TATTOO_FINALS_SECTION = "tattoo-finals";
 /** Legacy section of the first catalog rows; shown as final designs. */
 export const TATTOO_LEGACY_SECTION = "tattoo-designs";
-/** Reference photos that show what a good upload looks like; not selectable. */
-export const PHOTO_EXAMPLES_SECTION = "photos-examples";
 /** Only this many final tattoos are printed, whatever the client uploads or chooses. */
 export const TATTOO_PRINT_MAX = 5;
 

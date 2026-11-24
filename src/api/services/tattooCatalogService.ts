@@ -1,6 +1,5 @@
 import type { Carousel } from "../../interfaces";
 import {
-  PHOTO_EXAMPLES_SECTION,
   TATTOO_CATALOG_PAGE,
   TATTOO_FINALS_SECTION,
   TATTOO_LEGACY_SECTION,
@@ -39,7 +38,3 @@ export const getTattooCatalog = async (): Promise<TattooCatalogItem[]> => {
   ]);
   return [...templates, ...finals, ...legacy];
 };
-
-/** Reference photos that show the client what a good upload looks like. */
-export const getPhotoExamples = (): Promise<TattooCatalogItem[]> =>
-  fetchSection(PHOTO_EXAMPLES_SECTION);

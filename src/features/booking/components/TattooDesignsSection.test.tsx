@@ -19,7 +19,6 @@ vi.mock("../../../api/services/prepProfileService", () => service);
 
 const catalogService = vi.hoisted(() => ({
   getTattooCatalog: vi.fn(),
-  getPhotoExamples: vi.fn(),
 }));
 vi.mock("../../../api/services/tattooCatalogService", () => catalogService);
 
@@ -57,8 +56,6 @@ beforeEach(() => {
   Object.values(service).forEach((fn) => fn.mockReset());
   catalogService.getTattooCatalog.mockReset();
   catalogService.getTattooCatalog.mockResolvedValue([]);
-  catalogService.getPhotoExamples.mockReset();
-  catalogService.getPhotoExamples.mockResolvedValue([]);
 });
 afterEach(cleanup);
 

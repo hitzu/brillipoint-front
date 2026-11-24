@@ -8,7 +8,7 @@ import {
   setPublicPrepProfileTattooDesigns,
   uploadPrepProfileFileToSignedUrl,
 } from "../../../api/services/prepProfileService";
-import { getPhotoExamples, getTattooCatalog } from "../../../api/services/tattooCatalogService";
+import { getTattooCatalog } from "../../../api/services/tattooCatalogService";
 import { usePublicContractPhoneGate } from "../hooks/usePublicContractPhoneGate";
 import {
   getTattooClosingDay,
@@ -57,7 +57,6 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   const [designs, setDesigns] = useState<PrepAssetMetadata[]>([]);
   const [chosen, setChosen] = useState<TattooCatalogChoice[]>([]);
   const [catalog, setCatalog] = useState<TattooCatalogItem[]>([]);
-  const [examples, setExamples] = useState<TattooCatalogItem[]>([]);
   const [locked, setLocked] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
@@ -136,17 +135,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
         if (!cancelled) setCatalog([]);
       }
     };
-    // Examples are guidance only: failing to load them never blocks anything.
-    const loadExamples = async () => {
-      try {
-        const items = await getPhotoExamples();
-        if (!cancelled) setExamples(items);
-      } catch {
-        if (!cancelled) setExamples([]);
-      }
-    };
     void loadCatalog();
-    void loadExamples();
     return () => {
       cancelled = true;
     };
@@ -380,7 +369,6 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       isBusy={isBusy}
       errorMessage={errorMessage}
       catalog={catalog}
-      examples={examples}
       chosen={chosen}
       onAddFiles={(files) => void addFiles(files)}
       onRemove={(path) => void removeDesign(path)}

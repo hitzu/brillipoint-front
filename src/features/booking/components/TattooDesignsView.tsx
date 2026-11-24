@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import { Modal } from "react-bootstrap";
+import React, { useState } from "react";
 import styles from "@assets/css/contract-public.module.css";
 import FormDropzone from "@shared/forms/file-upload/FormDropzone";
 import { PrepAssetMetadata } from "../../../interfaces";
@@ -22,7 +22,6 @@ type Props = {
   /** Live catalog the client can choose from (templates and final designs). */
   catalog: TattooCatalogItem[];
   /** Reference photos showing what a good upload looks like. */
-  examples?: TattooCatalogItem[];
   /** Designs already chosen (frozen copies, they survive catalog changes). */
   chosen: TattooCatalogChoice[];
   onAddFiles: (files: File[]) => void;
@@ -44,15 +43,9 @@ const thumbStyle = {
   display: "block",
 } as const;
 
-// Never cropped: the example is an instruction graphic, every part matters.
-const exampleImageStyle = {
-  width: "100%",
-  height: "auto",
-  maxHeight: "75vh",
-  objectFit: "contain",
-  borderRadius: 12,
-  display: "block",
-} as const;
+const TUTORIAL_IMAGE = "/assets/tattoo/photo-tips.webp";
+const TUTORIAL_ALT =
+  "Ejemplo: una selfie clara y de frente funciona; una foto grupal o de lado no.";
 
 const removeButtonStyle = { minHeight: 44 } as const;
 
@@ -212,13 +205,12 @@ export function TattooDesignsView({
   isBusy,
   errorMessage,
   catalog,
-  examples = [],
   chosen,
   onAddFiles,
   onRemove,
   onToggleCatalog,
 }: Props) {
-  const [showExamples, setShowExamples] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const uploadsFull = designs.length >= TATTOO_UPLOADS_MAX;
   const catalogFull = chosen.length >= TATTOO_CATALOG_MAX;
   const remaining = Math.max(TATTOO_UPLOADS_MAX - designs.length, 0);
@@ -339,8 +331,22 @@ export function TattooDesignsView({
             </span>
           </div>
           <ol className={styles.tattooPriorityList}>
-            <li>Tu diseño final</li>
-            <li>Templates con tus fotos</li>
+            <li>
+              <span style={{ display: "grid", gap: 2 }}>
+                <span>Diseños que subes tú</span>
+                <span style={{ ...mutedText, fontWeight: 400 }}>
+                  Si creaste tu propio tatuaje, se imprime primero.
+                </span>
+              </span>
+            </li>
+            <li>
+              <span style={{ display: "grid", gap: 2 }}>
+                <span>Templates con tus fotos</span>
+                <span style={{ ...mutedText, fontWeight: 400 }}>
+                  (nosotros los diseñamos)
+                </span>
+              </span>
+            </li>
             <li>Diseños del catálogo</li>
           </ol>
         </div>
@@ -363,25 +369,30 @@ export function TattooDesignsView({
 
         {canEdit ? (
           <div style={{ display: "grid", gap: "0.6rem" }}>
-            <StepTitle
-              n={1}
-              action={
-                examples.length > 0 ? (
-                  <button
-                    type="button"
-                    className={styles.tattooExamplesChip}
-                    onClick={() => setShowExamples(true)}
-                  >
-                    <img src={examples[0].imageUrl} alt="" />
-                    <span>
-                      ¿Cómo funciona? <strong>Ver ejemplo</strong>
-                    </span>
-                  </button>
-                ) : null
-              }
-            >
+            <StepTitle n={1}>
               Sube tus fotos o diseños
             </StepTitle>
+            <div className={styles.tattooTutorial}>
+              <button
+                type="button"
+                className={styles.tattooTutorialButton}
+                aria-label="Ver el ejemplo en grande"
+                onClick={() => setShowTutorial(true)}
+              >
+                <img src={TUTORIAL_IMAGE} alt={TUTORIAL_ALT} />
+                <span>Toca para ampliar</span>
+              </button>
+              <ul className={styles.tattooTutorialList}>
+                <li>
+                  <strong>Tus selfies:</strong> claras, de frente y solo tú.
+                  Con ellas personalizamos los templates que elijas.
+                </li>
+                <li>
+                  <strong>Tu propio diseño:</strong> súbelo listo para imprimir
+                  con fondo blanco o transparente.
+                </li>
+              </ul>
+            </div>
             {uploadsFull ? (
               <div style={{ ...mutedText, fontWeight: 700 }}>
                 Ya tienes tus {TATTOO_UPLOADS_MAX} fotos y diseños. Quita uno de
@@ -394,13 +405,9 @@ export function TattooDesignsView({
                   showPreviews={false}
                   multiple
                   disabled={isBusy}
-                  label="Pulsa aquí para agregar o arrastra para subir tus selfies"
+                  label="Pulsa aquí para agregar o arrastra tus selfies o diseños"
                   description={
                     <>
-                      <span style={{ display: "block" }}>
-                        Con ellas personalizamos los templates que elijas. O
-                        también puedes subir tus diseños finales.
-                      </span>
                       <span
                         style={{ display: "block", marginTop: 6, fontWeight: 800 }}
                       >
@@ -566,35 +573,31 @@ export function TattooDesignsView({
         ) : null}
       </div>
       <Modal
-        show={showExamples}
-        onHide={() => setShowExamples(false)}
+        show={showTutorial}
+        onHide={() => setShowTutorial(false)}
         centered
         scrollable
         size="lg"
-        aria-labelledby="tattoo-examples-title"
+        aria-labelledby="tattoo-tutorial-title"
       >
         <Modal.Header closeButton closeLabel="Cerrar">
-          <Modal.Title id="tattoo-examples-title" as="h2" style={{ fontSize: 18 }}>
+          <Modal.Title id="tattoo-tutorial-title" as="h2" style={{ fontSize: 18 }}>
             ¿Qué foto funciona mejor?
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p style={mutedText}>
-            Las fotos claras y de frente funcionan mejor. Nuestro equipo elige
-            la mejor foto para cada template.
-          </p>
-          {/* The example image explains itself: shown whole, as large as the
-              modal allows, with no caption. */}
-          <div style={{ display: "grid", gap: "1rem" }}>
-            {examples.map((example) => (
-              <img
-                key={example.id}
-                src={example.imageUrl}
-                alt={example.title}
-                style={exampleImageStyle}
-              />
-            ))}
-          </div>
+          <img
+            src={TUTORIAL_IMAGE}
+            alt={TUTORIAL_ALT}
+            style={{
+              width: "100%",
+              height: "auto",
+              maxHeight: "75vh",
+              objectFit: "contain",
+              borderRadius: 12,
+              display: "block",
+            }}
+          />
         </Modal.Body>
       </Modal>
     </section>
