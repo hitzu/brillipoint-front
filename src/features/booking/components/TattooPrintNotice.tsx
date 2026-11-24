@@ -34,8 +34,7 @@ export function TattooPrintNotice({
               nuestro catálogo.
             </>,
             <>
-              Nosotros escogemos <strong>{TATTOO_PRINT_MAX}</strong> de tus
-              favoritos para imprimir.
+              Vamos a imprimir <strong>{TATTOO_PRINT_MAX} diseños</strong>.
             </>,
           ].map((text, index) => (
             <li key={index} style={{ fontWeight: 400, fontSize: 14 }}>
@@ -63,7 +62,7 @@ export function TattooPrintNotice({
           <span style={{ display: "grid", gap: 2 }}>
             <span>Templates con tus fotos</span>
             <span style={{ ...mutedText, fontWeight: 400 }}>
-              (nosotros los diseñamos)
+              (nosotros los adaptamos con tu selfie)
             </span>
           </span>
         </li>

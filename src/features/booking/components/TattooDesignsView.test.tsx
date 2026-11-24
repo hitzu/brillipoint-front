@@ -94,7 +94,7 @@ describe("TattooDesignsView", () => {
     const note = screen.getByRole("note");
     expect(note.textContent).toContain("Sube hasta 10 fotos o diseños tuyos.");
     expect(note.textContent).toContain("Elige hasta 10 diseños de nuestro catálogo.");
-    expect(note.textContent).toContain("Nosotros escogemos 5 de tus favoritos para imprimir.");
+    expect(note.textContent).toContain("Vamos a imprimir 5 diseños.");
     expect(note.textContent).toContain(
       "Todo se guarda automáticamente. Puedes cambiar tus diseños cuando quieras, hasta el 11 de diciembre.",
     );
@@ -218,7 +218,7 @@ describe("TattooDesignsView", () => {
     const items = Array.from(priorityList.querySelectorAll("li")).map((li) => li.textContent);
     expect(items).toEqual([
       "Diseños que subes túSi creaste tu propio tatuaje, se imprime primero.",
-      "Templates con tus fotos(nosotros los diseñamos)",
+      "Templates con tus fotos(nosotros los adaptamos con tu selfie)",
       "Diseños del catálogo",
     ]);
   });
@@ -246,7 +246,7 @@ describe("TattooDesignsView", () => {
       screen.getByRole("img", { name: /selfie clara y de frente funciona/ }).getAttribute("src"),
     ).toBe("/assets/tattoo/photo-tips.jpg");
     expect(screen.getByText("Tus selfies:")).toBeTruthy();
-    expect(screen.getByText("Tu propio diseño:")).toBeTruthy();
+    expect(screen.getByText("O tu propio diseño:")).toBeTruthy();
     expect(screen.queryByRole("dialog")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Ver el ejemplo en grande" }));
@@ -463,13 +463,13 @@ describe("TattooDesignsView", () => {
       expect(within(screen.getByRole("dialog")).queryByText(/Imprimimos/)).toBeNull();
     });
 
-    it("tells that we pick 5 of their favorites to print", () => {
+    it("tells that 5 designs are printed", () => {
       render(<TattooDesignsView {...baseProps} designs={[design(1)]} />);
 
       open();
 
-      expect(within(screen.getByRole("dialog")).getByText(/Nosotros escogemos/).textContent).toBe(
-        "Nosotros escogemos 5 de tus favoritos para imprimir.",
+      expect(within(screen.getByRole("dialog")).getByText(/Vamos a imprimir/).textContent).toBe(
+        "Vamos a imprimir 5 diseños.",
       );
     });
 
@@ -550,8 +550,8 @@ describe("TattooDesignsView", () => {
         screen.getByText("Elige los que te gusten: les ponemos tu rostro usando tus selfies."),
       ).toBeTruthy();
       expect(screen.getByText("Se imprimen tal como los ves.")).toBeTruthy();
-      expect(screen.getByText("Personalizable")).toBeTruthy();
-      expect(screen.getByText("Listo para imprimir")).toBeTruthy();
+      expect(screen.queryByText("Personalizable")).toBeNull();
+      expect(screen.queryByText("Listo para imprimir")).toBeNull();
       expect(screen.getByText("Toca un diseño para elegirlo.")).toBeTruthy();
     });
 

@@ -138,8 +138,7 @@ export function TattooSummaryModal({
             }))}
           />
           <p style={{ ...mutedText, margin: 0 }}>
-            Nosotros escogemos <strong>{TATTOO_PRINT_MAX}</strong> de tus favoritos para
-            imprimir.
+            Vamos a imprimir <strong>{TATTOO_PRINT_MAX} diseños</strong>.
           </p>
         </div>
       </Modal.Body>

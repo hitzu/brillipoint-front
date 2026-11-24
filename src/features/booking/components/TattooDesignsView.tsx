@@ -127,14 +127,10 @@ function StepHeading({ n, children }: { n: number; children: React.ReactNode }) 
 }
 
 function CatalogGroup({
-  kicker,
-  tone,
   title,
   hint,
   children,
 }: {
-  kicker: string;
-  tone: "template" | "final";
   title: string;
   hint: string;
   children: React.ReactNode;
@@ -142,15 +138,6 @@ function CatalogGroup({
   return (
     <div style={{ display: "grid", gap: "0.75rem" }}>
       <div className={styles.tattooGroupHeader}>
-        <span
-          className={`${styles.tattooGroupKicker} ${
-            tone === "template"
-              ? styles.tattooGroupKickerTemplate
-              : styles.tattooGroupKickerFinal
-          }`}
-        >
-          {kicker}
-        </span>
         <h4 className={styles.tattooGroupTitle}>{title}</h4>
         <span style={mutedText}>{hint}</span>
       </div>
@@ -354,11 +341,9 @@ export function TattooDesignsView({
               </button>
               <ul className={styles.tattooTutorialList}>
                 <li>
-                  <strong>Tus selfies:</strong> claras, de frente y solo tú.
-                  Con ellas personalizamos los templates que elijas.
-                </li>
-                <li>
-                  <strong>Tu propio diseño:</strong> súbelo listo para imprimir
+                  <strong>Tus selfies:</strong> claras, de frente y solo tú; con
+                  ellas personalizamos los templates que elijas.{" "}
+                  <strong>O tu propio diseño:</strong> súbelo listo para imprimir
                   con fondo blanco o transparente.
                 </li>
               </ul>
@@ -472,8 +457,6 @@ export function TattooDesignsView({
             ) : null}
             {canEdit && templates.length > 0 ? (
               <CatalogGroup
-                kicker="Personalizable"
-                tone="template"
                 title="Templates con tus fotos"
                 hint="Elige los que te gusten: les ponemos tu rostro usando tus selfies."
               >
@@ -482,8 +465,6 @@ export function TattooDesignsView({
             ) : null}
             {canEdit && finals.length > 0 ? (
               <CatalogGroup
-                kicker="Listo para imprimir"
-                tone="final"
                 title="Diseños listos"
                 hint="Se imprimen tal como los ves."
               >

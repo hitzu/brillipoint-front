@@ -317,34 +317,10 @@
   font-size: 13px;
 }
 
-/* Catalog group header: colored kicker tells at a glance whether the design
-   gets the client's face or prints as is. */
+/* Catalog group header: title plus a one-line hint. */
 .tattooGroupHeader {
   display: grid;
   gap: 4px;
-}
-
-.tattooGroupKicker {
-  justify-self: start;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.tattooGroupKickerTemplate {
-  background: var(--bp-lavender-bg);
-  border-color: var(--bp-lavender);
-  color: var(--bp-brown-1);
-}
-
-.tattooGroupKickerFinal {
-  background: var(--bp-sage-bg);
-  border-color: #c2dfc9;
-  color: var(--bp-sage);
 }
 
 .tattooGroupTitle {
@@ -428,6 +404,7 @@
   border-radius: 10px;
   background: var(--bp-lavender-bg);
   color: var(--bp-brown-1);
+  text-align: center;
   font-size: 14px;
   line-height: 1.4;
 }
