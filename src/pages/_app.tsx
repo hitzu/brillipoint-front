@@ -29,7 +29,7 @@ export default function MyApp({ Component, pageProps, ...rest }: AppPropsWithLay
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
-        <title>Book And Sign</title>
+        <title>brillipoint.com</title>
       </Head>
       <Provider store={store}>{getLayout(<Component {...pageProps} />)}</Provider>
     </>

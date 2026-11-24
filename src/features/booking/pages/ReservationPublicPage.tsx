@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
+import Head from "next/head";
 import { Container, Row, Col } from "react-bootstrap";
 import logoDark from "@assets/images/logo-experience-black.png";
 import styles from "@assets/css/contract-public.module.css";
@@ -423,6 +424,9 @@ const ReservationPublicPage = ({ token }: Props) => {
 
   return (
     <div className={styles.contractPublicContainer}>
+      <Head>
+        <title>Tu reserva | Brillipoint</title>
+      </Head>
       <div className={styles.stickyHeader}>
         <div className={styles.contentMax}>
           <header className={[styles.header, styles.headerSticky].join(" ")}>

@@ -302,16 +302,11 @@ export function TattooDesignsView({
                 </span>
               ) : null}
             </span>
-            <span style={{ ...mutedText, fontWeight: 800 }}>
-              {item.title}
-            </span>
-            <span style={{ ...mutedText, fontSize: 12 }}>
-              {selected
-                ? "Seleccionado"
-                : blocked
-                  ? "Sin lugares libres"
-                  : "Toca para elegir"}
-            </span>
+            {selected || blocked ? (
+              <span style={{ ...mutedText, fontSize: 12 }}>
+                {selected ? "Seleccionado" : "Sin lugares libres"}
+              </span>
+            ) : null}
           </button>
         );
   };
@@ -495,6 +490,9 @@ export function TattooDesignsView({
             <SectionHeading count={chosen.length} max={TATTOO_CATALOG_MAX}>
               Tu selección del catálogo
             </SectionHeading>
+            {canEdit && catalog.length > 0 ? (
+              <span style={mutedText}>Toca un diseño para elegirlo.</span>
+            ) : null}
             {canEdit && templates.length > 0 ? (
               <CatalogGroup
                 kicker="Personalizable"

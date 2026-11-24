@@ -255,7 +255,7 @@ describe("TattooDesignsView", () => {
       expect(screen.getByText("Se imprimen tal como los ves.")).toBeTruthy();
       expect(screen.getByText("Personalizable")).toBeTruthy();
       expect(screen.getByText("Listo para imprimir")).toBeTruthy();
-      expect(screen.queryByText(/Toca un diseño para elegirlo/)).toBeNull();
+      expect(screen.getByText("Toca un diseño para elegirlo.")).toBeTruthy();
     });
 
     it("hides a group when it has no designs", () => {
