@@ -23,6 +23,7 @@ import {
   deriveTattooSaveStatus,
   TattooSaveOutcome,
 } from "../utils/tattooSaveStatus";
+import { TattooCropModal } from "./TattooCropModal";
 import { TattooDesignsView } from "./TattooDesignsView";
 import {
   RESERVATION_ACTIONS,
@@ -65,6 +66,8 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   const [isBusy, setIsBusy] = useState(false);
   // How the last finished save ended; the selection bar shows it.
   const [saveOutcome, setSaveOutcome] = useState<TattooSaveOutcome>("none");
+  // Images the client picked, waiting to pass through the crop step.
+  const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -89,6 +92,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       setLocked(false);
       setErrorMessage(null);
       setSaveOutcome("none");
+      setPendingFiles(null);
     },
   });
 
@@ -197,7 +201,9 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
     setErrorMessage("No se pudieron guardar los diseños. Intenta de nuevo.");
   };
 
-  const addFiles = async (files: File[]) => {
+  // Validates the pick, then hands it to the crop step. Nothing is uploaded
+  // until the client finishes (or skips) each image there.
+  const addFiles = (files: File[]) => {
     if (!contractToken || !verifiedPhone || files.length === 0) return;
     setErrorMessage(null);
     if (files.some((f) => !f.type.startsWith("image/"))) {
@@ -210,6 +216,16 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       );
       return;
     }
+    setPendingFiles(files);
+  };
+
+  const finishCrop = (files: File[]) => {
+    setPendingFiles(null);
+    if (files.length > 0) void uploadFiles(files);
+  };
+
+  const uploadFiles = async (files: File[]) => {
+    if (!contractToken || !verifiedPhone) return;
     setIsBusy(true);
     try {
       const uploaded: Array<{ path: string; mime: string }> = [];
@@ -371,22 +387,27 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   }
 
   return (
-    <TattooDesignsView
-      designs={designs}
-      locked={locked}
-      closingDayLabel={eventDate ? formatDay(getTattooClosingDay(eventDate)) : null}
-      isBusy={isBusy}
-      saveStatus={deriveTattooSaveStatus({
-        locked,
-        isBusy,
-        outcome: saveOutcome,
-      })}
-      errorMessage={errorMessage}
-      catalog={catalog}
-      chosen={chosen}
-      onAddFiles={(files) => void addFiles(files)}
-      onRemove={(path) => void removeDesign(path)}
-      onToggleCatalog={(id) => void toggleCatalogDesign(id)}
-    />
+    <>
+      <TattooDesignsView
+        designs={designs}
+        locked={locked}
+        closingDayLabel={eventDate ? formatDay(getTattooClosingDay(eventDate)) : null}
+        isBusy={isBusy}
+        saveStatus={deriveTattooSaveStatus({
+          locked,
+          isBusy,
+          outcome: saveOutcome,
+        })}
+        errorMessage={errorMessage}
+        catalog={catalog}
+        chosen={chosen}
+        onAddFiles={addFiles}
+        onRemove={(path) => void removeDesign(path)}
+        onToggleCatalog={(id) => void toggleCatalogDesign(id)}
+      />
+      {pendingFiles ? (
+        <TattooCropModal files={pendingFiles} onFinish={finishCrop} />
+      ) : null}
+    </>
   );
 }

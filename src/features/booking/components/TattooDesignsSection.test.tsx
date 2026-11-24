@@ -23,6 +23,35 @@ const catalogService = vi.hoisted(() => ({
 }));
 vi.mock("../../../api/services/tattooCatalogService", () => catalogService);
 
+// react-cropper needs a real canvas; the stub exposes a controllable instance.
+const cropper = vi.hoisted(() => ({
+  instance: {
+    getData: vi.fn(),
+    getImageData: vi.fn(),
+    getCroppedCanvas: vi.fn(),
+  },
+}));
+vi.mock("react-cropper", async () => {
+  const React = await import("react");
+  const Cropper = React.forwardRef(
+    (props: { ready?: () => void }, ref: React.ForwardedRef<unknown>) => {
+      React.useImperativeHandle(ref, () => ({ cropper: cropper.instance }));
+      React.useEffect(() => {
+        props.ready?.();
+      }, []);
+      return React.createElement("div", { "data-testid": "cropper" });
+    },
+  );
+  return { default: Cropper, Cropper };
+});
+
+vi.mock("../utils/cropImage", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../utils/cropImage")>()),
+  canDecodeImage: vi.fn(),
+  canvasToCroppedFile: vi.fn(),
+}));
+
+import { canDecodeImage, canvasToCroppedFile } from "../utils/cropImage";
 import { TattooDesignsSection } from "./TattooDesignsSection";
 
 const asset = (n: number) => ({
@@ -57,6 +86,15 @@ beforeEach(() => {
   Object.values(service).forEach((fn) => fn.mockReset());
   catalogService.getTattooCatalog.mockReset();
   catalogService.getTattooCatalog.mockResolvedValue([]);
+  Object.values(cropper.instance).forEach((fn) => fn.mockReset());
+  // Untouched crop box by default: the whole 400x300 image.
+  cropper.instance.getData.mockReturnValue({ x: 0, y: 0, width: 400, height: 300 });
+  cropper.instance.getImageData.mockReturnValue({ naturalWidth: 400, naturalHeight: 300 });
+  cropper.instance.getCroppedCanvas.mockReturnValue({});
+  vi.mocked(canDecodeImage).mockReset().mockResolvedValue(true);
+  vi.mocked(canvasToCroppedFile).mockReset();
+  URL.createObjectURL = vi.fn(() => "blob:preview");
+  URL.revokeObjectURL = vi.fn();
 });
 afterEach(cleanup);
 
@@ -264,6 +302,187 @@ describe("TattooDesignsSection", () => {
       const dialog = screen.getByRole("dialog", { name: "Lo que llevas elegido" });
       expect(within(dialog).getByRole("img", { name: "Diseño 1" })).toBeTruthy();
       expect(within(dialog).getByText(/Puedes hacer cambios hasta el 12 de diciembre/)).toBeTruthy();
+    });
+  });
+
+  describe("crop before upload", () => {
+    const verified = () =>
+      window.localStorage.setItem("prep-profile:phone:tok", "2222232323");
+
+    const png = (name: string) => new File(["png-bytes"], name, { type: "image/png" });
+
+    const chooseFiles = async (files: File[]) => {
+      await screen.findByText("Sube tus fotos o diseños");
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      fireEvent.change(input, { target: { files } });
+    };
+
+    const mockUploads = () => {
+      let n = 0;
+      service.createPublicPrepProfileUploadUrl.mockImplementation(async () => {
+        n += 1;
+        return { signedUrl: `https://signed/${n}`, path: `7/tattoo_designs/new-${n}` };
+      });
+      service.uploadPrepProfileFileToSignedUrl.mockResolvedValue(undefined);
+    };
+
+    it("opens the crop for every chosen image, one by one, before uploading anything", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(profile([]));
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      await chooseFiles([png("a.png"), png("b.png")]);
+
+      const dialog = await screen.findByRole("dialog", { name: /Recortar/ });
+      expect(within(dialog).getByText("Imagen 1 de 2")).toBeTruthy();
+      expect(within(dialog).getByRole("button", { name: "Listo" })).toBeTruthy();
+      expect(within(dialog).getByRole("button", { name: "Cancelar" })).toBeTruthy();
+      expect(service.createPublicPrepProfileUploadUrl).not.toHaveBeenCalled();
+    });
+
+    it("uploads the original file untouched when the box was not moved (no re-encode)", async () => {
+      verified();
+      mockUploads();
+      service.getPublicPrepProfile.mockResolvedValue(profile([asset(1)]));
+      service.setPublicPrepProfileTattooDesigns.mockResolvedValue(
+        profile([asset(1), asset(2)]),
+      );
+      render(<TattooDesignsSection contractToken="tok" />);
+      const original = png("diseno.png");
+
+      await chooseFiles([original]);
+      fireEvent.click(await screen.findByRole("button", { name: "Listo" }));
+
+      await waitFor(() =>
+        expect(service.setPublicPrepProfileTattooDesigns).toHaveBeenCalledTimes(1),
+      );
+      expect(canvasToCroppedFile).not.toHaveBeenCalled();
+      expect(service.createPublicPrepProfileUploadUrl).toHaveBeenCalledWith({
+        contractToken: "tok",
+        phone: "2222232323",
+        payload: {
+          questionId: "tattoo_designs",
+          fileName: "diseno.png",
+          mime: "image/png",
+        },
+      });
+      expect(service.uploadPrepProfileFileToSignedUrl).toHaveBeenCalledWith({
+        signedUrl: "https://signed/1",
+        file: original,
+        mime: "image/png",
+      });
+      expect(service.setPublicPrepProfileTattooDesigns).toHaveBeenCalledWith({
+        contractToken: "tok",
+        phone: "2222232323",
+        assets: [
+          { path: "7/tattoo_designs/1.png", mime: "image/png" },
+          { path: "7/tattoo_designs/new-1", mime: "image/png" },
+        ],
+      });
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    });
+
+    it("uploads only the cropped file when the box was adjusted, never the original", async () => {
+      verified();
+      mockUploads();
+      service.getPublicPrepProfile.mockResolvedValue(profile([]));
+      service.setPublicPrepProfileTattooDesigns.mockResolvedValue(profile([asset(1)]));
+      cropper.instance.getData.mockReturnValue({ x: 40, y: 30, width: 200, height: 150 });
+      const original = new File(["heic"], "selfie.jpeg", { type: "image/jpeg" });
+      const cropped = new File(["cropped"], "selfie.jpg", { type: "image/jpeg" });
+      vi.mocked(canvasToCroppedFile).mockResolvedValue(cropped);
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      await chooseFiles([original]);
+      fireEvent.click(await screen.findByRole("button", { name: "Listo" }));
+
+      await waitFor(() =>
+        expect(service.setPublicPrepProfileTattooDesigns).toHaveBeenCalledTimes(1),
+      );
+      expect(canvasToCroppedFile).toHaveBeenCalledWith({}, original);
+      expect(service.createPublicPrepProfileUploadUrl).toHaveBeenCalledTimes(1);
+      expect(service.createPublicPrepProfileUploadUrl).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: {
+            questionId: "tattoo_designs",
+            fileName: "selfie.jpg",
+            mime: "image/jpeg",
+          },
+        }),
+      );
+      expect(service.uploadPrepProfileFileToSignedUrl).toHaveBeenCalledWith({
+        signedUrl: "https://signed/1",
+        file: cropped,
+        mime: "image/jpeg",
+      });
+    });
+
+    it("skips an image without uploading it and goes on with the next", async () => {
+      verified();
+      mockUploads();
+      service.getPublicPrepProfile.mockResolvedValue(profile([]));
+      service.setPublicPrepProfileTattooDesigns.mockResolvedValue(profile([asset(1)]));
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      await chooseFiles([png("primera.png"), png("segunda.png")]);
+      fireEvent.click(await screen.findByRole("button", { name: "Cancelar" }));
+      expect(await screen.findByText("Imagen 2 de 2")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Listo" }));
+
+      await waitFor(() =>
+        expect(service.setPublicPrepProfileTattooDesigns).toHaveBeenCalledTimes(1),
+      );
+      expect(service.createPublicPrepProfileUploadUrl).toHaveBeenCalledTimes(1);
+      expect(service.createPublicPrepProfileUploadUrl).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({ fileName: "segunda.png" }),
+        }),
+      );
+    });
+
+    it("checks the 10-upload cap before opening any crop", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(
+        profile([1, 2, 3, 4, 5, 6, 7, 8, 9].map(asset)),
+      );
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      await chooseFiles([png("a.png"), png("b.png")]);
+
+      await waitFor(() =>
+        expect(screen.getByRole("alert").textContent).toBe(
+          "Solo puedes subir hasta 10 fotos y diseños.",
+        ),
+      );
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(service.createPublicPrepProfileUploadUrl).not.toHaveBeenCalled();
+    });
+
+    it("rejects anything that is not an image before opening any crop", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(profile([]));
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      await chooseFiles([new File(["x"], "nota.pdf", { type: "application/pdf" })]);
+
+      await waitFor(() =>
+        expect(screen.getByRole("alert").textContent).toBe("Solo puedes subir imágenes."),
+      );
+      expect(screen.queryByRole("dialog")).toBeNull();
+    });
+
+    it("drops an image the browser cannot open without telling the client", async () => {
+      verified();
+      mockUploads();
+      vi.mocked(canDecodeImage).mockResolvedValue(false);
+      service.getPublicPrepProfile.mockResolvedValue(profile([]));
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      await chooseFiles([new File(["heic"], "selfie.heic", { type: "image/heic" })]);
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(screen.queryByRole("alert")).toBeNull();
+      expect(service.createPublicPrepProfileUploadUrl).not.toHaveBeenCalled();
     });
   });
 
