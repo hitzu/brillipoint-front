@@ -4,10 +4,10 @@ import styles from "@assets/css/contract-public.module.css";
 import { PrepAssetMetadata } from "../../../interfaces";
 import {
   TATTOO_CATALOG_MAX,
+  TATTOO_PRINT_MAX,
   TATTOO_UPLOADS_MAX,
   TattooCatalogChoice,
 } from "../utils/tattooDesigns";
-import { TattooPrintNotice } from "./TattooPrintNotice";
 
 type Props = {
   show: boolean;
@@ -137,7 +137,10 @@ export function TattooSummaryModal({
               name: c.title,
             }))}
           />
-          <TattooPrintNotice />
+          <p style={{ ...mutedText, margin: 0 }}>
+            Nosotros escogemos <strong>{TATTOO_PRINT_MAX}</strong> de tus favoritos para
+            imprimir.
+          </p>
         </div>
       </Modal.Body>
       <Modal.Footer>

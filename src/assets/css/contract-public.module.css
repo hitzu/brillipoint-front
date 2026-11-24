@@ -374,12 +374,6 @@
   line-height: 1.15;
 }
 
-.tattooPriorityCount {
-  font-size: 2rem;
-  font-weight: 700;
-  vertical-align: -0.12em;
-}
-
 /* Numbers come from a CSS counter so each item's text stays just its label. */
 .tattooPriorityList {
   list-style: none;
@@ -425,6 +419,17 @@
   .tattooPriorityList li {
     align-items: flex-start;
   }
+}
+
+/* The saving/closing promise is what guests ask about, so it gets its own block. */
+.tattooSaveNote {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bp-lavender-bg);
+  color: var(--bp-brown-1);
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .sectionTitle {

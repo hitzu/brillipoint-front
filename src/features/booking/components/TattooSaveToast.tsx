@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { TattooSaveStatus } from "../utils/tattooSaveStatus";
 
-const TOAST_MS = 2000;
+const TOAST_MS = 1000;
 
 const toastStyle = {
   position: "fixed",

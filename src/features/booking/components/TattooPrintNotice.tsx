@@ -8,22 +8,7 @@ import {
 
 const mutedText = { color: "var(--bp-brown-2)", fontSize: 13 } as const;
 
-const stepBadgeStyle = {
-  flex: "none",
-  width: 24,
-  height: 24,
-  borderRadius: "50%",
-  display: "grid",
-  placeItems: "center",
-  background: "var(--bp-brown-1)",
-  color: "#fff",
-  fontSize: 13,
-  fontWeight: 800,
-} as const;
-
 type Props = {
-  /** Adds the how-it-works steps and the saving/closing footer (the tab, not the summary). */
-  showSteps?: boolean;
   /** Human-readable last day to change designs; only shown while editing. */
   closingDayLabel?: string | null;
   canEdit?: boolean;
@@ -31,46 +16,39 @@ type Props = {
 
 /** Only a few tattoos are printed; this tells how it works and which ones win. */
 export function TattooPrintNotice({
-  showSteps = false,
   closingDayLabel = null,
   canEdit = true,
 }: Props) {
   return (
     <div role="note" className={styles.tattooPriority}>
       <div style={{ display: "grid", gap: 2 }}>
-        <strong className={styles.tattooPriorityTitle}>
-          Imprimimos{" "}
-          <span className={styles.tattooPriorityCount}>{TATTOO_PRINT_MAX}</span>{" "}
-          tatuajes
+        <strong className={styles.tattooPriorityTitle}>¿Cómo funciona?</strong>
+        <ol className={styles.tattooPriorityList} style={{ margin: "6px 0" }}>
+          {[
+            <>
+              Sube hasta <strong>{TATTOO_UPLOADS_MAX} fotos o diseños</strong>{" "}
+              tuyos.
+            </>,
+            <>
+              Elige hasta <strong>{TATTOO_CATALOG_MAX} diseños</strong> de
+              nuestro catálogo.
+            </>,
+            <>
+              Nosotros escogemos <strong>{TATTOO_PRINT_MAX}</strong> de tus
+              favoritos para imprimir.
+            </>,
+          ].map((text, index) => (
+            <li key={index} style={{ fontWeight: 400, fontSize: 14 }}>
+              <span>{text}</span>
+            </li>
+          ))}
+        </ol>
+        <strong
+          className={styles.tattooPriorityTitle}
+          style={{ marginTop: 10 }}
+        >
+          Si eliges más, los escogemos en este orden:
         </strong>
-        {showSteps ? (
-          <div style={{ display: "grid", gap: 8, margin: "6px 0" }}>
-            {[
-              <>
-                Sube hasta <strong>{TATTOO_UPLOADS_MAX} fotos o diseños</strong> tuyos.
-              </>,
-              <>
-                Elige hasta <strong>{TATTOO_CATALOG_MAX} diseños</strong> de nuestro
-                catálogo.
-              </>,
-              <>
-                Nosotros escogemos <strong>{TATTOO_PRINT_MAX}</strong> de tus favoritos
-                para imprimir.
-              </>,
-            ].map((text, index) => (
-              <div
-                key={index}
-                style={{ display: "flex", gap: 10, alignItems: "center" }}
-              >
-                <span style={stepBadgeStyle} aria-hidden="true">
-                  {index + 1}
-                </span>
-                <span style={{ color: "var(--bp-brown-1)", fontSize: 14 }}>{text}</span>
-              </div>
-            ))}
-          </div>
-        ) : null}
-        <span style={mutedText}>Si eliges más, los escogemos en este orden:</span>
       </div>
       <ol className={styles.tattooPriorityList}>
         <li>
@@ -91,13 +69,17 @@ export function TattooPrintNotice({
         </li>
         <li>Diseños del catálogo</li>
       </ol>
-      {showSteps && canEdit ? (
-        <span style={mutedText}>
-          Todo se guarda solo.
-          {closingDayLabel
-            ? ` Puedes cambiar tus elecciones hasta el ${closingDayLabel}.`
-            : ""}
-        </span>
+      {canEdit ? (
+        <p className={styles.tattooSaveNote}>
+          <strong>Todo se guarda automáticamente.</strong>
+          {closingDayLabel ? (
+            <>
+              {" "}
+              Puedes cambiar tus diseños cuando quieras, hasta el{" "}
+              <strong>{closingDayLabel}</strong>.
+            </>
+          ) : null}
+        </p>
       ) : null}
     </div>
   );

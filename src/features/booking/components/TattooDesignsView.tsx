@@ -326,7 +326,6 @@ export function TattooDesignsView({
         </h2>
 
         <TattooPrintNotice
-          showSteps
           closingDayLabel={closingDayLabel}
           canEdit={canEdit}
         />

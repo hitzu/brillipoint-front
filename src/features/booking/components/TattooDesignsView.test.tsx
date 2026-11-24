@@ -96,23 +96,42 @@ describe("TattooDesignsView", () => {
     expect(note.textContent).toContain("Elige hasta 10 diseños de nuestro catálogo.");
     expect(note.textContent).toContain("Nosotros escogemos 5 de tus favoritos para imprimir.");
     expect(note.textContent).toContain(
-      "Todo se guarda solo. Puedes cambiar tus elecciones hasta el 11 de diciembre.",
+      "Todo se guarda automáticamente. Puedes cambiar tus diseños cuando quieras, hasta el 11 de diciembre.",
     );
     expect(screen.queryByText(/Tus cambios se guardan automáticamente/)).toBeNull();
+  });
+
+  it("lays the steps out as a numbered list and highlights the closing date", () => {
+    render(<TattooDesignsView {...baseProps} closingDayLabel="11 de diciembre" />);
+
+    const note = screen.getByRole("note");
+    const lists = note.querySelectorAll("ol");
+    expect(lists).toHaveLength(2);
+    expect(lists[0].querySelectorAll("li")).toHaveLength(3);
+    expect(screen.getByText("11 de diciembre", { selector: "strong" })).toBeTruthy();
+  });
+
+  it("gives the priority line the same heading style as the title when steps show", () => {
+    render(<TattooDesignsView {...baseProps} />);
+
+    const title = screen.getByText("¿Cómo funciona?");
+    const priority = screen.getByText("Si eliges más, los escogemos en este orden:");
+    expect(priority.tagName).toBe("STRONG");
+    expect(priority.className).toBe(title.className);
   });
 
   it("keeps the footer without a date when the reservation has no event date", () => {
     render(<TattooDesignsView {...baseProps} closingDayLabel={null} />);
 
     const note = screen.getByRole("note");
-    expect(note.textContent).toContain("Todo se guarda solo.");
+    expect(note.textContent).toContain("Todo se guarda automáticamente.");
     expect(note.textContent).not.toContain("Puedes cambiar");
   });
 
   it("drops the saving footer and steps promise once read-only", () => {
     render(<TattooDesignsView {...baseProps} locked saveStatus="locked" closingDayLabel="11 de diciembre" />);
 
-    expect(screen.getByRole("note").textContent).not.toContain("Todo se guarda solo.");
+    expect(screen.getByRole("note").textContent).not.toContain("Todo se guarda automáticamente.");
   });
 
   it("orders the steps: upload first, catalog second", () => {
@@ -172,7 +191,7 @@ describe("TattooDesignsView", () => {
           closingDayLabel="12 de septiembre"
         />);
 
-    expect(screen.getByText(/hasta el 12 de septiembre/)).toBeTruthy();
+    expect(screen.getByRole("note").textContent).toContain("hasta el 12 de septiembre");
   });
 
   it("does not repeat the limits or the team's lead time as chips", () => {
@@ -192,9 +211,11 @@ describe("TattooDesignsView", () => {
     render(<TattooDesignsView {...baseProps} />);
 
     const note = screen.getByRole("note");
-    expect(note.textContent).toContain("Imprimimos 5 tatuajes");
+    expect(note.textContent).toContain("¿Cómo funciona?");
+    expect(note.textContent).not.toContain("Imprimimos 5 tatuajes");
     expect(note.textContent).toContain("Si eliges más, los escogemos en este orden:");
-    const items = Array.from(note.querySelectorAll("li")).map((li) => li.textContent);
+    const priorityList = Array.from(note.querySelectorAll("ol")).at(-1)!;
+    const items = Array.from(priorityList.querySelectorAll("li")).map((li) => li.textContent);
     expect(items).toEqual([
       "Diseños que subes túSi creaste tu propio tatuaje, se imprime primero.",
       "Templates con tus fotos(nosotros los diseñamos)",
@@ -380,7 +401,7 @@ describe("TattooDesignsView", () => {
         expect(screen.getByTestId("tattoo-save-toast").textContent).toContain("Guardado");
 
         act(() => {
-          vi.advanceTimersByTime(2100);
+          vi.advanceTimersByTime(1100);
         });
         expect(screen.queryByTestId("tattoo-save-toast")).toBeNull();
       } finally {
@@ -433,14 +454,23 @@ describe("TattooDesignsView", () => {
       expect(within(dialog).getByText("Tu selección del catálogo: 1 de 10")).toBeTruthy();
     });
 
-    it("repeats the print notice: only 5 are printed, with their priority", () => {
+    it("does not repeat the print notice, the tab already explains it", () => {
       render(<TattooDesignsView {...baseProps} designs={[design(1)]} />);
 
       open();
 
-      const note = within(screen.getByRole("dialog")).getByRole("note");
-      expect(note.textContent).toContain("Imprimimos 5 tatuajes");
-      expect(note.textContent).toContain("Si eliges más, los escogemos en este orden:");
+      expect(within(screen.getByRole("dialog")).queryByRole("note")).toBeNull();
+      expect(within(screen.getByRole("dialog")).queryByText(/Imprimimos/)).toBeNull();
+    });
+
+    it("tells that we pick 5 of their favorites to print", () => {
+      render(<TattooDesignsView {...baseProps} designs={[design(1)]} />);
+
+      open();
+
+      expect(within(screen.getByRole("dialog")).getByText(/Nosotros escogemos/).textContent).toBe(
+        "Nosotros escogemos 5 de tus favoritos para imprimir.",
+      );
     });
 
     it("tells until when changes are possible when the event has a date", () => {
