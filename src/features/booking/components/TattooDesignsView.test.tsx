@@ -1,5 +1,12 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TattooDesignsView } from "./TattooDesignsView";
 
@@ -14,6 +21,7 @@ const baseProps = {
   locked: false,
   closingDayLabel: null,
   isBusy: false,
+  saveStatus: "idle" as const,
   errorMessage: null,
   catalog: [],
   chosen: [],
@@ -205,6 +213,212 @@ describe("TattooDesignsView", () => {
     render(<TattooDesignsView {...baseProps} locked />);
 
     expect(screen.queryByRole("img", { name: /selfie clara y de frente funciona/ })).toBeNull();
+  });
+
+  describe("selection bar", () => {
+    const bar = () => screen.getByRole("region", { name: "Tu selección" });
+
+    it("shows the upload and template counters and follows the selection", () => {
+      const { rerender } = render(<TattooDesignsView {...baseProps} />);
+
+      expect(within(bar()).getByText("Subidas 0 de 10")).toBeTruthy();
+      expect(within(bar()).getByText("Templates 0 de 10")).toBeTruthy();
+
+      rerender(
+        <TattooDesignsView
+          {...baseProps}
+          designs={[design(1), design(2)]}
+          chosen={[choice(1)]}
+        />,
+      );
+
+      expect(within(bar()).getByText("Subidas 2 de 10")).toBeTruthy();
+      expect(within(bar()).getByText("Templates 1 de 10")).toBeTruthy();
+    });
+
+    it("travels with the scroll: sticky at the bottom of the tab", () => {
+      const { container } = render(<TattooDesignsView {...baseProps} />);
+
+      expect(bar().style.position).toBe("sticky");
+      const css = container.querySelector("style")?.textContent ?? "";
+      expect(css).toMatch(/\.tattoo-selection-bar\s*{\s*bottom:\s*0;/);
+    });
+
+    it("stops above the fixed bottom nav the reservation page shows on phones", () => {
+      const { container } = render(<TattooDesignsView {...baseProps} />);
+
+      const css = container.querySelector("style")?.textContent ?? "";
+      expect(css).toMatch(
+        /@media \(max-width: 767\.98px\)[\s\S]*bottom:\s*calc\(4\.5rem \+ env\(safe-area-inset-bottom\)\)/,
+      );
+    });
+
+    it("says the changes save by themselves before the first action", () => {
+      render(<TattooDesignsView {...baseProps} saveStatus="idle" />);
+
+      expect(within(bar()).getByText("Tus cambios se guardan solos")).toBeTruthy();
+    });
+
+    it("announces the save status politely", () => {
+      render(<TattooDesignsView {...baseProps} saveStatus="saving" />);
+
+      const status = within(bar()).getByText("Guardando…");
+      expect(status.closest("[aria-live]")?.getAttribute("aria-live")).toBe("polite");
+    });
+
+    it("shows saving, saved and the failure in the bar, and keeps the card's error message", () => {
+      const { rerender } = render(
+        <TattooDesignsView {...baseProps} isBusy saveStatus="saving" />,
+      );
+      expect(within(bar()).getByText("Guardando…")).toBeTruthy();
+
+      rerender(<TattooDesignsView {...baseProps} saveStatus="saved" />);
+      expect(within(bar()).getByText("Guardado ✓")).toBeTruthy();
+
+      rerender(
+        <TattooDesignsView
+          {...baseProps}
+          saveStatus="error"
+          errorMessage="No se pudieron guardar los diseños. Intenta de nuevo."
+        />,
+      );
+      expect(within(bar()).getByText("No se pudo guardar")).toBeTruthy();
+      expect(screen.getByRole("alert").textContent).toBe(
+        "No se pudieron guardar los diseños. Intenta de nuevo.",
+      );
+    });
+
+    it("no longer shows the old saving line at the bottom of the card", () => {
+      render(<TattooDesignsView {...baseProps} isBusy saveStatus="saving" />);
+
+      expect(screen.queryByText("Guardando...")).toBeNull();
+      expect(screen.getAllByText("Guardando…")).toHaveLength(1);
+    });
+
+    it("says it is closed when read-only, with no editing controls", () => {
+      render(
+        <TattooDesignsView
+          {...baseProps}
+          locked
+          saveStatus="locked"
+          designs={[design(1)]}
+          chosen={[choice(1)]}
+        />,
+      );
+
+      expect(within(bar()).getByText("Cerrado: ya no se pueden modificar")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /Quitar|Elegir/ })).toBeNull();
+      expect(screen.queryByText(/Te quedan/)).toBeNull();
+      expect(within(bar()).getByRole("button", { name: "Ver seleccionado" })).toBeTruthy();
+    });
+
+    it("gives the summary button a 44 px touch target", () => {
+      render(<TattooDesignsView {...baseProps} />);
+
+      const button = within(bar()).getByRole("button", { name: "Ver seleccionado" });
+      expect(button.style.minHeight).toBe("44px");
+    });
+  });
+
+  describe("selected summary", () => {
+    const open = () =>
+      fireEvent.click(screen.getByRole("button", { name: "Ver seleccionado" }));
+
+    it("opens from the bar with the thumbnails and counters of uploads and templates", () => {
+      render(
+        <TattooDesignsView
+          {...baseProps}
+          designs={[design(1), design(2)]}
+          chosen={[choice(7)]}
+        />,
+      );
+      expect(screen.queryByRole("dialog")).toBeNull();
+
+      open();
+
+      const dialog = screen.getByRole("dialog", { name: "Lo que llevas elegido" });
+      expect(within(dialog).getByRole("img", { name: "Diseño 1" }).getAttribute("src")).toBe(
+        "https://cdn.example/1.png",
+      );
+      expect(within(dialog).getByRole("img", { name: "Diseño 2" })).toBeTruthy();
+      expect(
+        within(dialog).getByRole("img", { name: "Diseño catálogo 7" }).getAttribute("src"),
+      ).toBe("https://cdn.example/catalog-7.png");
+      expect(within(dialog).getByText("Tus fotos y diseños: 2 de 10")).toBeTruthy();
+      expect(within(dialog).getByText("Tu selección del catálogo: 1 de 10")).toBeTruthy();
+    });
+
+    it("repeats the print notice: only 5 are printed, with their priority", () => {
+      render(<TattooDesignsView {...baseProps} />);
+
+      open();
+
+      const note = within(screen.getByRole("dialog")).getByRole("note");
+      expect(note.textContent).toContain("Imprimimos 5 tatuajes");
+      expect(note.textContent).toContain("Si eliges más, los escogemos en este orden:");
+    });
+
+    it("tells until when changes are possible when the event has a date", () => {
+      render(<TattooDesignsView {...baseProps} closingDayLabel="12 de septiembre" />);
+
+      open();
+
+      expect(
+        within(screen.getByRole("dialog")).getByText(
+          "Puedes hacer cambios hasta el 12 de septiembre.",
+        ),
+      ).toBeTruthy();
+    });
+
+    it("omits the deadline line when the reservation has no event date", () => {
+      render(<TattooDesignsView {...baseProps} closingDayLabel={null} />);
+
+      open();
+
+      expect(
+        within(screen.getByRole("dialog")).queryByText(/Puedes hacer cambios hasta/),
+      ).toBeNull();
+    });
+
+    it("drops the deadline once the window closed", () => {
+      render(
+        <TattooDesignsView
+          {...baseProps}
+          locked
+          saveStatus="locked"
+          closingDayLabel="12 de septiembre"
+        />,
+      );
+
+      open();
+
+      expect(
+        within(screen.getByRole("dialog")).queryByText(/Puedes hacer cambios hasta/),
+      ).toBeNull();
+    });
+
+    it("is a view, not a step: no send or finish button, and closing keeps everything", async () => {
+      render(<TattooDesignsView {...baseProps} designs={[design(1)]} />);
+
+      open();
+      const dialog = screen.getByRole("dialog");
+      expect(within(dialog).queryByRole("button", { name: /Enviar|Finalizar|Confirmar/ })).toBeNull();
+
+      fireEvent.click(within(dialog).getByRole("button", { name: "Cerrar" }));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(screen.getByRole("button", { name: "Quitar de mis diseños: Diseño 1" })).toBeTruthy();
+    });
+
+    it("says so when nothing is selected yet", () => {
+      render(<TattooDesignsView {...baseProps} />);
+
+      open();
+
+      const dialog = screen.getByRole("dialog");
+      expect(within(dialog).getByText("Todavía no has subido nada.")).toBeTruthy();
+      expect(within(dialog).getByText("Todavía no has elegido nada del catálogo.")).toBeTruthy();
+    });
   });
 
   describe("catalog gallery", () => {

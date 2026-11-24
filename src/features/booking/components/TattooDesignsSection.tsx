@@ -19,6 +19,10 @@ import {
   TattooCatalogChoice,
   TattooCatalogItem,
 } from "../utils/tattooDesigns";
+import {
+  deriveTattooSaveStatus,
+  TattooSaveOutcome,
+} from "../utils/tattooSaveStatus";
 import { TattooDesignsView } from "./TattooDesignsView";
 import {
   RESERVATION_ACTIONS,
@@ -59,6 +63,8 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   const [catalog, setCatalog] = useState<TattooCatalogItem[]>([]);
   const [locked, setLocked] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  // How the last finished save ended; the selection bar shows it.
+  const [saveOutcome, setSaveOutcome] = useState<TattooSaveOutcome>("none");
   const [isAuthorizing, setIsAuthorizing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -82,6 +88,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       setChosen([]);
       setLocked(false);
       setErrorMessage(null);
+      setSaveOutcome("none");
     },
   });
 
@@ -177,6 +184,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       ...(catalogDesignIds === undefined ? {} : { catalogDesignIds }),
     });
     applyProfile(profile);
+    setSaveOutcome("saved");
   };
 
   const failWith = (error: unknown) => {
@@ -185,6 +193,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       setErrorMessage("Ya no se pueden modificar los diseños.");
       return;
     }
+    setSaveOutcome("failed");
     setErrorMessage("No se pudieron guardar los diseños. Intenta de nuevo.");
   };
 
@@ -367,6 +376,11 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       locked={locked}
       closingDayLabel={eventDate ? formatDay(getTattooClosingDay(eventDate)) : null}
       isBusy={isBusy}
+      saveStatus={deriveTattooSaveStatus({
+        locked,
+        isBusy,
+        outcome: saveOutcome,
+      })}
       errorMessage={errorMessage}
       catalog={catalog}
       chosen={chosen}

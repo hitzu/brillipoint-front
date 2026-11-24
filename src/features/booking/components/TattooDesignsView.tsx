@@ -5,11 +5,14 @@ import FormDropzone from "@shared/forms/file-upload/FormDropzone";
 import { PrepAssetMetadata } from "../../../interfaces";
 import {
   TATTOO_CATALOG_MAX,
-  TATTOO_PRINT_MAX,
   TATTOO_UPLOADS_MAX,
   TattooCatalogChoice,
   TattooCatalogItem,
 } from "../utils/tattooDesigns";
+import { TattooSaveStatus } from "../utils/tattooSaveStatus";
+import { TattooPrintNotice } from "./TattooPrintNotice";
+import { TattooSelectionBar } from "./TattooSelectionBar";
+import { TattooSummaryModal } from "./TattooSummaryModal";
 
 type Props = {
   designs: PrepAssetMetadata[];
@@ -18,6 +21,8 @@ type Props = {
   /** Human-readable last day to change designs, e.g. "12 de septiembre". */
   closingDayLabel: string | null;
   isBusy: boolean;
+  /** What the selection bar says about saving (derived by the parent). */
+  saveStatus: TattooSaveStatus;
   errorMessage: string | null;
   /** Live catalog the client can choose from (templates and final designs). */
   catalog: TattooCatalogItem[];
@@ -203,6 +208,7 @@ export function TattooDesignsView({
   locked,
   closingDayLabel,
   isBusy,
+  saveStatus,
   errorMessage,
   catalog,
   chosen,
@@ -211,6 +217,7 @@ export function TattooDesignsView({
   onToggleCatalog,
 }: Props) {
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const uploadsFull = designs.length >= TATTOO_UPLOADS_MAX;
   const catalogFull = chosen.length >= TATTOO_CATALOG_MAX;
   const remaining = Math.max(TATTOO_UPLOADS_MAX - designs.length, 0);
@@ -317,39 +324,7 @@ export function TattooDesignsView({
           Diseños de tatuajes
         </h2>
 
-        <div role="note" className={styles.tattooPriority}>
-          <div style={{ display: "grid", gap: 2 }}>
-            <strong className={styles.tattooPriorityTitle}>
-              Imprimimos{" "}
-              <span className={styles.tattooPriorityCount}>
-                {TATTOO_PRINT_MAX}
-              </span>{" "}
-              tatuajes
-            </strong>
-            <span style={mutedText}>
-              Si eliges más, los escogemos en este orden:
-            </span>
-          </div>
-          <ol className={styles.tattooPriorityList}>
-            <li>
-              <span style={{ display: "grid", gap: 2 }}>
-                <span>Diseños que subes tú</span>
-                <span style={{ ...mutedText, fontWeight: 400 }}>
-                  Si creaste tu propio tatuaje, se imprime primero.
-                </span>
-              </span>
-            </li>
-            <li>
-              <span style={{ display: "grid", gap: 2 }}>
-                <span>Templates con tus fotos</span>
-                <span style={{ ...mutedText, fontWeight: 400 }}>
-                  (nosotros los diseñamos)
-                </span>
-              </span>
-            </li>
-            <li>Diseños del catálogo</li>
-          </ol>
-        </div>
+        <TattooPrintNotice />
 
         <div style={mutedText}>
           Puedes <strong>subir hasta {TATTOO_UPLOADS_MAX} fotos o diseños</strong>{" "}
@@ -564,14 +539,27 @@ export function TattooDesignsView({
           </div>
         ) : null}
 
-        {isBusy ? <div style={mutedText}>Guardando...</div> : null}
-
         {errorMessage ? (
           <div role="alert" style={{ color: "#b3261e", fontWeight: 800 }}>
             {errorMessage}
           </div>
         ) : null}
+
+        <TattooSelectionBar
+          uploadsCount={designs.length}
+          catalogCount={chosen.length}
+          status={saveStatus}
+          onOpenSummary={() => setShowSummary(true)}
+        />
       </div>
+      <TattooSummaryModal
+        show={showSummary}
+        onHide={() => setShowSummary(false)}
+        designs={designs}
+        chosen={chosen}
+        closingDayLabel={closingDayLabel}
+        locked={locked}
+      />
       <Modal
         show={showTutorial}
         onHide={() => setShowTutorial(false)}

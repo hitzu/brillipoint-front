@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { AxiosError } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -135,6 +136,134 @@ describe("TattooDesignsSection", () => {
       contractToken: "tok",
       phone: "2222232323",
       assets: [{ path: "7/tattoo_designs/2.png", mime: "image/png" }],
+    });
+  });
+
+  describe("selection bar", () => {
+    const verified = () =>
+      window.localStorage.setItem("prep-profile:phone:tok", "2222232323");
+    const bar = () => screen.getByRole("region", { name: "Tu selección" });
+
+    it("shows the counters and says changes save by themselves once the phone gate is passed", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(
+        profile([asset(1), asset(2)], false, [choice(5)]),
+      );
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      await waitFor(() =>
+        expect(within(bar()).getByText("Subidas 2 de 10")).toBeTruthy(),
+      );
+      expect(within(bar()).getByText("Templates 1 de 10")).toBeTruthy();
+      expect(within(bar()).getByText("Tus cambios se guardan solos")).toBeTruthy();
+    });
+
+    it("does not show the bar before the phone is validated", () => {
+      render(<TattooDesignsSection contractToken="tok" phone="2222232323" />);
+
+      expect(screen.queryByRole("region", { name: "Tu selección" })).toBeNull();
+    });
+
+    it("goes saving, then saved, and the counters follow when removing a design", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(profile([asset(1), asset(2)]));
+      let finishSave!: (value: ReturnType<typeof profile>) => void;
+      service.setPublicPrepProfileTattooDesigns.mockReturnValue(
+        new Promise((resolve) => {
+          finishSave = resolve;
+        }),
+      );
+      render(<TattooDesignsSection contractToken="tok" />);
+      await waitFor(() => expect(within(bar()).getByText("Subidas 2 de 10")).toBeTruthy());
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Quitar de mis diseños: Diseño 1" }),
+      );
+
+      await waitFor(() => expect(within(bar()).getByText("Guardando…")).toBeTruthy());
+      expect(screen.queryByText("Guardando...")).toBeNull();
+
+      finishSave(profile([asset(2)]));
+
+      await waitFor(() => expect(within(bar()).getByText("Guardado ✓")).toBeTruthy());
+      expect(within(bar()).getByText("Subidas 1 de 10")).toBeTruthy();
+    });
+
+    it("goes saving, then saved, when choosing from the catalog", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(profile([]));
+      catalogService.getTattooCatalog.mockResolvedValue([catalogItem(5)]);
+      service.setPublicPrepProfileTattooDesigns.mockResolvedValue(
+        profile([], false, [choice(5)]),
+      );
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Elegir Diseño catálogo 5" }),
+      );
+
+      await waitFor(() => expect(within(bar()).getByText("Guardado ✓")).toBeTruthy());
+      expect(within(bar()).getByText("Templates 1 de 10")).toBeTruthy();
+    });
+
+    it("shows the failure in the bar and keeps the message in the card", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(profile([asset(1)]));
+      service.setPublicPrepProfileTattooDesigns.mockRejectedValue(new Error("500"));
+      render(<TattooDesignsSection contractToken="tok" />);
+      await waitFor(() => expect(within(bar()).getByText("Subidas 1 de 10")).toBeTruthy());
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Quitar de mis diseños: Diseño 1" }),
+      );
+
+      await waitFor(() => expect(within(bar()).getByText("No se pudo guardar")).toBeTruthy());
+      expect(screen.getByRole("alert").textContent).toBe(
+        "No se pudieron guardar los diseños. Intenta de nuevo.",
+      );
+      expect(within(bar()).getByText("Subidas 1 de 10")).toBeTruthy();
+    });
+
+    it("says it is closed when the API reports the window as closed", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(profile([asset(1)], true));
+      render(<TattooDesignsSection contractToken="tok" />);
+
+      await waitFor(() =>
+        expect(within(bar()).getByText("Cerrado: ya no se pueden modificar")).toBeTruthy(),
+      );
+      expect(screen.queryByRole("button", { name: /Quitar de mis diseños/ })).toBeNull();
+    });
+
+    it("says it is closed once a 409 arrives while saving", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(profile([asset(1)]));
+      service.setPublicPrepProfileTattooDesigns.mockRejectedValue(
+        new AxiosError("locked", "409", undefined, undefined, { status: 409 } as never),
+      );
+      render(<TattooDesignsSection contractToken="tok" />);
+      await waitFor(() => expect(within(bar()).getByText("Subidas 1 de 10")).toBeTruthy());
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Quitar de mis diseños: Diseño 1" }),
+      );
+
+      await waitFor(() =>
+        expect(within(bar()).getByText("Cerrado: ya no se pueden modificar")).toBeTruthy(),
+      );
+      expect(screen.queryByRole("button", { name: /Quitar de mis diseños/ })).toBeNull();
+    });
+
+    it("opens the summary with what was already saved", async () => {
+      verified();
+      service.getPublicPrepProfile.mockResolvedValue(profile([asset(1)]));
+      render(<TattooDesignsSection contractToken="tok" eventDate="2026-12-20" />);
+
+      fireEvent.click(await screen.findByRole("button", { name: "Ver seleccionado" }));
+
+      const dialog = screen.getByRole("dialog", { name: "Lo que llevas elegido" });
+      expect(within(dialog).getByRole("img", { name: "Diseño 1" })).toBeTruthy();
+      expect(within(dialog).getByText(/Puedes hacer cambios hasta el 12 de diciembre/)).toBeTruthy();
     });
   });
 
