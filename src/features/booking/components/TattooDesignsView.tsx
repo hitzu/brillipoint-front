@@ -48,7 +48,7 @@ const thumbStyle = {
   display: "block",
 } as const;
 
-const TUTORIAL_IMAGE = "/assets/tattoo/photo-tips.webp";
+const TUTORIAL_IMAGE = "/assets/tattoo/photo-tips.jpg";
 const TUTORIAL_ALT =
   "Ejemplo: una selfie clara y de frente funciona; una foto grupal o de lado no.";
 

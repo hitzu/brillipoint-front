@@ -199,7 +199,7 @@ describe("TattooDesignsView", () => {
 
     expect(
       screen.getByRole("img", { name: /selfie clara y de frente funciona/ }).getAttribute("src"),
-    ).toBe("/assets/tattoo/photo-tips.webp");
+    ).toBe("/assets/tattoo/photo-tips.jpg");
     expect(screen.getByText("Tus selfies:")).toBeTruthy();
     expect(screen.getByText("Tu propio diseño:")).toBeTruthy();
     expect(screen.queryByRole("dialog")).toBeNull();

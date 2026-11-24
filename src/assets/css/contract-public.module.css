@@ -415,6 +415,18 @@
   font-weight: 900;
 }
 
+/* On wide screens the three priorities sit in a row instead of a tall column. */
+@media (min-width: 640px) {
+  .tattooPriorityList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .tattooPriorityList li {
+    align-items: flex-start;
+  }
+}
+
 .sectionTitle {
   color: var(--bp-brown-1);
   font-family: var(--bp-font-display);
