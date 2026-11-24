@@ -4,6 +4,10 @@ import { Contract, Payment } from "../../../interfaces";
 import { translatePaymentMethod } from "../../../shared/constants/paymentMethods";
 import { formatLongSpanishDate } from "@common/dates";
 import { useMemo } from "react";
+import {
+  RESERVATION_ACTIONS,
+  trackReservationAction,
+} from "../tracking/reservationTracker";
 
 const formatMoney = (amount: number) => {
   const n = Number.isFinite(amount) ? amount : 0;
@@ -167,6 +171,11 @@ export const ReservationFinanceSection = ({
                               target="_blank"
                               rel="noopener noreferrer"
                               className={styles.paymentReceiptLink}
+                              onClick={() =>
+                                trackReservationAction(
+                                  RESERVATION_ACTIONS.RECEIPT_OPENED,
+                                )
+                              }
                             >
                               Ver comprobante
                             </a>

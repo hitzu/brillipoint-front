@@ -4,7 +4,6 @@ import {
   getTattooEventDate,
   hasTattooDesignsInContract,
   isTattooDesignsName,
-  isTattooPreviewEnabled,
   TATTOO_CATALOG_MAX,
   TATTOO_UPLOADS_MAX,
 } from "./tattooDesigns";
@@ -115,12 +114,3 @@ describe("tattooDesigns", () => {
   });
 });
 
-describe("isTattooPreviewEnabled", () => {
-  it("is on only for ?tatuajes=true", () => {
-    expect(isTattooPreviewEnabled("true")).toBe(true);
-    expect(isTattooPreviewEnabled(undefined)).toBe(false);
-    expect(isTattooPreviewEnabled("false")).toBe(false);
-    expect(isTattooPreviewEnabled("1")).toBe(false);
-    expect(isTattooPreviewEnabled(["true", "true"])).toBe(false);
-  });
-});

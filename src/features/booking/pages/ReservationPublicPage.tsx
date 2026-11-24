@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { Container, Row, Col } from "react-bootstrap";
@@ -27,11 +27,17 @@ import { ReservationNotesSection } from "../components/ReservationNotesSection";
 import { ReservationPreviewNotice } from "../components/ReservationPreviewNotice";
 import { PreparationSection } from "../components/PreparationSection";
 import { TattooDesignsSection } from "../components/TattooDesignsSection";
+import { TrackedBlock } from "../components/TrackedBlock";
+import {
+  ReservationTracker,
+  daysUntil,
+  getVisitorId,
+  readEntryType,
+  setActiveReservationTracker,
+} from "../tracking/reservationTracker";
 import {
   getTattooEventDate,
   hasTattooDesignsInContract,
-  isTattooPreviewEnabled,
-  TATTOO_PREVIEW_QUERY_PARAM,
 } from "../utils/tattooDesigns";
 import { parseLocalDate } from "@common/dates";
 import {
@@ -168,12 +174,9 @@ const ReservationPublicPage = ({ token }: Props) => {
     return packagesForPrep.some((p) => p.brandId === 2);
   }, [packagesForPrep]);
 
-  const tattooPreview = isTattooPreviewEnabled(
-    router.query[TATTOO_PREVIEW_QUERY_PARAM],
-  );
   const hasTattooDesigns = useMemo(() => {
-    return tattooPreview && hasTattooDesignsInContract(data ?? undefined);
-  }, [data, tattooPreview]);
+    return hasTattooDesignsInContract(data ?? undefined);
+  }, [data]);
 
   const packageTerms = useMemo((): GetTermsResponse[] => {
     const dedup = new Map<number, GetTermsResponse>();
@@ -209,17 +212,29 @@ const ReservationPublicPage = ({ token }: Props) => {
           render: () => {
             return (
               <>
-                <ReservationClientSection contract={data.contract} />
-                <ReservationDatesSection dates={reservationDates} />
-                <ReservationServicesSection items={items} />
-                <ReservationExtrasSection items={extraItems} />
-                <ReservationFinanceSection
-                  contract={data.contract}
-                  payments={data.payments ?? []}
-                  paidAmount={data.paidAmount ?? 0}
-                  balanceDue={data.balanceDue}
-                />
-                <ReservationNotesSection notes={notes} />
+                <TrackedBlock id="client">
+                  <ReservationClientSection contract={data.contract} />
+                </TrackedBlock>
+                <TrackedBlock id="dates">
+                  <ReservationDatesSection dates={reservationDates} />
+                </TrackedBlock>
+                <TrackedBlock id="services">
+                  <ReservationServicesSection items={items} />
+                </TrackedBlock>
+                <TrackedBlock id="extras">
+                  <ReservationExtrasSection items={extraItems} />
+                </TrackedBlock>
+                <TrackedBlock id="finance">
+                  <ReservationFinanceSection
+                    contract={data.contract}
+                    payments={data.payments ?? []}
+                    paidAmount={data.paidAmount ?? 0}
+                    balanceDue={data.balanceDue}
+                  />
+                </TrackedBlock>
+                <TrackedBlock id="notes">
+                  <ReservationNotesSection notes={notes} />
+                </TrackedBlock>
               </>
             );
           },
@@ -303,7 +318,41 @@ const ReservationPublicPage = ({ token }: Props) => {
     }
   }, [activeSectionId, safeActiveSectionId, sections.length]);
 
+  // One tracker per page load. It starts once the contract and tabs are known,
+  // with the tab the page really landed on.
+  const trackerRef = useRef<ReservationTracker | null>(null);
+  useEffect(() => {
+    if (!data || !token || sections.length === 0 || trackerRef.current) return;
+    const tracker = new ReservationTracker({
+      token,
+      visitorId: getVisitorId(),
+      entry: readEntryType(),
+      hasPayments: (data.paidAmount ?? 0) > 0,
+      daysToEvent: daysUntil(getEventDate(data.bookings)),
+    });
+    trackerRef.current = tracker;
+    setActiveReservationTracker(tracker);
+    tracker.start(safeActiveSectionId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, token, sections.length]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") trackerRef.current?.pageHidden();
+      else trackerRef.current?.pageVisible();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      trackerRef.current?.stop();
+      setActiveReservationTracker(null);
+      trackerRef.current = null;
+    };
+  }, []);
+
   const selectSection = (id: SectionId) => {
+    // Only a user click counts as a tab choice, never the safeActiveSectionId fix-up.
+    trackerRef.current?.selectSection(id);
     setActiveSectionId(id);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });

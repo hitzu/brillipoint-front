@@ -1,4 +1,5 @@
 import { AnalyticsAction } from "../../interfaces";
+import { hasBrillipointSession } from "../../lib/brillipointSession";
 import { axiosInstanceWithoutToken } from "../config/axiosConfig";
 
 type TrackEventOptions = {
@@ -19,6 +20,9 @@ export const trackEvent = async (
   eventToken: string,
   options: TrackEventOptions = {},
 ): Promise<void> => {
+  // Devices with a Brillipoint session never record analytics.
+  if (hasBrillipointSession()) return;
+
   const source = options.source ?? readStringField(options.metadata, "source");
   const surface =
     options.surface ?? readStringField(options.metadata, "surface");

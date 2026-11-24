@@ -21,6 +21,10 @@ import {
   patchPublicPrepProfileAnswers,
   uploadPrepProfileFileToSignedUrl,
 } from "../../../api/services/prepProfileService";
+import {
+  RESERVATION_ACTIONS,
+  trackReservationAction,
+} from "../tracking/reservationTracker";
 
 type Props = {
   contractToken?: string;
@@ -547,6 +551,7 @@ export function PreparationSection({
         phone: verifiedPhone as string,
         answers: pendingChanges,
       });
+      trackReservationAction(RESERVATION_ACTIONS.PREP_ANSWERED);
 
       // Optimista: si el backend bloquea al guardar, reflejamos eso de inmediato.
       setLocked((prev) => {

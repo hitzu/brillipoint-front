@@ -20,6 +20,10 @@ import {
   TattooCatalogItem,
 } from "../utils/tattooDesigns";
 import { TattooDesignsView } from "./TattooDesignsView";
+import {
+  RESERVATION_ACTIONS,
+  trackReservationAction,
+} from "../tracking/reservationTracker";
 
 type Props = {
   contractToken?: string;
@@ -233,6 +237,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
         ...designs.map((d) => ({ path: d.path, mime: d.mime })),
         ...uploaded,
       ]);
+      trackReservationAction(RESERVATION_ACTIONS.TATTOO_UPLOADED);
     } catch (error) {
       failWith(error);
     } finally {
@@ -258,6 +263,9 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
         designs.map((d) => ({ path: d.path, mime: d.mime })),
         nextIds,
       );
+      if (!isChosen) {
+        trackReservationAction(RESERVATION_ACTIONS.TATTOO_SELECTED);
+      }
     } catch (error) {
       failWith(error);
     } finally {

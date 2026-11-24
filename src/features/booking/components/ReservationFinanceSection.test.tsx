@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import {
+  ReservationTracker,
+  setActiveReservationTracker,
+} from "../tracking/reservationTracker";
 import { ReservationFinanceSection } from "./ReservationFinanceSection";
 
 const payment = {
@@ -76,5 +80,18 @@ describe("ReservationFinanceSection", () => {
     expect(links[0].getAttribute("href")).toBe("https://s/r.pdf");
     expect(links[0].getAttribute("target")).toBe("_blank");
     expect(screen.getByText(/Referencia: folio-9/)).toBeTruthy();
+  });
+
+  it("reports a receipt opening to the reservation tracker", () => {
+    const trackAction = vi.fn();
+    setActiveReservationTracker({ trackAction } as unknown as ReservationTracker);
+    renderSection({ transportStatus: "included" }, 1300, [
+      { ...payment, id: 1, receiptUrl: "https://s/r.pdf" },
+    ]);
+
+    fireEvent.click(screen.getByText("Ver comprobante"));
+
+    expect(trackAction).toHaveBeenCalledWith("reservation_receipt_opened", undefined);
+    setActiveReservationTracker(null);
   });
 });
