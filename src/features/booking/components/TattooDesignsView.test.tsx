@@ -96,7 +96,7 @@ describe("TattooDesignsView", () => {
     expect(note.textContent).toContain("Elige hasta 10 diseños de nuestro catálogo.");
     expect(note.textContent).toContain("Vamos a imprimir 5 diseños.");
     expect(note.textContent).toContain(
-      "Todo se guarda automáticamente. Puedes cambiar tus diseños cuando quieras, hasta el 11 de diciembre.",
+      "Todo se guarda automáticamente. Puedes cambiar tus diseños las veces que quieras, hasta el 11 de diciembre.",
     );
     expect(screen.queryByText(/Tus cambios se guardan automáticamente/)).toBeNull();
   });
@@ -115,7 +115,7 @@ describe("TattooDesignsView", () => {
     render(<TattooDesignsView {...baseProps} />);
 
     const title = screen.getByText("¿Cómo funciona?");
-    const priority = screen.getByText("Si eliges más, los escogemos en este orden:");
+    const priority = screen.getByText("Si eliges más de 5 diseños, imprimimos en este orden:");
     expect(priority.tagName).toBe("STRONG");
     expect(priority.className).toBe(title.className);
   });
@@ -134,11 +134,19 @@ describe("TattooDesignsView", () => {
     expect(screen.getByRole("note").textContent).not.toContain("Todo se guarda automáticamente.");
   });
 
+  it("shows a loader while the photos are uploading", () => {
+    const { rerender } = render(<TattooDesignsView {...baseProps} />);
+    expect(screen.queryByText(/Subiendo tus fotos/)).toBeNull();
+
+    rerender(<TattooDesignsView {...baseProps} isBusy isUploading />);
+    expect(screen.getByRole("status").textContent).toContain("Subiendo tus fotos");
+  });
+
   it("orders the steps: upload first, catalog second", () => {
     render(<TattooDesignsView {...baseProps} catalog={[catalogItem(1)]} />);
 
     const upload = screen.getByText("Sube tus fotos o diseños");
-    const catalogTitle = screen.getByText("Elige de nuestro catálogo");
+    const catalogTitle = screen.getByText("Catálogo de diseños", { selector: "h3" });
     expect(
       upload.compareDocumentPosition(catalogTitle) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
@@ -213,13 +221,13 @@ describe("TattooDesignsView", () => {
     const note = screen.getByRole("note");
     expect(note.textContent).toContain("¿Cómo funciona?");
     expect(note.textContent).not.toContain("Imprimimos 5 tatuajes");
-    expect(note.textContent).toContain("Si eliges más, los escogemos en este orden:");
+    expect(note.textContent).toContain("Si eliges más de 5 diseños, imprimimos en este orden:");
     const priorityList = Array.from(note.querySelectorAll("ol")).at(-1)!;
     const items = Array.from(priorityList.querySelectorAll("li")).map((li) => li.textContent);
     expect(items).toEqual([
-      "Diseños que subes túSi creaste tu propio tatuaje, se imprime primero.",
+      "Diseños que subes túSi creaste tu propio tatuaje, va primero.",
       "Templates con tus fotos(nosotros los adaptamos con tu selfie)",
-      "Diseños del catálogo",
+      "Catálogo de diseños",
     ]);
   });
 
@@ -544,15 +552,20 @@ describe("TattooDesignsView", () => {
         />,
       );
 
-      const groups = screen.getAllByRole("heading", { level: 4 }).map((h) => h.textContent);
-      expect(groups).toEqual(["Templates con tus fotos", "Diseños listos"]);
+      const steps = screen
+        .getAllByRole("heading", { level: 3 })
+        .map((h) => h.textContent)
+        .slice(-2);
+      expect(steps).toEqual(["Templates con tus fotos", "Catálogo de diseños"]);
+      expect(screen.queryByText("Elige de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Tu selección del catálogo")).toBeNull();
       expect(
         screen.getByText("Elige los que te gusten: les ponemos tu rostro usando tus selfies."),
       ).toBeTruthy();
       expect(screen.getByText("Se imprimen tal como los ves.")).toBeTruthy();
       expect(screen.queryByText("Personalizable")).toBeNull();
       expect(screen.queryByText("Listo para imprimir")).toBeNull();
-      expect(screen.getByText("Toca un diseño para elegirlo.")).toBeTruthy();
+      expect(screen.queryByText("Toca un diseño para elegirlo.")).toBeNull();
     });
 
     it("hides a group when it has no designs", () => {
@@ -563,9 +576,11 @@ describe("TattooDesignsView", () => {
         />,
       );
 
-      expect(screen.queryByRole("heading", { level: 4, name: "Diseños listos" })).toBeNull();
       expect(
-        screen.getByRole("heading", { level: 4, name: "Templates con tus fotos" }),
+        screen.queryByRole("heading", { level: 3, name: "Catálogo de diseños" }),
+      ).toBeNull();
+      expect(
+        screen.getByRole("heading", { level: 3, name: "Templates con tus fotos" }),
       ).toBeTruthy();
     });
 
@@ -579,7 +594,7 @@ describe("TattooDesignsView", () => {
         />,
       );
 
-      expect(screen.getByText("Elige de nuestro catálogo")).toBeTruthy();
+      expect(screen.getByText("Catálogo de diseños", { selector: "h3" })).toBeTruthy();
       fireEvent.click(
         screen.getByRole("button", { name: "Elegir Diseño catálogo 2" }),
       );
@@ -669,7 +684,7 @@ describe("TattooDesignsView", () => {
     it("hides the gallery when the catalog is empty", () => {
       render(<TattooDesignsView {...baseProps} catalog={[]} />);
 
-      expect(screen.queryByText("Elige de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Catálogo de diseños", { selector: "h3" })).toBeNull();
     });
 
     it("is read-only once the window closed: chosen designs stay visible, nothing can change", () => {
@@ -683,7 +698,7 @@ describe("TattooDesignsView", () => {
       );
 
       expect(screen.getByText("Diseño catálogo 1")).toBeTruthy();
-      expect(screen.queryByText("Elige de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Catálogo de diseños", { selector: "h3" })).toBeNull();
       expect(screen.queryByRole("button", { name: /Quitar|Elegir/ })).toBeNull();
     });
   });

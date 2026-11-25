@@ -500,7 +500,7 @@ describe("TattooDesignsSection", () => {
       render(<TattooDesignsSection contractToken="tok" />);
 
       await waitFor(() =>
-        expect(screen.getByText("Elige de nuestro catálogo")).toBeTruthy(),
+        expect(screen.getByText("Catálogo de diseños", { selector: "h3" })).toBeTruthy(),
       );
       expect(
         screen.getByRole("button", { name: "Elegir Diseño catálogo 2" }),
@@ -579,7 +579,7 @@ describe("TattooDesignsSection", () => {
         expect(screen.getByRole("status")).toBeTruthy(),
       );
       expect(
-        screen.queryByText("Elige de nuestro catálogo"),
+        screen.queryByText("Catálogo de diseños", { selector: "h3" }),
       ).toBeNull();
     });
 
@@ -592,7 +592,7 @@ describe("TattooDesignsSection", () => {
       await waitFor(() =>
         expect(screen.getByText("1 de 10")).toBeTruthy(),
       );
-      expect(screen.queryByText("Elige de nuestro catálogo")).toBeNull();
+      expect(screen.queryByText("Catálogo de diseños", { selector: "h3" })).toBeNull();
     });
   });
 });

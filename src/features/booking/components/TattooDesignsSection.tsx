@@ -64,6 +64,8 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   const [catalog, setCatalog] = useState<TattooCatalogItem[]>([]);
   const [locked, setLocked] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  // True only while new files travel to storage, so the client sees progress.
+  const [isUploading, setIsUploading] = useState(false);
   // How the last finished save ended; the selection bar shows it.
   const [saveOutcome, setSaveOutcome] = useState<TattooSaveOutcome>("none");
   // Images the client picked, waiting to pass through the crop step.
@@ -227,6 +229,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
   const uploadFiles = async (files: File[]) => {
     if (!contractToken || !verifiedPhone) return;
     setIsBusy(true);
+    setIsUploading(true);
     try {
       const uploaded: Array<{ path: string; mime: string }> = [];
       for (const file of files) {
@@ -256,6 +259,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
       failWith(error);
     } finally {
       setIsBusy(false);
+      setIsUploading(false);
     }
   };
 
@@ -393,6 +397,7 @@ export function TattooDesignsSection({ contractToken, phone, eventDate }: Props)
         locked={locked}
         closingDayLabel={eventDate ? formatDay(getTattooClosingDay(eventDate)) : null}
         isBusy={isBusy}
+        isUploading={isUploading}
         saveStatus={deriveTattooSaveStatus({
           locked,
           isBusy,

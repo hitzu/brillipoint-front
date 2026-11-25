@@ -1,4 +1,4 @@
-import { Modal } from "react-bootstrap";
+import { Modal, Spinner } from "react-bootstrap";
 import React, { useState } from "react";
 import styles from "@assets/css/contract-public.module.css";
 import FormDropzone from "@shared/forms/file-upload/FormDropzone";
@@ -22,6 +22,8 @@ type Props = {
   /** Human-readable last day to change designs, e.g. "12 de septiembre". */
   closingDayLabel: string | null;
   isBusy: boolean;
+  /** True while new files are being uploaded (shows a loader). */
+  isUploading?: boolean;
   /** What the selection bar says about saving (derived by the parent). */
   saveStatus: TattooSaveStatus;
   errorMessage: string | null;
@@ -126,21 +128,16 @@ function StepHeading({ n, children }: { n: number; children: React.ReactNode }) 
   );
 }
 
-function CatalogGroup({
-  title,
+function CatalogGrid({
   hint,
   children,
 }: {
-  title: string;
   hint: string;
   children: React.ReactNode;
 }) {
   return (
     <div style={{ display: "grid", gap: "0.75rem" }}>
-      <div className={styles.tattooGroupHeader}>
-        <h4 className={styles.tattooGroupTitle}>{title}</h4>
-        <span style={mutedText}>{hint}</span>
-      </div>
+      <span style={mutedText}>{hint}</span>
       <div
         style={{
           display: "grid",
@@ -154,6 +151,14 @@ function CatalogGroup({
   );
 }
 
+/** Shared total: templates and catalog designs use the same places. */
+function ChosenCount({ count }: { count: number }) {
+  return (
+    <span aria-live="polite" style={{ ...mutedText, fontWeight: 900, fontSize: 15 }}>
+      {`${count} de ${TATTOO_CATALOG_MAX}`}
+    </span>
+  );
+}
 
 function SectionHeading({
   children,
@@ -196,6 +201,7 @@ export function TattooDesignsView({
   locked,
   closingDayLabel,
   isBusy,
+  isUploading = false,
   saveStatus,
   errorMessage,
   catalog,
@@ -376,6 +382,27 @@ export function TattooDesignsView({
                 />
               </div>
             )}
+            {isUploading ? (
+              <div
+                role="status"
+                aria-live="polite"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "14px 16px",
+                  borderRadius: 14,
+                  border: "2px solid var(--bp-brown-1)",
+                  background: "rgba(0, 0, 0, 0.04)",
+                  color: "var(--bp-brown-1)",
+                  fontSize: 15,
+                  fontWeight: 800,
+                }}
+              >
+                <Spinner animation="border" aria-hidden="true" />
+                Subiendo tus fotos… no cierres esta página.
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -446,30 +473,42 @@ export function TattooDesignsView({
               paddingTop: "1.25rem",
             }}
           >
-            {canEdit && catalog.length > 0 ? (
-              <StepTitle n={2}>Elige de nuestro catálogo</StepTitle>
-            ) : null}
-            <SectionHeading count={chosen.length} max={TATTOO_CATALOG_MAX}>
-              Tu selección del catálogo
-            </SectionHeading>
-            {canEdit && catalog.length > 0 ? (
-              <span style={mutedText}>Toca un diseño para elegirlo.</span>
-            ) : null}
             {canEdit && templates.length > 0 ? (
-              <CatalogGroup
-                title="Templates con tus fotos"
-                hint="Elige los que te gusten: les ponemos tu rostro usando tus selfies."
-              >
-                {templates.map(renderTile)}
-              </CatalogGroup>
+              <div style={{ display: "grid", gap: "0.75rem" }}>
+                <StepTitle
+                  n={2}
+                  action={<ChosenCount count={chosen.length} />}
+                >
+                  Templates con tus fotos
+                </StepTitle>
+                <CatalogGrid
+                  hint="Elige los que te gusten: les ponemos tu rostro usando tus selfies."
+                >
+                  {templates.map(renderTile)}
+                </CatalogGrid>
+              </div>
             ) : null}
             {canEdit && finals.length > 0 ? (
-              <CatalogGroup
-                title="Diseños listos"
-                hint="Se imprimen tal como los ves."
-              >
-                {finals.map(renderTile)}
-              </CatalogGroup>
+              <div style={{ display: "grid", gap: "0.75rem" }}>
+                <StepTitle
+                  n={3}
+                  action={
+                    templates.length === 0 ? (
+                      <ChosenCount count={chosen.length} />
+                    ) : undefined
+                  }
+                >
+                  Catálogo de diseños
+                </StepTitle>
+                <CatalogGrid hint="Se imprimen tal como los ves.">
+                  {finals.map(renderTile)}
+                </CatalogGrid>
+              </div>
+            ) : null}
+            {listedChoices.length > 0 ? (
+              <SectionHeading count={chosen.length} max={TATTOO_CATALOG_MAX}>
+                Tu selección del catálogo
+              </SectionHeading>
             ) : null}
 
             {listedChoices.length > 0 ? (

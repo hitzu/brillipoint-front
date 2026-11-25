@@ -46,7 +46,7 @@ export function TattooPrintNotice({
           className={styles.tattooPriorityTitle}
           style={{ marginTop: 10 }}
         >
-          Si eliges más, los escogemos en este orden:
+          {`Si eliges más de ${TATTOO_PRINT_MAX} diseños, imprimimos en este orden:`}
         </strong>
       </div>
       <ol className={styles.tattooPriorityList}>
@@ -54,7 +54,7 @@ export function TattooPrintNotice({
           <span style={{ display: "grid", gap: 2 }}>
             <span>Diseños que subes tú</span>
             <span style={{ ...mutedText, fontWeight: 400 }}>
-              Si creaste tu propio tatuaje, se imprime primero.
+              Si creaste tu propio tatuaje, va primero.
             </span>
           </span>
         </li>
@@ -66,7 +66,7 @@ export function TattooPrintNotice({
             </span>
           </span>
         </li>
-        <li>Diseños del catálogo</li>
+        <li>Catálogo de diseños</li>
       </ol>
       {canEdit ? (
         <p className={styles.tattooSaveNote}>
@@ -74,7 +74,7 @@ export function TattooPrintNotice({
           {closingDayLabel ? (
             <>
               {" "}
-              Puedes cambiar tus diseños cuando quieras, hasta el{" "}
+              Puedes cambiar tus diseños las veces que quieras, hasta el{" "}
               <strong>{closingDayLabel}</strong>.
             </>
           ) : null}
