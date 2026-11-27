@@ -417,7 +417,10 @@ const ReservationPublicPage = ({ token }: Props) => {
     </div>
   ) : (
     <>
-      <ReservationPreviewNotice paidAmount={data.paidAmount ?? 0} />
+      <ReservationPreviewNotice
+        paidAmount={data.paidAmount ?? 0}
+        createdAt={data.contract.createdAt}
+      />
       {activeSection?.render()}
     </>
   );
