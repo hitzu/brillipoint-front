@@ -36,11 +36,6 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/pages/sales",
-        destination: "/sales",
-        permanent: true,
-      },
-      {
         source: "/",
         destination: "/agenda",
         permanent: false,

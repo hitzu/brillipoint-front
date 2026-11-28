@@ -25,8 +25,6 @@ type PhotoViewerLightboxProps = {
   onActiveIndexChange: (nextIndex: number) => void;
   onDownload?: (photo: EventPhoto) => Promise<void>;
   onShare?: (photo: EventPhoto) => Promise<void>;
-  onPersonalize?: (photo: EventPhoto) => void;
-  onDedicate?: (photo: EventPhoto) => void;
   nombreFestejado?: string;
   eventToken?: string;
   showMediaActions?: boolean;
@@ -56,8 +54,6 @@ const PhotoViewerLightbox = ({
   onActiveIndexChange,
   onDownload,
   onShare,
-  onPersonalize,
-  onDedicate,
   eventToken,
   showMediaActions = true,
   showNavigationHints = false,
@@ -271,34 +267,7 @@ const PhotoViewerLightbox = ({
                   <>
                     {modalState === "gallery-photo" && (
                       <>
-                        {/* Fila 1 — primarios, color sólido, sin emojis */}
-                        <div className={styles.viewerPrimaryActions}>
-                          {onPersonalize ? (
-                            <button
-                              type="button"
-                              className={`${styles.btnExperience} ${styles.btnPersonalizar}`}
-                              onClick={() => onPersonalize(currentPhoto)}
-                              aria-label={t("lightbox.personalizeAriaLabel")}
-                            >
-                              {t("lightbox.personalize")}
-                            </button>
-                          ) : null}
-                          {onDedicate ? (
-                            <button
-                              type="button"
-                              className={`${styles.btnExperience} ${styles.btnDedicar}`}
-                              onClick={() => onDedicate(currentPhoto)}
-                              aria-label={t("lightbox.dedicateAriaLabel")}
-                            >
-                              {t("lightbox.dedicate")}
-                              <span className={styles.badgeNew}>
-                                {t("lightbox.newBadge")}
-                              </span>
-                            </button>
-                          ) : null}
-                        </div>
-
-                        {/* Fila 2 — SVG estilo Instagram, sin texto */}
+                        {/* SVG estilo Instagram, sin texto */}
                         <div className={styles.viewerSecondaryActions}>
                           <button
                             type="button"
